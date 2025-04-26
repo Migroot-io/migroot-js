@@ -72,6 +72,7 @@ class Logger {
 // };
 
 const ENDPOINTS = {
+  searchBoard: 'board/search',
   getBoardById: '/api/board',      // example endpoint
   currentUser: '/api/user',        // example endpoint
   updateTask: '/api/task/update'   // example endpoint
@@ -81,53 +82,55 @@ class Migroot {
     constructor(config) {
         this.config = config;
         this.cards = null;
-        this.backend_url = config.backend_url || null; // taking from config
+        this.backend_url = config.backend_url || 'https://migroot-447015.oa.r.appspot.com/v1/'; // taking from config
         this.endpoints = ENDPOINTS;
         // this.get_url = null;
         // this.post_url = null;
         this.log = new Logger(this.config.debug);
     }
 
+  async request(endpointName, body = {}, method = 'POST') {
+  if (!this.backend_url) {
+    throw new Error("Backend URL is not set.");
+  }
+
+  const accessToken = await window.Outseta.getAccessToken()
+      if (!accessToken) {
+        throw new Error("Access token is missing in window object.");
+      }
     
-  async getBoardById(boardId) {
-    const url = `${this.backend_url}${this.endpoints.getBoardById}/${boardId}`;
-    try {
-      const response = await fetch(url, { method: 'GET' });
-      return await response.json();
-    } catch (error) {
-      this.log.error("Error fetching board by ID:", error);
-      throw error;
-    }
-  }
+      const endpoint = this.endpoints[endpointName];
+      if (!endpoint) {
+        throw new Error(`Unknown endpoint: ${endpointName}`);
+      }
+    
+      const url = `${this.backend_url}/${endpoint}`;
+    
+      try {
+        const response = await fetch(url, {
+          method: method,
+          headers: {
+            'Authorization': `Bearer ${accessToken}`,
+            'Content-Type': 'application/json'
+          },
+          body: method !== 'GET' ? JSON.stringify(body) : undefined
+        });
+    
+        if (!response.ok) {
+          throw new Error(`Request failed: ${response.status} ${response.statusText}`);
+        }
+    
+        return await response.json();
+    
+          } catch (error) {
+            this.log.error(`Error in request to ${endpointName}:`, error);
+            throw error;
+          }
+        }
 
-  async getCurrentUser() {
-    const url = `${this.backend_url}${this.endpoints.currentUser}`;
-    try {
-      const response = await fetch(url, { method: 'GET' });
-      return await response.json();
-    } catch (error) {
-      this.log.error("Error fetching current user:", error);
-      throw error;
+    async searchBoard(userType, userId) {
+      return await this.request('searchBoard', { userType, userId });
     }
-  }
-
-  async updateTask(taskId, taskData) {
-    const url = `${this.backend_url}${this.endpoints.updateTask}/${taskId}`;
-    try {
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(taskData)
-      });
-      return await response.json();
-    } catch (error) {
-      this.log.error("Error updating task:", error);
-      throw error;
-    }
-  }
-}
 
     async init_dashboard(callback = null) {
         try {
