@@ -334,10 +334,10 @@ class Migroot {
         return this.config.user ? this.config.user.plan : 'Free registration';
     }
 }
-
 // // Создание объекта Migroot с конфигурацией
-//const migrootInstance = new Migroot(CONFIG);
+//const window.mg = new Migroot(CONFIG);
 
 // Пример вызова метода init_dashboard
-// migrootInstance.init_dashboard();
-// migrootInstance.createDummyCard();
+// window.mg.init_dashboard();
+// window.mg.createDummyCard();
+window.Migroot = Migroot;
