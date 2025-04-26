@@ -71,14 +71,63 @@ class Logger {
 //     timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone
 // };
 
+const ENDPOINTS = {
+  getBoardById: '/api/board',      // example endpoint
+  currentUser: '/api/user',        // example endpoint
+  updateTask: '/api/task/update'   // example endpoint
+};
+
 class Migroot {
     constructor(config) {
         this.config = config;
         this.cards = null;
-        this.get_url = null;
-        this.post_url = null;
+        this.backend_url = config.backend_url || null; // taking from config
+        this.endpoints = ENDPOINTS;
+        // this.get_url = null;
+        // this.post_url = null;
         this.log = new Logger(this.config.debug);
     }
+
+    
+  async getBoardById(boardId) {
+    const url = `${this.backend_url}${this.endpoints.getBoardById}/${boardId}`;
+    try {
+      const response = await fetch(url, { method: 'GET' });
+      return await response.json();
+    } catch (error) {
+      this.log.error("Error fetching board by ID:", error);
+      throw error;
+    }
+  }
+
+  async getCurrentUser() {
+    const url = `${this.backend_url}${this.endpoints.currentUser}`;
+    try {
+      const response = await fetch(url, { method: 'GET' });
+      return await response.json();
+    } catch (error) {
+      this.log.error("Error fetching current user:", error);
+      throw error;
+    }
+  }
+
+  async updateTask(taskId, taskData) {
+    const url = `${this.backend_url}${this.endpoints.updateTask}/${taskId}`;
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(taskData)
+      });
+      return await response.json();
+    } catch (error) {
+      this.log.error("Error updating task:", error);
+      throw error;
+    }
+  }
+}
 
     async init_dashboard(callback = null) {
         try {
