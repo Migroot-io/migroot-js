@@ -82,7 +82,7 @@ class Migroot {
     constructor(config) {
         this.config = config;
         this.cards = null;
-        this.backend_url = config.backend_url || 'https://migroot-447015.oa.r.appspot.com/v1/'; // taking from config
+        this.backend_url = config.backend_url || 'https://migroot-447015.oa.r.appspot.com/v1'; // taking from config
         this.endpoints = ENDPOINTS;
         // this.get_url = null;
         // this.post_url = null;
