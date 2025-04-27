@@ -323,7 +323,7 @@ class Migroot {
         // this.#handleFileStatus(clone, item);
 
         this.log.info('Step 11: Replacing existing card if needed');
-        // this.#replaceExistingCard(newCardId, clone, targetContainer);
+        this.#replaceExistingCard(newCardId, clone, targetContainer);
     }
 
     updateCard(data, cardId) {
