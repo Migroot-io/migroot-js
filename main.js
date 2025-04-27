@@ -99,7 +99,6 @@ class Migroot {
         // this.get_url = null;
         // this.post_url = null;
         this.log = new Logger(this.config.debug);
-        this.generateMethodsFromEndpoints(); // <-- Вот здесь она вызывается
         this.user = null; // тут хочу получить карент юзера и записатьб сразу сюда методом из генерейт методс
         this.boardId = null;
         this.board = null;
@@ -110,6 +109,7 @@ class Migroot {
 
     async init() {
           try {
+            this.generateMethodsFromEndpoints();
             // 1. Получить текущего пользователя
             this.user = await this.getCurrentUser();
             console.log('User initialized:', this.user);
