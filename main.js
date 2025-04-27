@@ -100,7 +100,7 @@ class Migroot {
         this.user = null; 
         this.boardId = null;
         this.board = null;
-        this.init() 
+        // this.init() 
 
     }
 
