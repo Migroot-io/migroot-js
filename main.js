@@ -111,7 +111,7 @@ class Migroot {
           try {
             this.generateMethodsFromEndpoints();
             // 1. Получить текущего пользователя
-            this.user = await this.getCurrentUser();
+            this.user = await this.currentUser();
             console.log('User initialized:', this.user);
         
             if (!this.user?.id || !this.user?.type) {
