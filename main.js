@@ -72,65 +72,142 @@ class Logger {
 // };
 
 const ENDPOINTS = {
-  searchBoard: 'board/search',
-  getBoardById: '/api/board',      // example endpoint
-  currentUser: '/api/user',        // example endpoint
-  updateTask: '/api/task/update'   // example endpoint
+  searchBoard: { path: 'board/search', method: 'POST' },
+  currentUser: { path: 'currentUser', method: 'GET' },
+  createTask: { path: 'task', method: 'POST' },
+  updateTask: { path: 'task/{taskId}', method: 'PUT' },
+  getTask: { path: 'task/{taskId}', method: 'GET' },
+  searchTasks: { path: 'task/search', method: 'POST' },
+  // createUser: { path: 'user', method: 'POST' },
+  updateUser: { path: 'user/{userId}', method: 'PUT' },
+  getUser: { path: 'user/{userId}', method: 'GET' },
+  searchUsers: { path: 'user/search', method: 'POST' },
+  // createBoard: { path: 'board', method: 'POST' },
+  getBoard: { path: 'board/{boardId}', method: 'GET' },
+  searchBoards: { path: 'board/search', method: 'POST' },
+  addClientTask: { path: 'board/{boardId}', method: 'POST' },
+  getClientTask: { path: 'board/task/{taskId}', method: 'GET' },
+  updateClientTask: { path: 'board/task/{taskId}', method: 'PUT' },
+  deleteClientTask: { path: 'board/task/{taskId}', method: 'DELETE' }
 };
 
 class Migroot {
     constructor(config) {
         this.config = config;
-        this.cards = null;
         this.backend_url = config.backend_url || 'https://migroot-447015.oa.r.appspot.com/v1'; // taking from config
         this.endpoints = ENDPOINTS;
         // this.get_url = null;
         // this.post_url = null;
         this.log = new Logger(this.config.debug);
+        this.generateMethodsFromEndpoints(); // <-- Вот здесь она вызывается
+        this.user = null; // тут хочу получить карент юзера и записатьб сразу сюда методом из генерейт методс
+        this.boardId = null;
+        this.board = null;
+        this.cards = null;
+        this.init() // fill user and cards
+
     }
 
-  async request(endpointName, body = {}, method = 'POST') {
-  if (!this.backend_url) {
-    throw new Error("Backend URL is not set.");
-  }
-
-  const accessToken = await window.Outseta.getAccessToken()
-      if (!accessToken) {
-        throw new Error("Access token is missing in window object.");
-      }
-    
-      const endpoint = this.endpoints[endpointName];
-      if (!endpoint) {
-        throw new Error(`Unknown endpoint: ${endpointName}`);
-      }
-    
-      const url = `${this.backend_url}/${endpoint}`;
-    
-      try {
-        const response = await fetch(url, {
-          method: method,
-          headers: {
-            'Authorization': `Bearer ${accessToken}`,
-            'Content-Type': 'application/json'
-          },
-          body: method !== 'GET' ? JSON.stringify(body) : undefined
-        });
-    
-        if (!response.ok) {
-          throw new Error(`Request failed: ${response.status} ${response.statusText}`);
+    async init() {
+          try {
+            // 1. Получить текущего пользователя
+            this.user = await this.getCurrentUser();
+            console.log('User initialized:', this.user);
+        
+            if (!this.user?.id || !this.user?.type) {
+              throw new Error('Current user is missing id or type.');
+            }
+        
+            // 2. Поиск досок для пользователя
+            const boards = await this.searchBoard({
+              userType: this.user.type, 
+              userId: this.user.id
+            });
+        
+            console.log('Boards found:', boards);
+        
+            if (!Array.isArray(boards) || boards.length === 0) {
+              throw new Error('No boards found for the current user.');
+            }
+        
+            // 3. Сохраняем первую борду
+            this.board = boards[0];
+            console.log('First board initialized:', this.board);
+        
+          } catch (error) {
+            this.log.error('Initialization failed:', error);
+            throw error; // если нужно, можно убрать чтобы не падать
+          }
         }
-    
-        return await response.json();
-    
+
+    async getAccessToken() {
+                              // First, try to get token from config
+                              if (this.config?.accessToken) {
+                                return this.config.accessToken;
+                              }
+                            
+                              // If not found, try to get token from Outseta
+                              if (window.Outseta?.getAccessToken) {
+                                const accessToken = await window.Outseta.getAccessToken();
+                                if (accessToken) {
+                                  return accessToken;
+                                }
+                              }
+                            
+                              // If no token found at all, throw an error
+                              throw new Error("Access token is missing in config and window.Outseta.");
+                            }
+
+    async request(endpointName, body = {}, method, pathParams = {}) {
+          if (!this.backend_url) {
+            throw new Error("Backend URL is not set.");
+          }
+        
+          const accessToken = await this.getAccessToken();
+        
+          const endpointConfig = this.endpoints[endpointName];
+          if (!endpointConfig) {
+            throw new Error(`Unknown endpoint: ${endpointName}`);
+          }
+        
+          let path = endpointConfig.path;
+        
+          for (const [key, value] of Object.entries(pathParams)) {
+            path = path.replace(`{${key}}`, value);
+          }
+        
+          const url = `${this.backend_url}/${path}`;
+        
+          try {
+            const response = await fetch(url, {
+              method: method,
+              headers: {
+                'Authorization': `Bearer ${accessToken}`,
+                'Content-Type': 'application/json'
+              },
+              body: method !== 'GET' ? JSON.stringify(body) : undefined
+            });
+        
+            if (!response.ok) {
+              throw new Error(`Request failed: ${response.status} ${response.statusText}`);
+            }
+        
+            return await response.json();
+        
           } catch (error) {
             this.log.error(`Error in request to ${endpointName}:`, error);
             throw error;
           }
         }
 
-    async searchBoard(userType, userId) {
-      return await this.request('searchBoard', { userType, userId });
-    }
+    generateMethodsFromEndpoints() {
+          for (const [name, config] of Object.entries(this.endpoints)) {
+            this[name] = async (body = {}, pathParams = {}) => {
+              return await this.request(name, body, config.method, pathParams);
+            };
+          }
+        }
+
 
     async init_dashboard(callback = null) {
         try {
