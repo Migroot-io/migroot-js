@@ -141,9 +141,9 @@ class Migroot {
         }
 
     async getAccessToken() {
-                              // First, try to get token from config
-                              if (this.config?.accessToken) {
-                                return this.config.accessToken;
+                              // First, try to get token from config -- for dev only
+                              if (this.config?.token) {
+                                return this.config.token;
                               }
                             
                               // If not found, try to get token from Outseta
