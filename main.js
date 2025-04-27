@@ -105,36 +105,64 @@ class Migroot {
 
     }
 
-    async init() {
-          try {
-            this.generateMethodsFromEndpoints();
-            // this.user = await this.currentUser();
-            this.user = {"type":"CLIENT", "id":"f73b9855-efe5-4a89-9c80-3798dc10d1ab", email: 'dummyemail@dog.com', name: "Dummy user" } // dummy user
-            console.log('User initialized:', this.user);
-        
-            if (!this.user?.id || !this.user?.type) {
-              throw new Error('Current user is missing id or type.');
+async init() {
+              try {
+                this.generateMethodsFromEndpoints();
+            
+                const urlParams = new URLSearchParams(window.location.search);
+                const boardIdFromUrl = urlParams.get('boardId');
+            
+                if (boardIdFromUrl) {
+                  // Если есть boardId в URL → грузим доску по ID
+                  this.board = await this.getBoard({}, { boardId: boardIdFromUrl });
+                  this.boardId = this.board.boardId;
+                  this.user = this.board.owner;
+            
+                  console.log('Board loaded from URL boardId:', this.board);
+                  console.log('User initialized from board owner:', this.user);
+            
+                  if (!this.user?.id || !this.user?.type) {
+                    throw new Error('Owner of the board is missing id or type.');
+                  }
+                } else {
+                  // Нет boardId → используем dummy user
+                  this.user = {
+                    id: 'f73b9855-efe5-4a89-9c80-3798dc10d1ab',
+                    type: 'CLIENT',
+                    email: 'dummyemail@dog.com',
+                    name: 'Dummy user'
+                  };
+                  console.log('Dummy user initialized:', this.user);
+            
+                  // Ищем доски по dummy пользователю
+                  const boards = await this.searchBoard({
+                    userType: this.user.type,
+                    userId: this.user.id
+                  });
+            
+                  console.log('Boards found for dummy user:', boards);
+            
+                  if (!Array.isArray(boards) || boards.length === 0) {
+                    throw new Error('No boards found for dummy user.');
+                  }
+            
+                  this.board = boards[0];
+                  this.boardId = this.board.boardId;
+                  this.user = this.board.owner; 
+            
+                  console.log('First board initialized for dummy user:', this.board);
+                  console.log('User replaced from board owner:', this.user);
+            
+                  if (!this.user?.id || !this.user?.type) {
+                    throw new Error('Owner of the dummy board is missing id or type.');
+                  }
+                }
+            
+              } catch (error) {
+                this.log.error('Initialization failed:', error);
+                throw error;
+              }
             }
-        
-            const boards = await this.searchBoard({
-              userType: this.user.type, 
-              userId: this.user.id
-            });
-        
-            console.log('Boards found:', boards);
-        
-            if (!Array.isArray(boards) || boards.length === 0) {
-              throw new Error('No boards found for the current user.');
-            }
-        
-            this.board = boards[0];
-            console.log('First board initialized:', this.board);
-        
-          } catch (error) {
-            this.log.error('Initialization failed:', error);
-            throw error; // если нужно, можно убрать чтобы не падать
-          }
-        }
 
     async getAccessToken() {
                               // First, try to get token from config -- for dev only
