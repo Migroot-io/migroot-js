@@ -100,24 +100,24 @@ class Migroot {
         this.user = null; 
         this.boardId = null;
         this.board = null;
-        this.cards = null;
         this.init() 
 
     }
 
 async init() {
+              this.log.info('Step 0: Init Migroot');
               try {
                 this.generateMethodsFromEndpoints();
             
                 const urlParams = new URLSearchParams(window.location.search);
                 const boardIdFromUrl = urlParams.get('boardId');
-            
+                
                 if (boardIdFromUrl) {
                   // Если есть boardId в URL → грузим доску по ID
                   this.board = await this.getBoard({}, { boardId: boardIdFromUrl });
                   this.boardId = this.board.boardId;
                   this.user = this.board.owner;
-            
+                  
                   console.log('Board loaded from URL boardId:', this.board);
                   console.log('User initialized from board owner:', this.user);
             
@@ -238,12 +238,8 @@ async init() {
             this.log.info('Step 1: Clearing containers');
             this.#clearContainers();
 
-            this.log.info('Step 2: Configuring URLs');
-            this.#configureUserUrls();
-            this.log.info(`Get URL:  ${this.get_url} Post URL: ${this.post_url}`);
-
-            this.log.info('Step 3: Fetching data from backend');
-            await this.#fetchGetData();
+            this.log.info('Step 2: Creating tasks');
+            this.board.tasks.forEach(item => this.createCard(item));
             this.log.info('Dashboard initialized successfully');
             if (callback && typeof callback === 'function') {
                 this.log.info('callback called');
