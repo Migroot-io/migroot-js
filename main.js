@@ -5,7 +5,7 @@ class Logger {
 
     _getCurrentTime() {
         const now = new Date();
-        const timeString = now.toISOString().slice(11, 23); 
+        const timeString = now.toISOString().slice(11, 23);
         return timeString;
     }
 
@@ -44,12 +44,12 @@ class Logger {
 
 // const CONFIG = {
 //     user: {
-        // fullName: 'Denis Mironov',
-        // firstName: 'Denis',
-        // plan: 'Free registration',
-        // email: 'denis.mironov.personal@gmail.com',
-        // linkId: null
-        // },
+// fullName: 'Denis Mironov',
+// firstName: 'Denis',
+// plan: 'Free registration',
+// email: 'denis.mironov.personal@gmail.com',
+// linkId: null
+// },
 //     template: document.getElementById('doc-template'),
 //     buttons: {
 //         uploadFile: document.getElementById('upload_file').innerHTML,
@@ -72,23 +72,50 @@ class Logger {
 // };
 
 const ENDPOINTS = {
-  searchBoard: { path: 'board/search', method: 'POST' },
-  currentUser: { path: 'currentUser', method: 'GET' },
-  createTask: { path: 'task', method: 'POST' },
-  updateTask: { path: 'task/{taskId}', method: 'PUT' },
-  getTask: { path: 'task/{taskId}', method: 'GET' },
-  searchTasks: { path: 'task/search', method: 'POST' },
-  // createUser: { path: 'user', method: 'POST' },
-  updateUser: { path: 'user/{userId}', method: 'PUT' },
-  getUser: { path: 'user/{userId}', method: 'GET' },
-  searchUsers: { path: 'user/search', method: 'POST' },
-  // createBoard: { path: 'board', method: 'POST' },
-  getBoard: { path: 'board/{boardId}', method: 'GET' },
-  searchBoards: { path: 'board/search', method: 'POST' },
-  addClientTask: { path: 'board/{boardId}', method: 'POST' },
-  getClientTask: { path: 'board/task/{taskId}', method: 'GET' },
-  updateClientTask: { path: 'board/task/{taskId}', method: 'PUT' },
-  deleteClientTask: { path: 'board/task/{taskId}', method: 'DELETE' }
+    searchBoard: {
+        path: 'board/search',
+        method: 'POST'
+    },
+    currentUser: {
+        path: 'currentUser',
+        method: 'GET'
+    },
+    getUser: {
+        path: 'user/{userId}',
+        method: 'GET'
+    },
+    searchUsers: {
+        path: 'user/search',
+        method: 'POST'
+    },
+    getBoard: {
+        path: 'board/{boardId}',
+        method: 'GET'
+    },
+    searchBoards: {
+        path: 'board/search',
+        method: 'POST'
+    },
+    addClientTask: {
+        path: 'board/{boardId}',
+        method: 'POST'
+    },
+    getClientTask: {
+        path: 'board/task/{taskId}',
+        method: 'GET'
+    },
+    updateClientTask: {
+        path: 'board/task/{taskId}',
+        method: 'PUT'
+    },
+    // createBoard: { path: 'board', method: 'POST' },
+    // createTask: { path: 'task', method: 'POST' },
+    // updateTask: { path: 'task/{taskId}', method: 'PUT' },
+    // getTask: { path: 'task/{taskId}', method: 'GET' },
+    // searchTasks: { path: 'task/search', method: 'POST' },
+    // createUser: { path: 'user', method: 'POST' },
+    // updateUser: { path: 'user/{userId}', method: 'PUT' },
+    // deleteClientTask: { path: 'board/task/{taskId}', method: 'DELETE' }
 };
 
 class Migroot {
@@ -97,148 +124,168 @@ class Migroot {
         this.backend_url = config.backend_url || 'https://migroot-447015.oa.r.appspot.com/v1'; // taking from config
         this.endpoints = ENDPOINTS;
         this.log = new Logger(this.config.debug);
-        this.user = null; 
+        this.user = null;
         this.boardId = null;
         this.board = null;
-        // this.init() 
+        this.token = null;
+        this.init()
 
     }
 
-async init() {
-              this.log.info('Step 0: Init Migroot');
-              try {
-                this.generateMethodsFromEndpoints();
-            
+    init() {
+        this.generateMethodsFromEndpoints();
+        this.log.info('Migroot initialized');
+    }
+
+    async fetchData(boardId = null) {
+        try {
+            this.token = await this.getAccessToken();
+
+            let finalBoardId = boardId;
+
+            if (!finalBoardId) {
                 const urlParams = new URLSearchParams(window.location.search);
-                const boardIdFromUrl = urlParams.get('boardId');
-                
-                if (boardIdFromUrl) {
-                  // Если есть boardId в URL → грузим доску по ID
-                  this.board = await this.getBoard({}, { boardId: boardIdFromUrl });
-                  this.boardId = this.board.boardId;
-                  this.user = this.board.owner;
-                  
-                  console.log('Board loaded from URL boardId:', this.board);
-                  console.log('User initialized from board owner:', this.user);
-            
-                  if (!this.user?.id || !this.user?.type) {
-                    throw new Error('Owner of the board is missing id or type.');
-                  }
-                } else {
-                  // Нет boardId → используем dummy user
-                  this.user = {
-                    id: 'f73b9855-efe5-4a89-9c80-3798dc10d1ab',
-                    type: 'CLIENT',
-                    email: 'dummyemail@dog.com',
-                    name: 'Dummy user'
-                  };
-                  console.log('Dummy user initialized:', this.user);
-            
-                  // Ищем доски по dummy пользователю
-                  const boards = await this.searchBoard({
-                    userType: this.user.type,
-                    userId: this.user.id
-                  });
-            
-                  console.log('Boards found for dummy user:', boards);
-            
-                  if (!Array.isArray(boards) || boards.length === 0) {
-                    throw new Error('No boards found for dummy user.');
-                  }
-            
-                  this.board = boards[0];
-                  this.boardId = this.board.boardId;
-                  this.user = this.board.owner; 
-            
-                  console.log('First board initialized for dummy user:', this.board);
-                  console.log('User replaced from board owner:', this.user);
-            
-                  if (!this.user?.id || !this.user?.type) {
-                    throw new Error('Owner of the dummy board is missing id or type.');
-                  }
-                }
-            
-              } catch (error) {
-                this.log.error('Initialization failed:', error);
-                throw error;
-              }
+                finalBoardId = urlParams.get('boardId');
             }
+
+            if (finalBoardId) {
+                await this.loadBoardById(finalBoardId);
+            } else {
+                await this.loadDummyUserBoard();
+            }
+        } catch (error) {
+            this.log.error('Initialization failed:', error);
+            throw error;
+        }
+    }
+
+
+    async loadBoardById(boardId) {
+        this.board = await this.getBoard({}, {
+            boardId: boardId
+        });
+        this.boardId = this.board.boardId;
+        this.user = this.board.owner;
+
+        console.log('Board loaded by ID:', this.board);
+        console.log('User initialized from board owner:', this.user);
+
+        if (!this.user?.id || !this.user?.type) {
+            throw new Error('Owner of the board is missing id or type.');
+        }
+    }
+
+    async loadDummyUserBoard() {
+        this.user = {
+            id: 'f73b9855-efe5-4a89-9c80-3798dc10d1ab',
+            type: 'CLIENT',
+            email: 'dummyemail@dog.com',
+            name: 'Dummy user'
+        };
+        console.log('Dummy user initialized:', this.user);
+
+        const boards = await this.searchBoard({
+            userType: this.user.type,
+            userId: this.user.id
+        });
+
+        console.log('Boards found for dummy user:', boards);
+
+        if (!Array.isArray(boards) || boards.length === 0) {
+            throw new Error('No boards found for dummy user.');
+        }
+
+        this.board = boards[0];
+        this.boardId = this.board.boardId;
+        this.user = this.board.owner;
+
+        console.log('First board initialized for dummy user:', this.board);
+        console.log('User replaced from board owner:', this.user);
+
+        if (!this.user?.id || !this.user?.type) {
+            throw new Error('Owner of the dummy board is missing id or type.');
+        }
+    }
+
 
     async getAccessToken() {
-                              // First, try to get token from config -- for dev only
-                              if (this.config?.token) {
-                                return this.config.token;
-                              }
-                            
-                              // If not found, try to get token from Outseta
-                              if (window.Outseta?.getAccessToken) {
-                                const accessToken = await window.Outseta.getAccessToken();
-                                if (accessToken) {
-                                  return accessToken;
-                                }
-                              }
-                            
-                              // If no token found at all, throw an error
-                              throw new Error("Access token is missing in config and window.Outseta.");
-                            }
+        // First, try to get token from config -- for dev only
+        if (this.config?.token) {
+            return this.config.token;
+        }
+
+        // If not found, try to get token from Outseta
+        if (window.Outseta?.getAccessToken) {
+            const accessToken = await window.Outseta.getAccessToken();
+            if (accessToken) {
+                return accessToken;
+            }
+        }
+
+        // If no token found at all, throw an error
+        throw new Error("Access token is missing in config and window.Outseta.");
+    }
 
     async request(endpointName, body = {}, method, pathParams = {}) {
-          if (!this.backend_url) {
+        if (!this.backend_url) {
             throw new Error("Backend URL is not set.");
-          }
-        
-          const accessToken = await this.getAccessToken();
-        
-          const endpointConfig = this.endpoints[endpointName];
-          if (!endpointConfig) {
+        }
+
+        const accessToken = this.token;
+
+        const endpointConfig = this.endpoints[endpointName];
+        if (!endpointConfig) {
             throw new Error(`Unknown endpoint: ${endpointName}`);
-          }
-        
-          let path = endpointConfig.path;
-        
-          for (const [key, value] of Object.entries(pathParams)) {
+        }
+
+        let path = endpointConfig.path;
+
+        for (const [key, value] of Object.entries(pathParams)) {
             path = path.replace(`{${key}}`, value);
-          }
-        
-          const url = `${this.backend_url}/${path}`;
-        
-          try {
+        }
+
+        const url = `${this.backend_url}/${path}`;
+
+        try {
             const response = await fetch(url, {
-              method: method,
-              headers: {
-                'Authorization': `Bearer ${accessToken}`,
-                'Content-Type': 'application/json'
-              },
-              body: method !== 'GET' ? JSON.stringify(body) : undefined
+                method: method,
+                headers: {
+                    'Authorization': `Bearer ${accessToken}`,
+                    'Content-Type': 'application/json'
+                },
+                body: method !== 'GET' ? JSON.stringify(body) : undefined
             });
-        
+
             if (!response.ok) {
-              throw new Error(`Request failed: ${response.status} ${response.statusText}`);
+                throw new Error(`Request failed: ${response.status} ${response.statusText}`);
             }
-        
+
             return await response.json();
-        
-          } catch (error) {
+
+        } catch (error) {
             this.log.error(`Error in request to ${endpointName}:`, error);
             throw error;
-          }
         }
+    }
 
     generateMethodsFromEndpoints() {
-          for (const [name, config] of Object.entries(this.endpoints)) {
+        for (const [name, config] of Object.entries(this.endpoints)) {
             this[name] = async (body = {}, pathParams = {}) => {
-              return await this.request(name, body, config.method, pathParams);
+                return await this.request(name, body, config.method, pathParams);
             };
-          }
         }
+    }
 
-////////////////////////// old logic ////////////////////////
-    async init_dashboard(callback = null) {
+    ////////////////////////// old logic ////////////////////////
+    async init_dashboard(boadrId = null; callback = null) {
         try {
             this.log.info('Step 1: Clearing containers');
             this.#clearContainers();
 
-            this.log.info('Step 2: Creating tasks');
+            this.log.info('Step 2: Fetching user and board');
+            await this.fetchData(boadrId);
+
+            this.log.info('Step 3: Creating tasks');
             this.board.tasks.forEach(item => this.createCard(item));
             this.log.info('Dashboard initialized successfully');
             if (callback && typeof callback === 'function') {
@@ -281,16 +328,18 @@ async init() {
 
     updateCard(data, cardId) {
         fetch(this.post_url, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data)
-        })
-        .then(response => response.json())
-        .then(data => this.createCard(data.result.updatedData))
-        .catch(error => {
-            this.log.error(`Error updating card: ${error.message}`);
-            this.#showLoader(cardId, false);
-        });
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(data => this.createCard(data.result.updatedData))
+            .catch(error => {
+                this.log.error(`Error updating card: ${error.message}`);
+                this.#showLoader(cardId, false);
+            });
     }
 
     updateCardUrl(id, url, filetype) {
@@ -325,14 +374,6 @@ async init() {
         Object.values(this.config.containers).forEach(container => container.innerHTML = '');
     }
 
-
-    async #fetchGetData() {
-        const response = await fetch(this.get_url);
-        const data = await response.json();
-        this.cards = data.result;
-        data.result.forEach(item => this.createCard(item));
-    }
-
     #configureUserUrls() {
         const baseUrl = this.config.user.linkId ? `${this.config.webUrl}?link=${this.config.user.linkId}&user=` : `${this.config.webUrl}?user=`;
         const username = this.config.user.email;
@@ -348,18 +389,18 @@ async init() {
     }
 
     #getStatusContainer(status) {
-            switch (status) {
-              case 'Not started':
+        switch (status) {
+            case 'Not started':
                 return this.config.containers.notStarted;
-              case 'In progress':
+            case 'In progress':
                 return this.config.containers.inProgress;
-              case 'Ready':
+            case 'Ready':
                 return this.config.containers.ready;
-              default:
+            default:
                 this.log.error(`Unknown status: ${status}`);
                 return this.config.containers.notStarted;
-            }
-          }
+        }
+    }
 
     #setCardContent(clone, item) {
         clone.querySelector('.ac-doc__title').textContent = item.DocumentTitle;
@@ -370,14 +411,14 @@ async init() {
     };
 
     #handleDataAttributes(clone, item) {
-      clone.setAttribute('data-icon-status', item.IconStatus);
-      clone.setAttribute('data-original-status', item.OriginalStatus);
-      clone.setAttribute('data-translate-status', item.TranslateStatus);
-      clone.setAttribute('data-task-type', item.TaskType);
-      clone.setAttribute('data-points', item.Points);
-      clone.setAttribute('data-applicant-id', item.ApplicantID);
-      clone.setAttribute('data-emotion', item.Emotion);
-      }
+        clone.setAttribute('data-icon-status', item.IconStatus);
+        clone.setAttribute('data-original-status', item.OriginalStatus);
+        clone.setAttribute('data-translate-status', item.TranslateStatus);
+        clone.setAttribute('data-task-type', item.TaskType);
+        clone.setAttribute('data-points', item.Points);
+        clone.setAttribute('data-applicant-id', item.ApplicantID);
+        clone.setAttribute('data-emotion', item.Emotion);
+    }
 
     #handleButtons(clone, item) {
         const uploadContainer = clone.querySelector('.ac-doc__action');
@@ -390,12 +431,11 @@ async init() {
     };
 
     #handleComment(clone, item) {
-      if (!item.Comment || item.Comment.trim() === '') {
-        clone.getElementsByClassName('ac-comment__text')[0].textContent = getRandom(MigrootStartComments);
-        ;
-      } else {
-        clone.getElementsByClassName('ac-comment__text')[0].textContent = item.Comment;
-      }
+        if (!item.Comment || item.Comment.trim() === '') {
+            clone.getElementsByClassName('ac-comment__text')[0].textContent = getRandom(MigrootStartComments);;
+        } else {
+            clone.getElementsByClassName('ac-comment__text')[0].textContent = item.Comment;
+        }
     };
 
     #handleFileStatus(clone, item) {
@@ -407,39 +447,39 @@ async init() {
         const translateLink = clone.querySelector('.translate-link');
         var button;
         if (item.OriginalStatus != 'Not uploaded') {
-          if (originalLink) originalLink.href = item.OriginalLink;
+            if (originalLink) originalLink.href = item.OriginalLink;
         };
-        
+
         if (item.TranslateStatus != 'Not uploaded') {
-          if (translateLink) translateLink.href = item.TranslateLink;
+            if (translateLink) translateLink.href = item.TranslateLink;
         };
-        
+
         if (item.OriginalStatus === 'Verified' && (item.TaskType != 'document' || item.TranslateStatus === 'Verified' || item.TranslateStatus === 'Not needed')) {
-          if (uploadContainer) uploadContainer.remove();
+            if (uploadContainer) uploadContainer.remove();
         } else if (item.OriginalStatus === 'Verified' && item.TaskType === 'document') {
-          // document with needed and not verified translate
-          if (uploadContainer) uploadContainer.querySelector('.ac-submit.w-button').setAttribute('data-filetype', 'Translate');
-          // IMPORTANT !!!
-          if (uploadContainer) uploadContainer.querySelector('.ac-submit.w-button').innerText = "Upload Translated"
-          if (uploadContainer && item.TranslateStatus != 'Not loaded') uploadContainer.querySelector('.ac-submit.w-button').innerText = "Reload Translated"
+            // document with needed and not verified translate
+            if (uploadContainer) uploadContainer.querySelector('.ac-submit.w-button').setAttribute('data-filetype', 'Translate');
+            // IMPORTANT !!!
+            if (uploadContainer) uploadContainer.querySelector('.ac-submit.w-button').innerText = "Upload Translated"
+            if (uploadContainer && item.TranslateStatus != 'Not loaded') uploadContainer.querySelector('.ac-submit.w-button').innerText = "Reload Translated"
         } else if (item.Status === 'In progress') {
-          // any task in ptogress without a translate and have button
+            // any task in ptogress without a translate and have button
             this.log.info(item);
             console.log(item);
             this.log.info(clone);
             console.log(clone);
-        	button = uploadContainer.querySelector('.ac-submit.w-button');
+            button = uploadContainer.querySelector('.ac-submit.w-button');
             this.log.info(button);
             console.log(button);
             if (button) button.innerText = "Reload file"
         };
-        
-        
-        
+
+
+
         if (item.OriginalStatus === 'Not needed') {
-          if (filesProgressBlock) filesProgressBlock.remove();
+            if (filesProgressBlock) filesProgressBlock.remove();
         } else if (item.TranslateStatus === 'Not needed') {
-          if (translateFileBlock) translateFileBlock.remove();
+            if (translateFileBlock) translateFileBlock.remove();
         };
     };
 
@@ -458,7 +498,11 @@ async init() {
 
     #formatDate(isoString) {
         const date = new Date(isoString);
-        return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', timeZone: this.config.timeZone });
+        return date.toLocaleDateString('en-GB', {
+            day: 'numeric',
+            month: 'short',
+            timeZone: this.config.timeZone
+        });
     }
 
     #getRandom(arr) {
