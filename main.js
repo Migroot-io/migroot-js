@@ -299,31 +299,31 @@ class Migroot {
 
     createCard(item) {
         this.log.info(`Step 5: Creating card for item: ${item}`);
-        if (!this.#shouldDisplayTask(item)) {
-            this.log.info('Task is not eligible for display, skipping');
-            return;
-        }
-        const targetContainer = this.#getStatusContainer(item.Status);
-        const newCardId = `doc-${item.id}`;
+        // if (!this.#shouldDisplayTask(item)) {
+        //     this.log.info('Task is not eligible for display, skipping');
+        //     return;
+        // }
+        const targetContainer = this.#getStatusContainer(item.status);
+        const newCardId = `doc-${item.clientTaskId}`;
         const clone = this.config.template.cloneNode(true);
 
         this.log.info(`Step 6: Setting card content for card ID: ${newCardId}`);
         this.#setCardContent(clone, item);
 
         this.log.info('Step 7: Handling data attributes');
-        this.#handleDataAttributes(clone, item);
+        // this.#handleDataAttributes(clone, item);
 
         this.log.info('Step 8: Handling comment');
-        this.#handleComment(clone, item);
+        // this.#handleComment(clone, item);
 
         this.log.info('Step 9: Handling buttons');
-        this.#handleButtons(clone, item);
+        // this.#handleButtons(clone, item);
 
         this.log.info('Step 10: Handling file status');
-        this.#handleFileStatus(clone, item);
+        // this.#handleFileStatus(clone, item);
 
         this.log.info('Step 11: Replacing existing card if needed');
-        this.#replaceExistingCard(newCardId, clone, targetContainer);
+        // this.#replaceExistingCard(newCardId, clone, targetContainer);
     }
 
     updateCard(data, cardId) {
@@ -403,11 +403,11 @@ class Migroot {
     }
 
     #setCardContent(clone, item) {
-        clone.querySelector('.ac-doc__title').textContent = item.DocumentTitle;
-        clone.querySelector('.ac-doc__description').textContent = item.Description;
-        clone.querySelector('.ac-docs__mark.ac-docs__due_date').textContent = this.#formatDate(item.DueDate);
-        clone.querySelector('.ac-docs__mark.ac-docs__mark_country').textContent = item.Location;
-        clone.querySelector('.ac-docs__mark.ac-docs__applicicant').textContent = item.Applicant === 'You' && this.config.user ? this.config.user.firstName : item.Applicant;
+        clone.querySelector('.ac-doc__title').textContent = item.name;
+        clone.querySelector('.ac-doc__description').textContent = item.shortDescription;
+        clone.querySelector('.ac-docs__mark.ac-docs__due_date').textContent = this.#formatDate(item.deadline);
+        clone.querySelector('.ac-docs__mark.ac-docs__mark_country').textContent = item.location;
+        // clone.querySelector('.ac-docs__mark.ac-docs__applicicant').textContent = item.Applicant === 'You' && this.config.user ? this.config.user.firstName : item.Applicant;
     };
 
     #handleDataAttributes(clone, item) {
