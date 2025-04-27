@@ -390,6 +390,8 @@ class Migroot {
 
     #getStatusContainer(status) {
         switch (status) {
+            case 'TO_DO':
+                return this.config.containers.notStarted;
             case 'Not started':
                 return this.config.containers.notStarted;
             case 'In progress':
