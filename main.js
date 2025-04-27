@@ -277,7 +277,7 @@ class Migroot {
     }
 
     ////////////////////////// old logic ////////////////////////
-    async init_dashboard(boadrId = null; callback = null) {
+    async init_dashboard(boadrId = null, callback = null) {
         try {
             this.log.info('Step 1: Clearing containers');
             this.#clearContainers();
