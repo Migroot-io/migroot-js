@@ -109,7 +109,7 @@ class Migroot {
           try {
             this.generateMethodsFromEndpoints();
             // this.user = await this.currentUser();
-            this.user = {"userType":"CLIENT","userId":"f73b9855-efe5-4a89-9c80-3798dc10d1ab"} // dummy user
+            this.user = {"type":"CLIENT", "id":"f73b9855-efe5-4a89-9c80-3798dc10d1ab", email: 'dummyemail@dog.com', name: "Dummy user" } // dummy user
             console.log('User initialized:', this.user);
         
             if (!this.user?.id || !this.user?.type) {
