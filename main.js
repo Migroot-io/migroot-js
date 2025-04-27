@@ -96,29 +96,26 @@ class Migroot {
         this.config = config;
         this.backend_url = config.backend_url || 'https://migroot-447015.oa.r.appspot.com/v1'; // taking from config
         this.endpoints = ENDPOINTS;
-        // this.get_url = null;
-        // this.post_url = null;
         this.log = new Logger(this.config.debug);
-        this.user = null; // тут хочу получить карент юзера и записатьб сразу сюда методом из генерейт методс
+        this.user = null; 
         this.boardId = null;
         this.board = null;
         this.cards = null;
-        this.init() // fill user and cards
+        this.init() 
 
     }
 
     async init() {
           try {
             this.generateMethodsFromEndpoints();
-            // 1. Получить текущего пользователя
-            this.user = await this.currentUser();
+            // this.user = await this.currentUser();
+            this.user = {"userType":"CLIENT","userId":"f73b9855-efe5-4a89-9c80-3798dc10d1ab"} // dummy user
             console.log('User initialized:', this.user);
         
             if (!this.user?.id || !this.user?.type) {
               throw new Error('Current user is missing id or type.');
             }
         
-            // 2. Поиск досок для пользователя
             const boards = await this.searchBoard({
               userType: this.user.type, 
               userId: this.user.id
@@ -130,7 +127,6 @@ class Migroot {
               throw new Error('No boards found for the current user.');
             }
         
-            // 3. Сохраняем первую борду
             this.board = boards[0];
             console.log('First board initialized:', this.board);
         
@@ -208,7 +204,7 @@ class Migroot {
           }
         }
 
-
+////////////////////////// old logic ////////////////////////
     async init_dashboard(callback = null) {
         try {
             this.log.info('Step 1: Clearing containers');
