@@ -11,7 +11,7 @@ class Logger {
 
     _log(message, vars = null, type = 'info') {
         const styles = {
-            info: 'color: blue; font-weight: bold;',
+            info: 'color: white; font-weight: 500;',
             warning: 'color: orange; font-weight: bold;',
             error: 'color: red; font-weight: bold;'
         };
@@ -310,8 +310,8 @@ class Migroot {
         this.log.info(`Step 6: Setting card content for card ID: ${newCardId}`);
         this.#setCardContent(clone, item);
 
-        this.log.info('Step 7: Handling data attributes');
-        // this.#handleDataAttributes(clone, item);
+        this.log.info('Step 7: Handling data attributes (points, etc)');
+        this.#handleDataAttributes(clone, item);
 
         this.log.info('Step 8: Handling comment');
         // this.#handleComment(clone, item);
@@ -374,19 +374,12 @@ class Migroot {
         Object.values(this.config.containers).forEach(container => container.innerHTML = '');
     }
 
-    #configureUserUrls() {
-        const baseUrl = this.config.user.linkId ? `${this.config.webUrl}?link=${this.config.user.linkId}&user=` : `${this.config.webUrl}?user=`;
-        const username = this.config.user.email;
-        this.get_url = `${baseUrl}${username}&action=getData`;
-        this.post_url = `${baseUrl}${username}&action=updateData`;
-    };
 
-
-    #shouldDisplayTask(item) {
-        if (item.TaskType === 'task-free' && this.config.user.plan !== 'Free registration') return false;
-        if (item.TaskType === 'task-paid' && this.config.user.plan === 'Free registration') return false;
-        return true;
-    }
+    // #shouldDisplayTask(item) {
+    //     if (item.TaskType === 'task-free' && this.config.user.plan !== 'Free registration') return false;
+    //     if (item.TaskType === 'task-paid' && this.config.user.plan === 'Free registration') return false;
+    //     return true;
+    // }
 
     #getStatusContainer(status) {
         switch (status) {
@@ -413,13 +406,13 @@ class Migroot {
     };
 
     #handleDataAttributes(clone, item) {
-        clone.setAttribute('data-icon-status', item.IconStatus);
-        clone.setAttribute('data-original-status', item.OriginalStatus);
-        clone.setAttribute('data-translate-status', item.TranslateStatus);
-        clone.setAttribute('data-task-type', item.TaskType);
-        clone.setAttribute('data-points', item.Points);
-        clone.setAttribute('data-applicant-id', item.ApplicantID);
-        clone.setAttribute('data-emotion', item.Emotion);
+        // clone.setAttribute('data-icon-status', item.IconStatus);
+        // clone.setAttribute('data-original-status', item.OriginalStatus);
+        // clone.setAttribute('data-translate-status', item.TranslateStatus);
+        // clone.setAttribute('data-task-type', item.TaskType);
+        clone.setAttribute('data-points', item.points);
+        // clone.setAttribute('data-applicant-id', item.ApplicantID);
+        // clone.setAttribute('data-emotion', item.Emotion);
     }
 
     #handleButtons(clone, item) {
@@ -440,50 +433,50 @@ class Migroot {
         }
     };
 
-    #handleFileStatus(clone, item) {
-        const filesProgressBlock = clone.querySelector('.ac-doc__progress-bar');
-        const originalFileBlock = clone.querySelector('.original-file-block');
-        const translateFileBlock = clone.querySelector('.translate-file-block');
-        const uploadContainer = clone.querySelector('.ac-doc__action');
-        const originalLink = clone.querySelector('.original-link');
-        const translateLink = clone.querySelector('.translate-link');
-        var button;
-        if (item.OriginalStatus != 'Not uploaded') {
-            if (originalLink) originalLink.href = item.OriginalLink;
-        };
+    // #handleFileStatus(clone, item) {
+    //     const filesProgressBlock = clone.querySelector('.ac-doc__progress-bar');
+    //     const originalFileBlock = clone.querySelector('.original-file-block');
+    //     const translateFileBlock = clone.querySelector('.translate-file-block');
+    //     const uploadContainer = clone.querySelector('.ac-doc__action');
+    //     const originalLink = clone.querySelector('.original-link');
+    //     const translateLink = clone.querySelector('.translate-link');
+    //     var button;
+    //     if (item.OriginalStatus != 'Not uploaded') {
+    //         if (originalLink) originalLink.href = item.OriginalLink;
+    //     };
 
-        if (item.TranslateStatus != 'Not uploaded') {
-            if (translateLink) translateLink.href = item.TranslateLink;
-        };
+    //     if (item.TranslateStatus != 'Not uploaded') {
+    //         if (translateLink) translateLink.href = item.TranslateLink;
+    //     };
 
-        if (item.OriginalStatus === 'Verified' && (item.TaskType != 'document' || item.TranslateStatus === 'Verified' || item.TranslateStatus === 'Not needed')) {
-            if (uploadContainer) uploadContainer.remove();
-        } else if (item.OriginalStatus === 'Verified' && item.TaskType === 'document') {
-            // document with needed and not verified translate
-            if (uploadContainer) uploadContainer.querySelector('.ac-submit.w-button').setAttribute('data-filetype', 'Translate');
-            // IMPORTANT !!!
-            if (uploadContainer) uploadContainer.querySelector('.ac-submit.w-button').innerText = "Upload Translated"
-            if (uploadContainer && item.TranslateStatus != 'Not loaded') uploadContainer.querySelector('.ac-submit.w-button').innerText = "Reload Translated"
-        } else if (item.Status === 'In progress') {
-            // any task in ptogress without a translate and have button
-            this.log.info(item);
-            console.log(item);
-            this.log.info(clone);
-            console.log(clone);
-            button = uploadContainer.querySelector('.ac-submit.w-button');
-            this.log.info(button);
-            console.log(button);
-            if (button) button.innerText = "Reload file"
-        };
+    //     if (item.OriginalStatus === 'Verified' && (item.TaskType != 'document' || item.TranslateStatus === 'Verified' || item.TranslateStatus === 'Not needed')) {
+    //         if (uploadContainer) uploadContainer.remove();
+    //     } else if (item.OriginalStatus === 'Verified' && item.TaskType === 'document') {
+    //         // document with needed and not verified translate
+    //         if (uploadContainer) uploadContainer.querySelector('.ac-submit.w-button').setAttribute('data-filetype', 'Translate');
+    //         // IMPORTANT !!!
+    //         if (uploadContainer) uploadContainer.querySelector('.ac-submit.w-button').innerText = "Upload Translated"
+    //         if (uploadContainer && item.TranslateStatus != 'Not loaded') uploadContainer.querySelector('.ac-submit.w-button').innerText = "Reload Translated"
+    //     } else if (item.Status === 'In progress') {
+    //         // any task in ptogress without a translate and have button
+    //         this.log.info(item);
+    //         console.log(item);
+    //         this.log.info(clone);
+    //         console.log(clone);
+    //         button = uploadContainer.querySelector('.ac-submit.w-button');
+    //         this.log.info(button);
+    //         console.log(button);
+    //         if (button) button.innerText = "Reload file"
+    //     };
 
 
 
-        if (item.OriginalStatus === 'Not needed') {
-            if (filesProgressBlock) filesProgressBlock.remove();
-        } else if (item.TranslateStatus === 'Not needed') {
-            if (translateFileBlock) translateFileBlock.remove();
-        };
-    };
+    //     if (item.OriginalStatus === 'Not needed') {
+    //         if (filesProgressBlock) filesProgressBlock.remove();
+    //     } else if (item.TranslateStatus === 'Not needed') {
+    //         if (translateFileBlock) translateFileBlock.remove();
+    //     };
+    // };
 
     #createUpdateData(id, url, filetype, status, userComment = 'Check my file please') {
         return {
