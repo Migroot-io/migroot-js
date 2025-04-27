@@ -400,8 +400,13 @@ class Migroot {
     #setCardContent(clone, item) {
         clone.querySelector('.ac-doc__title').textContent = item.name;
         clone.querySelector('.ac-doc__description').textContent = item.shortDescription;
-        clone.querySelector('.ac-docs__mark.ac-docs__due_date').textContent = this.#formatDate(item.deadline);
         clone.querySelector('.ac-docs__mark.ac-docs__mark_country').textContent = item.location;
+        if (item.deadline !== '') {
+            clone.querySelector('.ac-docs__mark.ac-docs__due_date').textContent = this.#formatDate(item.deadline);
+        }else{
+            clone.etElementsByClassName('ac-docs__mark ac-docs__due_date')[0].remove();
+        }
+        clone.getElementsByClassName('ac-doc__points-value')[0].textContent = item.points;
         // clone.querySelector('.ac-docs__mark.ac-docs__applicicant').textContent = item.Applicant === 'You' && this.config.user ? this.config.user.firstName : item.Applicant;
     };
 
