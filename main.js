@@ -294,26 +294,28 @@ class Migroot {
         }
     }
 
-    ////////////////////////// old logic ////////////////////////
-    async init_dashboard(boadrId = null, callback = null) {
-        try {
-            this.log.info('Step 1: Clearing containers');
-            this.#clearContainers();
-
-            this.log.info('Step 2: Fetching user and board');
-            await this.fetchData(boadrId);
-
-            this.log.info('Step 3: Creating tasks');
-            this.board.tasks.forEach(item => this.createCard(item));
-            this.log.info('Dashboard initialized successfully');
-            if (callback && typeof callback === 'function') {
-                this.log.info('callback called');
-                callback(); // Можно передать сюда аргументы, если нужно
-            }
-        } catch (error) {
-            this.log.error(`Error during init dashboard: ${error.message}`);
+    async init_dashboard({ boardId = null, callback = null } = {}) {
+      try {
+        this.log.info('Step 1: Clearing containers');
+        this.#clearContainers();
+    
+        this.log.info('Step 2: Fetching user and board');
+        await this.fetchData(boardId); // ✅ исправлено имя
+    
+        this.log.info('Step 3: Creating tasks');
+        this.board.tasks.forEach(item => this.createCard(item));
+    
+        this.log.info('Dashboard initialized successfully');
+    
+        if (typeof callback === 'function') {
+          this.log.info('callback called');
+          callback({ taskCount: this.board.tasks.length }); // можно передавать аргументы
         }
-    };
+    
+      } catch (error) {
+        this.log.error(`Error during init dashboard: ${error.message}`);
+      }
+    }
 
     createCard(item) {
         this.log.info(`Step 5: Creating card for item: ${item}`);
@@ -344,61 +346,7 @@ class Migroot {
         this.#replaceExistingCard(newCardId, clone, targetContainer);
     }
 
-    updateCard(data, cardId) {
-        fetch(this.post_url, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(data)
-            })
-            .then(response => response.json())
-            .then(data => this.createCard(data.result.updatedData))
-            .catch(error => {
-                this.log.error(`Error updating card: ${error.message}`);
-                this.#showLoader(cardId, false);
-            });
-    }
-
-    updateCardUrl(id, url, filetype) {
-        const cardId = `doc-${id}`;
-        const data = this.#createUpdateData(id, url, filetype, 'Uploaded');
-        this.updateCard(data, cardId);
-    }
-
-    updateCardComment(id, comment) {
-        const cardId = `doc-${id}`;
-        const data = this.#createUpdateData(id, null, null, 'In progress', comment);
-        this.updateCard(data, cardId);
-    }
-
-    createDummyCard() {
-        const dummyCard = this.config.template.cloneNode(true);
-        dummyCard.id = 'dummy-card';
-        dummyCard.querySelector('.ac-doc__title').textContent = 'Dummy Card';
-        dummyCard.querySelector('.ac-doc__description').textContent = 'This is a placeholder card for testing purposes.';
-        dummyCard.querySelector('.ac-docs__mark.ac-docs__due_date').textContent = this.#formatDate(new Date().toISOString());
-        dummyCard.querySelector('.ac-docs__mark.ac-docs__mark_country').textContent = 'Test Location';
-        dummyCard.querySelector('.ac-docs__mark.ac-docs__applicicant').textContent = 'Test User';
-        dummyCard.setAttribute('data-icon-status', 'test');
-        dummyCard.setAttribute('data-original-status', 'Not uploaded');
-        dummyCard.setAttribute('data-translate-status', 'Not uploaded');
-        const readyContainer = this.#getStatusContainer('Ready');
-        readyContainer.insertBefore(dummyCard, readyContainer.firstChild);
-    }
-
-
-    #clearContainers() {
-        Object.values(this.config.containers).forEach(container => container.innerHTML = '');
-    }
-
-
-    // #shouldDisplayTask(item) {
-    //     if (item.TaskType === 'task-free' && this.config.user.plan !== 'Free registration') return false;
-    //     if (item.TaskType === 'task-paid' && this.config.user.plan === 'Free registration') return false;
-    //     return true;
-    // }
-
+    // todo: add other statuses
     #getStatusContainer(status) {
         switch (status) {
             case 'TO_DO':
@@ -464,6 +412,63 @@ class Migroot {
         // clone.setAttribute('data-applicant-id', item.ApplicantID);
         // clone.setAttribute('data-emotion', item.Emotion);
     }
+
+
+    ////////////////////////// old logic ////////////////////////
+    updateCard(data, cardId) {
+        fetch(this.post_url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(data => this.createCard(data.result.updatedData))
+            .catch(error => {
+                this.log.error(`Error updating card: ${error.message}`);
+                this.#showLoader(cardId, false);
+            });
+    }
+
+    updateCardUrl(id, url, filetype) {
+        const cardId = `doc-${id}`;
+        const data = this.#createUpdateData(id, url, filetype, 'Uploaded');
+        this.updateCard(data, cardId);
+    }
+
+    updateCardComment(id, comment) {
+        const cardId = `doc-${id}`;
+        const data = this.#createUpdateData(id, null, null, 'In progress', comment);
+        this.updateCard(data, cardId);
+    }
+
+    createDummyCard() {
+        const dummyCard = this.config.template.cloneNode(true);
+        dummyCard.id = 'dummy-card';
+        dummyCard.querySelector('.ac-doc__title').textContent = 'Dummy Card';
+        dummyCard.querySelector('.ac-doc__description').textContent = 'This is a placeholder card for testing purposes.';
+        dummyCard.querySelector('.ac-docs__mark.ac-docs__due_date').textContent = this.#formatDate(new Date().toISOString());
+        dummyCard.querySelector('.ac-docs__mark.ac-docs__mark_country').textContent = 'Test Location';
+        dummyCard.querySelector('.ac-docs__mark.ac-docs__applicicant').textContent = 'Test User';
+        dummyCard.setAttribute('data-icon-status', 'test');
+        dummyCard.setAttribute('data-original-status', 'Not uploaded');
+        dummyCard.setAttribute('data-translate-status', 'Not uploaded');
+        const readyContainer = this.#getStatusContainer('Ready');
+        readyContainer.insertBefore(dummyCard, readyContainer.firstChild);
+    }
+
+
+    #clearContainers() {
+        Object.values(this.config.containers).forEach(container => container.innerHTML = '');
+    }
+
+
+    // #shouldDisplayTask(item) {
+    //     if (item.TaskType === 'task-free' && this.config.user.plan !== 'Free registration') return false;
+    //     if (item.TaskType === 'task-paid' && this.config.user.plan === 'Free registration') return false;
+    //     return true;
+    // }
 
     #handleButtons(clone, item) {
         const uploadContainer = clone.querySelector('.ac-doc__action');
