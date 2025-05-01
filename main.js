@@ -398,34 +398,25 @@ class Migroot {
     }
 
     #setCardContent(clone, item) {
-        clone.querySelector('[data-task="title"]').textContent = item.name;
-        clone.querySelector('[data-task="shortDescription"]').textContent = item.shortDescription;
-        clone.querySelector('[data-task="location"] .t-mark__label').textContent = item.location;
+        for (const key in item) {
+            const container = clone.querySelector(`[data-task="${key}"]`);
+            if (!container) continue;
     
-        if (item.deadline && item.deadline !== '') {
-            clone.querySelector('[data-task="deadline"] .t-mark__label').textContent = this.#formatDate(item.deadline);
-        } else {
-            const deadlineEl = clone.querySelector('[data-task="deadline"]');
-            if (deadlineEl) deadlineEl.remove();
+            const label = container.querySelector('.t-mark__label') || container;
+    
+            let value = item[key];
+    
+            // Обработка спец-типов данных
+            if (Array.isArray(value)) {
+                value = value.length;
+            } else if (key === 'deadline' && value) {
+                value = this.#formatDate(value);
+            } else if (typeof value === 'object' || value === undefined || value === null) {
+                continue; // Пропускаем неподдерживаемые типы
+            }
+    
+            label.textContent = value;
         }
-    
-        if (item.assignName && item.assignName !== '') {
-            clone.querySelector('[data-task="assign"] .t-mark__label').textContent = item.assignName;
-        }
-    
-        if (item.difficulty !== undefined) {
-            clone.querySelector('[data-task="difficulty"] .t-mark__label').textContent = item.difficulty;
-        }
-    
-        if (item.files !== undefined) {
-            clone.querySelector('[data-task="files"] .t-mark__label').textContent = item.files.length;
-        }
-    
-        if (item.commentsCount !== undefined) {
-            clone.querySelector('[data-task="comments"] .t-mark__label').textContent = item.comments.length;
-        }
-    
-        clone.querySelector('[data-task="points"] .t-mark__label').textContent = item.points;
     }
 
     #handleDataAttributes(clone, item) {
