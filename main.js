@@ -398,24 +398,42 @@ class Migroot {
     }
 
     #setCardContent(clone, item) {
-        clone.querySelector('.ac-doc__title').textContent = item.name;
-        clone.querySelector('.ac-doc__description').textContent = item.shortDescription;
-        clone.querySelector('.ac-docs__mark.ac-docs__mark_country').textContent = item.location;
-        if (item.deadline !== '') {
-            clone.querySelector('.ac-docs__mark.ac-docs__due_date').textContent = this.#formatDate(item.deadline);
-        }else{
-            clone.etElementsByClassName('ac-docs__mark ac-docs__due_date')[0].remove();
+        clone.querySelector('[data-task="title"]').textContent = item.name;
+        clone.querySelector('[data-task="shortDescription"]').textContent = item.shortDescription;
+        clone.querySelector('[data-task="location"] .t-mark__label').textContent = item.location;
+    
+        if (item.deadline && item.deadline !== '') {
+            clone.querySelector('[data-task="deadline"] .t-mark__label').textContent = this.#formatDate(item.deadline);
+        } else {
+            const deadlineEl = clone.querySelector('[data-task="deadline"]');
+            if (deadlineEl) deadlineEl.remove();
         }
-        clone.getElementsByClassName('ac-doc__points-value')[0].textContent = item.points;
-        // clone.querySelector('.ac-docs__mark.ac-docs__applicicant').textContent = item.Applicant === 'You' && this.config.user ? this.config.user.firstName : item.Applicant;
-    };
+    
+        if (item.assignName && item.assignName !== '') {
+            clone.querySelector('[data-task="assign"] .t-mark__label').textContent = item.assignName;
+        }
+    
+        if (item.difficulty !== undefined) {
+            clone.querySelector('[data-task="difficulty"] .t-mark__label').textContent = item.difficulty;
+        }
+    
+        if (item.files !== undefined) {
+            clone.querySelector('[data-task="files"] .t-mark__label').textContent = item.files.length;
+        }
+    
+        if (item.commentsCount !== undefined) {
+            clone.querySelector('[data-task="comments"] .t-mark__label').textContent = item.comments.length;
+        }
+    
+        clone.querySelector('[data-task="points"] .t-mark__label').textContent = item.points;
+    }
 
     #handleDataAttributes(clone, item) {
+        clone.setAttribute('data-points', item.points);
         // clone.setAttribute('data-icon-status', item.IconStatus);
         // clone.setAttribute('data-original-status', item.OriginalStatus);
         // clone.setAttribute('data-translate-status', item.TranslateStatus);
         // clone.setAttribute('data-task-type', item.TaskType);
-        clone.setAttribute('data-points', item.points);
         // clone.setAttribute('data-applicant-id', item.ApplicantID);
         // clone.setAttribute('data-emotion', item.Emotion);
     }
