@@ -118,6 +118,24 @@ const ENDPOINTS = {
     // deleteClientTask: { path: 'board/task/{taskId}', method: 'DELETE' }
 };
 
+
+/**
+ * @typedef {Object} TaskItem
+ * @property {string} name - Task title
+ * @property {string} status - Task status
+ * @property {string} taskType - Type or category of the task
+ * @property {string} shortDescription - Brief description of the task
+ * @property {string} longDescription - description for the drawer
+ * @property {string} [location] - Country or location where the task applies (optional)
+ * @property {string} [deadline] - Deadline date as an ISO string (optional)
+ * @property {string} assignName - Name of the assignee
+ * @property {string} difficulty - Difficulty level 
+ * @property {Array} files - Array of attached files
+ * @property {Array} comments - Array of comments
+ * @property {number} points - Points awarded for the task
+ * @property {number} priority - for sorting
+ */
+
 class Migroot {
     constructor(config) {
         this.config = config;
@@ -397,26 +415,44 @@ class Migroot {
         }
     }
 
+    /** @type {Set<string>} */
+    // delete assign from that set after it has been added to backaend //
+    #optionalFields = new Set(['location', 'deadline', 'assign']);
+
     #setCardContent(clone, item) {
-        for (const key in item) {
-            const container = clone.querySelector(`[data-task="${key}"]`);
-            if (!container) continue;
+        const formatters = {
+            deadline: val => this.#formatDate(val),
+        };
     
+        const allFields = clone.querySelectorAll('[data-task]');
+    
+        allFields.forEach(container => {
+            const key = container.getAttribute('data-task');
+            if (!key) return;
+    
+            const rawValue = item[key];
             const label = container.querySelector('.t-mark__label') || container;
     
-            let value = item[key];
+            let value = rawValue;
     
-            // Обработка спец-типов данных
             if (Array.isArray(value)) {
                 value = value.length;
-            } else if (key === 'deadline' && value) {
-                value = this.#formatDate(value);
-            } else if (typeof value === 'object' || value === undefined || value === null) {
-                continue; // Пропускаем неподдерживаемые типы
+            } else if (formatters[key]) {
+                value = formatters[key](value);
             }
     
-            label.textContent = value;
-        }
+            const isValueEmpty =
+                value === undefined ||
+                value === null ||
+                value === '' ||
+                (typeof value === 'number' && isNaN(value));
+    
+            if (this.#optionalFields.has(key) && isValueEmpty) {
+                container.remove();
+            } else {
+                label.textContent = value;
+            }
+        });
     }
 
     #handleDataAttributes(clone, item) {
