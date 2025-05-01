@@ -119,23 +119,6 @@ const ENDPOINTS = {
 };
 
 
-/**
- * @typedef {Object} TaskItem
- * @property {string} name - Task title
- * @property {string} status - Task status
- * @property {string} taskType - Type or category of the task
- * @property {string} shortDescription - Brief description of the task
- * @property {string} longDescription - description for the drawer
- * @property {string} [location] - Country or location where the task applies (optional)
- * @property {string} [deadline] - Deadline date as an ISO string (optional)
- * @property {string} assignName - Name of the assignee
- * @property {string} difficulty - Difficulty level 
- * @property {Array} files - Array of attached files
- * @property {Array} comments - Array of comments
- * @property {number} points - Points awarded for the task
- * @property {number} priority - for sorting
- */
-
 class Migroot {
     constructor(config) {
         this.config = config;
@@ -346,6 +329,23 @@ class Migroot {
         this.#replaceExistingCard(newCardId, clone, targetContainer);
     }
 
+    /**
+     * @typedef {Object} TaskItem
+     * @property {string} name - Task title
+     * @property {string} status - Task status
+     * @property {string} taskType - Type or category of the task
+     * @property {string} shortDescription - Brief description of the task
+     * @property {string} longDescription - description for the drawer
+     * @property {string} [location] - Country or location where the task applies (optional)
+     * @property {string} [deadline] - Deadline date as an ISO string (optional)
+     * @property {string} assignName - Name of the assignee
+     * @property {string} difficulty - Difficulty level 
+     * @property {Array} files - Array of attached files
+     * @property {Array} comments - Array of comments
+     * @property {number} points - Points awarded for the task
+     * @property {number} priority - for sorting
+     */
+
     // todo: add other statuses
     #getStatusContainer(status) {
         switch (status) {
@@ -367,9 +367,19 @@ class Migroot {
     // delete assign from that set after it has been added to backaend //
     #optionalFields = new Set(['location', 'deadline', 'assign']);
 
+    #formatDifficulty(value) {
+      const map = {
+        EASY: 'fun',
+        MEDIUM: 'challange',
+        HARD: 'nightmare',
+      };
+      return map[value] || value;
+    }
+    
     #setCardContent(clone, item) {
         const formatters = {
-            deadline: val => this.#formatDate(val),
+          deadline: val => this.#formatDate(val),
+          difficulty: val => this.#formatDifficulty(val),
         };
     
         const allFields = clone.querySelectorAll('[data-task]');
