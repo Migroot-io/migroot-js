@@ -351,11 +351,13 @@ class Migroot {
         switch (status) {
             case 'TO_DO':
                 return this.config.containers.notStarted;
-            case 'Not started':
-                return this.config.containers.notStarted;
-            case 'In progress':
+            case 'URGENT':
+                return this.config.containers.asap;
+            case 'IN_PROGRESS':
                 return this.config.containers.inProgress;
-            case 'Ready':
+            case 'EDIT':
+                return this.config.containers.edit;
+            case 'READY':
                 return this.config.containers.ready;
             default:
                 this.log.error(`Unknown status: ${status}`);
@@ -366,15 +368,6 @@ class Migroot {
     /** @type {Set<string>} */
     // delete assign from that set after it has been added to backaend //
     #optionalFields = new Set(['location', 'deadline', 'assign']);
-
-    #formatDifficulty(value) {
-      const map = {
-        EASY: 'fun',
-        MEDIUM: 'challange',
-        HARD: 'nightmare',
-      };
-      return map[value] || value;
-    }
     
     #setCardContent(clone, item) {
         const formatters = {
@@ -563,6 +556,15 @@ class Migroot {
             month: 'short',
             timeZone: this.config.timeZone
         });
+    }
+
+    #formatDifficulty(value) {
+      const map = {
+        EASY: 'fun',
+        MEDIUM: 'challenge',
+        HARD: 'nightmare',
+      };
+      return map[value] || value;
     }
 
     #getRandom(arr) {
