@@ -388,7 +388,11 @@ class Migroot {
             if (this.#optionalFields.has(key) && isValueEmpty) {
                 container.remove();
             } else {
-                label.textContent = value;
+                if (key === 'longDescription') {
+                    label.innerHTML = value;
+                } else {
+                    label.textContent = value;
+                }
             }
         });
 
