@@ -297,6 +297,7 @@ class Migroot {
     
       } catch (error) {
         this.log.error(`Error during init dashboard: ${error.message}`);
+        throw error; // ✅ проброс наружу
       }
     }
 
