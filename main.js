@@ -281,20 +281,20 @@ class Migroot {
       try {
         this.log.info('Step 1: Clearing containers');
         this.#clearContainers();
-    
+
         this.log.info('Step 2: Fetching user and board');
         await this.fetchData(boardId); // ✅ исправлено имя
-    
+
         this.log.info('Step 3: Creating tasks');
         this.board.tasks.forEach(item => this.createCard(item));
-    
+
         this.log.info('Dashboard initialized successfully');
-    
+
         if (typeof callback === 'function') {
           this.log.info('callback called');
           callback({ taskCount: this.board.tasks.length }); // можно передавать аргументы
         }
-    
+
       } catch (error) {
         this.log.error(`Error during init dashboard: ${error.message}`);
         throw error; // ✅ проброс наружу
@@ -308,11 +308,23 @@ class Migroot {
         //     return;
         // }
         const targetContainer = this.#getStatusContainer(item.status);
-        const newCardId = `doc-${item.clientTaskId}`;
-        const clone = this.config.template.cloneNode(true);
+        const clone = this.config.template?.cloneNode(true);
+        if (clone) {
+            clone.id = `doc-${item.clientTaskId}`;
+            this.log.info(`Step 6: Setting card content for card ID: ${newCardId}`);
+            this.#setCardContent(clone, item);
+        }
+        // drawer logic
+        const drawer = this.config.drawer?.cloneNode(true);
+        if (drawer) {
+            this.log.info(`Step 7: Setting drawer content for card ID: ${newCardId}`);
+            this.#setDrawerContent(drawer, item);
+            drawer.id = `drawer-${item.clientTaskId}`;
+            drawer.style.display = 'none';
+            document.body.appendChild(drawer);
+        }
 
-        this.log.info(`Step 6: Setting card content for card ID: ${newCardId}`);
-        this.#setCardContent(clone, item);
+
 
         this.log.info('Step 7: Handling data attributes (points, etc)');
         this.#handleDataAttributes(clone, item);
@@ -325,6 +337,12 @@ class Migroot {
 
         this.log.info('Step 10: Handling file status');
         // this.#handleFileStatus(clone, item);
+
+        // Add onclick to open drawer
+        clone.onclick = () => {
+            const drawerEl = document.getElementById(`drawer-${item.clientTaskId}`);
+            if (drawerEl) drawerEl.style.display = 'flex';
+        };
 
         this.log.info('Step 11: Replacing existing card if needed');
         this.#replaceExistingCard(newCardId, clone, targetContainer);
@@ -340,14 +358,13 @@ class Migroot {
      * @property {string} [location] - Country or location where the task applies (optional)
      * @property {string} [deadline] - Deadline date as an ISO string (optional)
      * @property {string} assignName - Name of the assignee
-     * @property {string} difficulty - Difficulty level 
+     * @property {string} difficulty - Difficulty level
      * @property {Array} files - Array of attached files
      * @property {Array} comments - Array of comments
      * @property {number} points - Points awarded for the task
      * @property {number} priority - for sorting
      */
 
-    // todo: add other statuses
     #getStatusContainer(status) {
         switch (status) {
             case 'TO_DO':
@@ -369,42 +386,55 @@ class Migroot {
     /** @type {Set<string>} */
     // delete assign from that set after it has been added to backaend //
     #optionalFields = new Set(['location', 'deadline', 'assign']);
-    
+
     #setCardContent(clone, item) {
         const formatters = {
           deadline: val => this.#formatDate(val),
           difficulty: val => this.#formatDifficulty(val),
         };
-    
+
         const allFields = clone.querySelectorAll('[data-task]');
-    
+
         allFields.forEach(container => {
             const key = container.getAttribute('data-task');
             if (!key) return;
-    
+
             const rawValue = item[key];
             const label = container.querySelector('.t-mark__label') || container;
-    
+
             let value = rawValue;
-    
+
             if (Array.isArray(value)) {
                 value = value.length;
             } else if (formatters[key]) {
                 value = formatters[key](value);
             }
-    
+
             const isValueEmpty =
                 value === undefined ||
                 value === null ||
                 value === '' ||
                 (typeof value === 'number' && isNaN(value));
-    
+
             if (this.#optionalFields.has(key) && isValueEmpty) {
                 container.remove();
             } else {
                 label.textContent = value;
             }
         });
+    }
+
+    #setDrawerContent(drawer, item) {
+        this.#setCardContent(drawer, item); // использует ту же логику
+        const longDescEl = drawer.querySelector('[data-task="longDescription"]');
+        if (longDescEl) {
+            longDescEl.textContent = item.longDescription || '';
+        }
+
+        const button = drawer.querySelector('.drawer-action-button');
+        if (button) {
+            button.onclick = () => this.handleDrawerAction?.(item);
+        }
     }
 
     #handleDataAttributes(clone, item) {
