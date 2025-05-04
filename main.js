@@ -320,9 +320,6 @@ class Migroot {
         if (drawer) {
             this.log.info(`Step 7: Setting drawer content for card ID: ${newCardId}`);
             this.#setDrawerContent(drawer, item);
-            drawer.id = `drawer-${item.clientTaskId}`;
-            drawer.style.display = 'none';
-            document.body.appendChild(drawer);
         }
 
 
@@ -426,16 +423,22 @@ class Migroot {
     }
 
     #setDrawerContent(drawer, item) {
-        this.#setCardContent(drawer, item); // использует ту же логику
-        const longDescEl = drawer.querySelector('[data-task="longDescription"]');
-        if (longDescEl) {
-            longDescEl.textContent = item.longDescription || '';
+        this.#setCardContent(drawer, item); 
+        
+        drawer.id = `drawer-${item.clientTaskId}`;
+        // const longDescEl = drawer.querySelector('[data-task="longDescription"]');
+        // if (longDescEl) {
+        //     longDescEl.textContent = item.longDescription || '';
+        // }
+
+        const closeButton = drawer.querySelector('.t-close');
+        if (closeButton) {
+            closeButton.onclick = () => {
+                drawer.style.display = 'none';
+            };
         }
 
-        const button = drawer.querySelector('.drawer-action-button');
-        if (button) {
-            button.onclick = () => this.handleDrawerAction?.(item);
-        }
+        document.body.appendChild(drawer);
     }
 
     #handleDataAttributes(clone, item) {
