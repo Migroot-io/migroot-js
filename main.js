@@ -303,47 +303,18 @@ class Migroot {
 
     createCard(item) {
         this.log.info(`Step 5: Creating card for item: ${item}`);
-        // if (!this.#shouldDisplayTask(item)) {
-        //     this.log.info('Task is not eligible for display, skipping');
-        //     return;
-        // }
-        const newCardId = `doc-${item.clientTaskId}`;
-        const targetContainer = this.#getStatusContainer(item.status);
-        const clone = this.config.template?.cloneNode(true);
-        if (clone) {
-            // clone.id = newCardId; i dont knwo where it setted but it works?
-            this.log.info(`Step 6: Setting card content for card ID: ${newCardId}`);
-            this.#setCardContent(clone, item);
+
+        const card = this.config.template?.cloneNode(true);
+        if (card) {
+            this.#setCardContent(card, item);
         }
         // drawer logic
         const drawer = this.config.drawer?.cloneNode(true);
         if (drawer) {
-            this.log.info(`Step 7: Setting drawer content for card ID: ${newCardId}`);
             this.#setDrawerContent(drawer, item);
         }
 
 
-
-        this.log.info('Step 7: Handling data attributes (points, etc)');
-        this.#handleDataAttributes(clone, item);
-
-        this.log.info('Step 8: Handling comment');
-        // this.#handleComment(clone, item);
-
-        this.log.info('Step 9: Handling buttons');
-        // this.#handleButtons(clone, item);
-
-        this.log.info('Step 10: Handling file status');
-        // this.#handleFileStatus(clone, item);
-
-        // Add onclick to open drawer
-        clone.onclick = () => {
-            const drawerEl = document.getElementById(`drawer-${item.clientTaskId}`);
-            if (drawerEl) drawerEl.style.display = 'flex';
-        };
-
-        this.log.info('Step 11: Replacing existing card if needed');
-        this.#replaceExistingCard(newCardId, clone, targetContainer);
     }
 
     /**
@@ -385,7 +356,7 @@ class Migroot {
     // delete assign from that set after it has been added to backaend //
     #optionalFields = new Set(['location', 'deadline', 'assign']);
 
-    #setCardContent(clone, item) {
+    #setContent(clone, item) {
         const formatters = {
           deadline: val => this.#formatDate(val),
           difficulty: val => this.#formatDifficulty(val),
@@ -420,23 +391,42 @@ class Migroot {
                 label.textContent = value;
             }
         });
+
+        // this.log.info('Step 7: Handling data attributes (points, etc)');
+        // this.#handleDataAttributes(clone, item);
+    }
+
+    #setCardContent(card, item) {
+        this.#setContent(card, item);
+        const targetContainer = this.#getStatusContainer(item.status);
+
+        card.id = `doc-${item.clientTaskId}`;
+        this.log.info(`Step 6: Setting card content for card ID: ${card.id}`);
+        card.onclick = () => {
+            const drawerEl = document.getElementById(`drawer-${item.clientTaskId}`);
+            if (drawerEl) drawerEl.style.display = 'flex';
+        };
+        this.log.info('Step 11: Replacing existing card if needed');
+        this.#replaceExistingCard(card, targetContainer);
     }
 
     #setDrawerContent(drawer, item) {
-        this.#setCardContent(drawer, item); 
-        
-        drawer.id = `drawer-${item.clientTaskId}`;
-        // const longDescEl = drawer.querySelector('[data-task="longDescription"]');
-        // if (longDescEl) {
-        //     longDescEl.textContent = item.longDescription || '';
-        // }
+        this.#setContent(drawer, item);
 
+        drawer.id = `drawer-${item.clientTaskId}`;
+        this.log.info(`Step 7: Setting drawer content for card ID: ${item.clientTaskId}`);
         const closeButton = drawer.querySelector('.t-close');
         if (closeButton) {
             closeButton.onclick = () => {
                 drawer.style.display = 'none';
             };
         }
+
+        // this.log.info('Step 8: Handling comment');
+        // this.#handleComment(clone, item);
+
+        // this.log.info('Step 9: Handling buttons');
+        // this.#handleButtons(clone, item);
 
         document.body.appendChild(drawer);
     }
@@ -606,11 +596,10 @@ class Migroot {
         return arr[Math.floor(Math.random() * arr.length)];
     }
 
-    #replaceExistingCard(newCardId, clone, targetContainer) {
-        const oldCard = document.getElementById(newCardId);
+    #replaceExistingCard(card, targetContainer) {
+        const oldCard = document.getElementById(card.id);
         if (oldCard) oldCard.remove();
-        clone.id = newCardId;
-        targetContainer.insertBefore(clone, targetContainer.firstChild);
+        targetContainer.insertBefore(card, targetContainer.firstChild);
     }
 
     #showLoader(cardId, show, text = 'Loading') {
