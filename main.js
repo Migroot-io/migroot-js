@@ -307,10 +307,11 @@ class Migroot {
         //     this.log.info('Task is not eligible for display, skipping');
         //     return;
         // }
+        const newCardId = `doc-${item.clientTaskId}`;
         const targetContainer = this.#getStatusContainer(item.status);
         const clone = this.config.template?.cloneNode(true);
         if (clone) {
-            clone.id = `doc-${item.clientTaskId}`;
+            // clone.id = newCardId; i dont knwo where it setted but it works?
             this.log.info(`Step 6: Setting card content for card ID: ${newCardId}`);
             this.#setCardContent(clone, item);
         }
