@@ -356,44 +356,82 @@ class Migroot {
     // delete assign from that set after it has been added to backaend //
     #optionalFields = new Set(['location', 'deadline', 'assign']);
 
-    #setContent(clone, item) {
-        const formatters = {
-          deadline: val => this.#formatDate(val),
-          difficulty: val => this.#formatDifficulty(val),
+    /**
+     * Populates a cloned task/card template with the values from a task object.
+     *
+     * @param {HTMLElement} clone  – the clone to populate.
+     * @param {TaskItem}    item   – task data.
+     * @param {Object}      [opts] – optional behaviour overrides.
+     * @param {string}      [opts.fieldSelector='[data-task]']   – selector for all “data holders”.
+     * @param {string}      [opts.labelSelector='.t-mark__label'] – selector for the label inside each holder.
+     * @param {Object}      [opts.formatters]                    – additional/override value formatters.
+     * @param {Object}      [opts.renderers]                     – per‑field rendering functions (receive (el, value)).
+     */
+
+    #setContent(
+        clone,
+        item,
+        {
+            fieldSelector = '[data-task]',
+            labelSelector = '.t-mark__label',
+            formatters    = {},
+            renderers     = {},
+        } = {}
+    ) {
+        // default formatters that exist for every call
+        const defaultFormatters = {
+            deadline  : val => this.#formatDate(val),
+            difficulty: val => this.#formatDifficulty(val),
         };
 
-        const allFields = clone.querySelectorAll('[data-task]');
+        // user‑supplied formatters override the defaults
+        const fns = { ...defaultFormatters, ...formatters };
+        const defaultRenderer = (el, val) => { el.textContent = val; };
+
+        const allFields = clone.querySelectorAll(fieldSelector);
+        // Derive the attribute name from selector, e.g. '[data-task]' → 'data-task'
+        const attrMatch = fieldSelector.match(/\[([^\]=]+)(?:=[^\]]+)?\]/);
+        if (!attrMatch) {
+            throw new Error(
+                `Migroot#setContent: cannot derive attribute name from selector "${fieldSelector}". ` +
+                'Provide a selector that contains an attribute filter like "[data-foo]".'
+            );
+        }
+        const attrName = attrMatch[1];
 
         allFields.forEach(container => {
-            const key = container.getAttribute('data-task');
+            const key = container.getAttribute(attrName);
+            // for example data-task='status' => key is status
             if (!key) return;
 
-            const rawValue = item[key];
-            const label = container.querySelector('.t-mark__label') || container;
+            let value = item[key];
 
-            let value = rawValue;
-
-            if (Array.isArray(value)) {
+            if (!value) return;
+            // Arrays → their length, unless a formatter overrides it
+            if (Array.isArray(value) && !fns[key]) {
                 value = value.length;
-            } else if (formatters[key]) {
-                value = formatters[key](value);
+            }
+
+            // Apply formatter (default or custom) if any
+            if (fns[key]) {
+                value = fns[key](value);
             }
 
             const isValueEmpty =
                 value === undefined ||
                 value === null ||
                 value === '' ||
-                (typeof value === 'number' && isNaN(value));
+                (typeof value === 'number' && Number.isNaN(value));
 
             if (this.#optionalFields.has(key) && isValueEmpty) {
                 container.remove();
-            } else {
-                label.textContent = value;
+                return;
             }
-        });
 
-        // this.log.info('Step 7: Handling data attributes (points, etc)');
-        // this.#handleDataAttributes(clone, item);
+            // Find label element or fall back to the container itself
+            const labelEl = container.querySelector(labelSelector) || container;
+            (renderers[key] || defaultRenderer)(labelEl, value);
+        });
     }
 
     #setCardContent(card, item) {
@@ -411,7 +449,17 @@ class Migroot {
     }
 
     #setDrawerContent(drawer, item) {
+        // 1) populate generic [data-task] marks (same as in cards)
         this.#setContent(drawer, item);
+
+        // 2) populate drawer‑specific marks (e.g. <div data-drawer="longDescription">)
+        //    and render longDescription as HTML rather than plain text.
+        this.#setContent(drawer, item, {
+            fieldSelector: '[data-drawer]',
+            renderers: {
+                longDescription: (el, val) => { el.innerHTML = val; },
+            },
+        });
 
         drawer.id = `drawer-${item.clientTaskId}`;
         this.log.info(`Step 7: Setting drawer content for card ID: ${item.clientTaskId}`);
@@ -428,7 +476,6 @@ class Migroot {
         // this.log.info('Step 9: Handling buttons');
         // this.#handleButtons(clone, item);
 
-        this.#populateDrawerElements(drawer, item);
         document.body.appendChild(drawer);
     }
 
