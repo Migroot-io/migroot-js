@@ -314,7 +314,9 @@ class Migroot {
 
     createCard(item) {
         this.log.info(`Step 5: Creating card for item: ${item}`);
-
+        // need to add item keys
+        item['upload_button'] = true;
+        item['start_button'] = true;
         const card = this.config.template?.cloneNode(true);
         if (card) {
             this.#insertCard(card, item);
@@ -448,6 +450,8 @@ class Migroot {
             // Find label element or fall back to the container itself
             const labelEl = container.querySelector(labelSelector) || container;
             try {
+                this.log.info(`Rendering key="${key}" into element:`, labelEl);
+                this.log.info('Value to render:', value);
                 (renderers[key] || defaultRenderer)(labelEl, value);
             } catch (err) {
                 this.log.error(
@@ -512,6 +516,7 @@ class Migroot {
            3) rely on whatever onclick the template already has.
            No hidden <input> creation or extra DOM building. */
         const snippet = this.config.buttons?.uploadButton;
+        this.log.info('Render upload button – snippet found:', !!snippet);
         if (!snippet) {
             el.remove();
             return;
@@ -533,6 +538,35 @@ class Migroot {
         }
         // fallback event handler if no inline-onclick
         node.addEventListener('click', () => this.#handleUpload(this.#findItemByAncestorId(el, '')));
+        el.replaceWith(node);
+    }
+
+    #renderStartButton(el, _val) {
+        // 1) clone HTML snippet that comes from CONFIG
+        // 2) adjust its id using the current item
+        // 3) rely on whatever onclick the template already has.
+        const snippet = this.config.buttons?.startButton;
+        this.log.info('Render start button – snippet found:', !!snippet);
+        if (!snippet) {
+            el.remove();
+            return;
+        }
+        let node;
+        if (snippet instanceof HTMLElement) {
+            node = snippet.cloneNode(true);
+        } else {
+            const tmp = document.createElement('div');
+            tmp.innerHTML = snippet;
+            node = tmp.firstElementChild.cloneNode(true);
+        }
+        // ensure unique id
+        const taskId = (this.#findItemByAncestorId(el, '').clientTaskId);
+        if (node.id) {
+            node.id = `${node.id}-${taskId}`;
+        } else {
+            node.id = `start-${taskId}`;
+        }
+        node.addEventListener('click', () => this.#handleStart(this.#findItemByAncestorId(el, '')));
         el.replaceWith(node);
     }
 
@@ -587,10 +621,11 @@ class Migroot {
         return {
             fieldSelector: '[data-drawer]',
             renderers: {
-                longDescription : this.#renderLongDescription.bind(this),
-                upload_button   : this.#renderUploadButton.bind(this),
-                comments        : this.#renderComments.bind(this),
-                files           : this.#renderFiles.bind(this),
+                longDescription   : this.#renderLongDescription.bind(this),
+                upload_button     : this.#renderUploadButton.bind(this),
+                start_button    : this.#renderStartButton.bind(this),
+                comments          : this.#renderComments.bind(this),
+                files             : this.#renderFiles.bind(this),
             },
         };
     }
