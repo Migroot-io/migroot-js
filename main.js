@@ -420,6 +420,7 @@ class Migroot {
 
         allFields.forEach(container => {
             const key = container.getAttribute(attrName);
+            this.log.info(`Found key="${key}" in ${fieldSelector}`);
             // for example data-task='status' => key is status
             if (!key) return;
 
@@ -452,6 +453,8 @@ class Migroot {
             try {
                 this.log.info(`Rendering key="${key}" into element:`, labelEl);
                 this.log.info('Value to render:', value);
+                const which = renderers[key] ? 'custom' : 'default';
+                this.log.info(`Using ${which} renderer for key="${key}"`);
                 (renderers[key] || defaultRenderer)(labelEl, value);
             } catch (err) {
                 this.log.error(
@@ -623,10 +626,10 @@ class Migroot {
             renderers: {
                 longDescription   : this.#renderLongDescription.bind(this),
                 upload_button     : this.#renderUploadButton.bind(this),
-                start_button    : this.#renderStartButton.bind(this),
+                start_button      : this.#renderStartButton.bind(this),
                 comments          : this.#renderComments.bind(this),
-                files             : this.#renderFiles.bind(this),
-            },
+                files             : this.#renderFiles.bind(this)
+            }
         };
     }
 
