@@ -432,7 +432,44 @@ class Migroot {
         // this.log.info('Step 9: Handling buttons');
         // this.#handleButtons(clone, item);
 
+        this.#addStartButtonToDrawer(drawer);
+        this.#addCommentsPreviewToDrawer(drawer);
+        this.#addFilesPreviewToDrawer(drawer);
+        this.#addUploadFileToDrawer(drawer);
         document.body.appendChild(drawer);
+
+    }
+
+    #addStartButtonToDrawer(drawer) {
+        const el = document.getElementById('start_button');
+        if (el) {
+            const clone = el.cloneNode(true);
+            drawer.appendChild(clone);
+        }
+    }
+
+    #addCommentsPreviewToDrawer(drawer) {
+        const el = document.getElementById('comments_preview');
+        if (el) {
+            const clone = el.cloneNode(true);
+            drawer.appendChild(clone);
+        }
+    }
+
+    #addFilesPreviewToDrawer(drawer) {
+        const el = document.getElementById('files_preview');
+        if (el) {
+            const clone = el.cloneNode(true);
+            drawer.appendChild(clone);
+        }
+    }
+
+    #addUploadFileToDrawer(drawer) {
+        const el = document.getElementById('upload_file');
+        if (el) {
+            const clone = el.cloneNode(true);
+            drawer.appendChild(clone);
+        }
     }
 
     #handleDataAttributes(clone, item) {
