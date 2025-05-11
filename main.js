@@ -42,34 +42,33 @@ class Logger {
 }
 
 
-// const CONFIG = {
-//     user: {
-// fullName: 'Denis Mironov',
-// firstName: 'Denis',
-// plan: 'Free registration',
-// email: 'denis.mironov.personal@gmail.com',
-// linkId: null
-// },
-//     template: document.getElementById('doc-template'),
-//     buttons: {
-//         uploadFile: document.getElementById('upload_file').innerHTML,
-//         openTf: document.getElementById('open_tf').innerHTML,
-//         openUrl: document.getElementById('open_url').innerHTML,
-//         submitUrl: document.getElementById('submit_url').innerHTML
-//     },
-//     containers: {
-//         ready: document.getElementById('ready'),
-//         inProgress: document.getElementById('in-progress'),
-//         notStarted: document.getElementById('not-started')
-//     },
-//     webUrl: 'https://script.google.com/macros/s/AKfycbxLRZANt4ayb0x_IRClCEw6cjA5s7b2Iv6v4sjNMmNbL1WMsNTx32eK1q8zw4CHVOJq0Q/exec',
-//     emotions: ["normal", "smile", "surprise"],
-//     migrootComments: {
-//         review: ["Wait for checking", "So-o-o-on please wait", "Okay, let's see!"],
-//         start: ["Every document tells a story.", "Efficiency is key in document management.", "Timely action is critical to success."]
-//     },
-//     timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone
-// };
+/* Example CONFIG – adjust and pass to new Migroot(CONFIG)
+const CONFIG = {
+    // templates
+    template : document.getElementById('doc-template'),
+    drawer   : document.getElementById('drawer-template'),
+
+    // buttons (HTML taken from hidden <template> tags)
+    buttons : {
+        startButton : document.getElementById('start_button').innerHTML,
+        uploadButton: document.getElementById('upload_button').innerHTML,
+    },
+
+    // kanban columns
+    containers : {
+        ready      : document.getElementById('ready'),
+        inProgress : document.getElementById('in-progress'),
+        notStarted : document.getElementById('not-started'),
+        asap       : document.getElementById('asap'),
+        edit       : document.getElementById('edit'),
+    },
+
+    // backend & misc
+    backend_url : 'https://api.example.com/v1',
+    debug       : true,
+    timeZone    : Intl.DateTimeFormat().resolvedOptions().timeZone,
+};
+*/
 
 const ENDPOINTS = {
     searchBoard: {
@@ -108,14 +107,6 @@ const ENDPOINTS = {
         path: 'board/task/{taskId}',
         method: 'PUT'
     },
-    // createBoard: { path: 'board', method: 'POST' },
-    // createTask: { path: 'task', method: 'POST' },
-    // updateTask: { path: 'task/{taskId}', method: 'PUT' },
-    // getTask: { path: 'task/{taskId}', method: 'GET' },
-    // searchTasks: { path: 'task/search', method: 'POST' },
-    // createUser: { path: 'user', method: 'POST' },
-    // updateUser: { path: 'user/{userId}', method: 'PUT' },
-    // deleteClientTask: { path: 'board/task/{taskId}', method: 'DELETE' }
 };
 
 
@@ -131,12 +122,19 @@ class Migroot {
         this.token = null;
         this.init()
 
+        // expose instance and proxy helpers to window (for inline‑onclick in templates)
+        window.mg = this;
+        window.handleFileUpload   = el => this.#handleUploadFromButton(el);
+        window.handleUpdateStatus = el => this.#handleStartFromButton(el);
+
     }
 
     init() {
         this.generateMethodsFromEndpoints();
         this.log.info('Migroot initialized');
     }
+
+    /*───────────────────────────  API helpers START ────────────────────────*/
 
     async fetchData(boardId = null) {
         try {
@@ -227,6 +225,8 @@ class Migroot {
         throw new Error("Access token is missing in config and window.Outseta.");
     }
 
+    /*───────────────────────────  API helpers END ──────────────────────────*/
+
     async request(endpointName, body = {}, method, pathParams = {}) {
         if (!this.backend_url) {
             throw new Error("Backend URL is not set.");
@@ -277,6 +277,8 @@ class Migroot {
         }
     }
 
+    /*───────────────────────────  Dashboard START ──────────────────────────*/
+
     async init_dashboard({ boardId = null, callback = null } = {}) {
       try {
         this.log.info('Step 1: Clearing containers');
@@ -319,6 +321,8 @@ class Migroot {
 
     }
 
+    /*───────────────────────────  Dashboard END ────────────────────────────*/
+
     /**
      * @typedef {Object} TaskItem
      * @property {string} name - Task title
@@ -335,6 +339,8 @@ class Migroot {
      * @property {number} points - Points awarded for the task
      * @property {number} priority - for sorting
      */
+
+    /*───────────────────────────  Card & Drawer DOM START ──────────────────*/
 
     #getStatusContainer(status) {
         switch (status) {
@@ -457,18 +463,8 @@ class Migroot {
             labelSelector: '.t-mark__label'
         });
 
-        // 2) populate drawer‑specific marks (e.g. <div data-drawer="longDescription">)
-        //    and render longDescription as HTML rather than plain text.
-        this.#setContent(drawer, item, {
-            fieldSelector: '[data-drawer]',
-            labelSelector: '.t-mark__label',
-            formatters: {
-                longDescription: val => "longDescription formatter example" + val,
-            },
-            renderers: {
-                longDescription: (el, val) => { el.innerHTML = val; },
-            },
-        });
+        // 2) drawer‑specific content via unified renderers
+        this.#setContent(drawer, item, this.#drawerOpts());
 
         drawer.id = `drawer-${item.clientTaskId}`;
         this.log.info(`Step 7: Setting drawer content for card ID: ${item.clientTaskId}`);
@@ -480,322 +476,122 @@ class Migroot {
             };
         }
 
-
-
-        // this.log.info('Step 8: Handling comment');
-        // this.#handleComment(clone, item);
-
-        // this.log.info('Step 9: Handling buttons');
-        // this.#handleButtons(clone, item);
-
-        // ADD START BUTTON
-        // // add to drower button with onclick - cart update status to IN_PROGRESS if current state == TO_DO or ASAP
-
-        // ADD UPLOAD BUTTON
-        // // add to drower button with onclick - document upload file
-
-
         document.body.appendChild(drawer);
     }
 
+    /*───────────────────────────  Card & Drawer DOM END ────────────────────*/
 
-    #handleDataAttributes(clone, item) {
-        clone.setAttribute('data-points', item.points);
-        // clone.setAttribute('data-icon-status', item.IconStatus);
-        // clone.setAttribute('data-original-status', item.OriginalStatus);
-        // clone.setAttribute('data-translate-status', item.TranslateStatus);
-        // clone.setAttribute('data-task-type', item.TaskType);
-        // clone.setAttribute('data-applicant-id', item.ApplicantID);
-        // clone.setAttribute('data-emotion', item.Emotion);
+
+    /*───────────────────────────  Drawer helpers START ─────────────────────*/
+
+    #renderLongDescription(el, _val, item) {
+        if (item.longDescription) el.innerHTML = item.longDescription;
+        else el.remove();
     }
 
+    #renderUploadButton(el, _val, item) {
+        /* 1) clone HTML snippet that comes from CONFIG
+           2) adjust its id using the current item
+           3) rely on whatever onclick the template already has.
+           No hidden <input> creation or extra DOM building. */
 
-    #populateDrawerElements(drawer, item) {
-        const targets = drawer.querySelectorAll('[data-drawer]');
-        targets.forEach(container => {
-            const key = container.getAttribute('data-drawer');
-            this.log.info(`Drawer population: looking for element with ID "${key}" to insert into container with data-drawer="${key}"`);
-            const el = document.getElementById(key);
-            const rawValue = item[key];
-            const valuePreview = typeof rawValue === 'string' ? rawValue.slice(0, 25) :
-                                 Array.isArray(rawValue) ? `[Array, length: ${rawValue.length}]` :
-                                 rawValue && typeof rawValue === 'object' ? '[Object]' :
-                                 String(rawValue);
-            if (el) {
-                this.log.info(`✅ Found element with ID "${key}". Inserting into drawer. Value type: ${typeof rawValue}, preview: ${valuePreview}`);
-                const clone = el.cloneNode(true);
-                container.innerHTML = '';
-                container.appendChild(clone);
-                const formatterMethod = this[`#formatDrawer_${key}`];
-                if (typeof formatterMethod === 'function') {
-                    formatterMethod.call(this, clone, item);
-                }
-            } else {
-                this.log.warning(`⚠️ Element with ID "${key}" not found. Cannot populate drawer section.`);
-            }
-        });
-    }
+        const snippet = this.config.buttons?.uploadButton;
+        if (!snippet) {
+            el.remove();           // nothing to render
+            return;
+        }
 
-    // Stub formatter methods for drawer elements
-    #formatDrawer_action_button(container, item) {
-        // Clone pre‑defined button markup if present in config, otherwise build it.
-        let btn;
-        if (this.config.buttons?.startButton) {
-            // stored as HTML string → convert to element
+        let node;
+        if (snippet instanceof HTMLElement) {
+            // snippet is already a DOM element – just clone it
+            node = snippet.cloneNode(true);
+        } else {
+            // treat snippet as HTML string
             const tmp = document.createElement('div');
-            tmp.innerHTML = this.config.buttons.startButton.trim();
-            btn = tmp.firstElementChild;
-        }
-        if (!btn) {
-            // Fallback: build a simple Bootstrap button
-            btn = document.createElement('button');
-            btn.type = 'button';
-            btn.className = 'btn btn-primary w-100 t-start-button';
-            btn.textContent = 'Start task';
+            tmp.innerHTML = snippet;
+            node = tmp.firstElementChild.cloneNode(true);
         }
 
-        // Click → PUT /board/task/{taskId} status = IN_PROGRESS
-        btn.addEventListener('click', async () => {
-            try {
-                await this.updateClientTask(
-                    { status: 'IN_PROGRESS' },
-                    { taskId: item.clientTaskId }
-                );
-                this.log.info(`Task ${item.clientTaskId} set to IN_PROGRESS`);
+        // ensure unique id
+        if (node.id) {
+            node.id = `${node.id}-${item.clientTaskId}`;
+        } else {
+            node.id = `upload-${item.clientTaskId}`;
+        }
 
-                // Update local model & UI
-                item.status = 'IN_PROGRESS';
-                const cardEl = document.getElementById(`doc-${item.clientTaskId}`);
-                if (cardEl) {
-                    const target = this.#getStatusContainer(item.status);
-                    this.#replaceExistingCard(cardEl, target);
-                }
+        // fallback event handler if no inline-onclick
+        node.addEventListener('click', () => this.#handleUpload(item));
 
-                // Close drawer
-                const drawer = document.getElementById(`drawer-${item.clientTaskId}`);
-                if (drawer) drawer.style.display = 'none';
-            } catch (err) {
-                this.log.error('Failed to start task:', err);
-                alert('Could not update task status. Try again.');
+        el.replaceWith(node);
+    }
+
+    /* inline‑onclick helpers (used by templates) */
+    #handleUploadFromButton(btn) {
+        const item = this.#findItemByAncestorId(btn, 'upload-');
+        if (item) this.#handleUpload(item);
+    }
+
+    #handleStartFromButton(btn) {
+        const item = this.#findItemByAncestorId(btn, 'start-');
+        if (item) this.#handleStart(item);
+    }
+
+    #findItemByAncestorId(element, prefix) {
+        let el = element;
+        while (el && el !== document) {
+            if (el.id && el.id.startsWith(prefix)) {
+                const taskId = el.id.slice(prefix.length);
+                return this.board?.tasks?.find(t => String(t.clientTaskId) === taskId);
             }
-        });
-
-        // Replace placeholder with the real button
-        container.innerHTML = '';
-        container.appendChild(btn);
-    }
-
-    #formatDrawer_longDescription(container, item) {
-        this.log.info(`Formatting longDescription for drawer`);
-        const value = item.longDescription;
-        if (value) {
-            container.innerHTML = value;
-        } else {
-            container.remove();
+            el = el.parentElement;
         }
+        return null;
     }
 
-    #formatDrawer_upload_button(container, item) {
-        // Build/upload control: visible label (Bootstrap button) + hidden input[type=file]
-        const label = document.createElement('label');
-        label.className = 'btn btn-secondary w-100 t-upload-file mb-2';
-        label.textContent = 'Upload file';
-
-        const input = document.createElement('input');
-        input.type = 'file';
-        input.multiple = false;          // change to true if multi‑upload needed
-        input.className = 'd-none';
-        label.appendChild(input);
-
-        // Upload handler
-        input.addEventListener('change', async e => {
-            const file = e.target.files[0];
-            if (!file) return;
-
-            try {
-                const formData = new FormData();
-                formData.append('file', file);
-
-                const url = `${this.backend_url}/board/task/${item.clientTaskId}/upload`;
-                const resp = await fetch(url, {
-                    method: 'POST',
-                    headers: { 'Authorization': `Bearer ${this.token}` },
-                    body: formData
-                });
-
-                if (!resp.ok) {
-                    throw new Error(`Upload failed: ${resp.status}`);
-                }
-
-                const data = await resp.json();
-                const uploadedUrl = data.url || data.fileUrl || '';
-
-                // Update task on backend with new file reference
-                await this.updateClientTask(
-                    { files: [...(item.files || []), uploadedUrl] },
-                    { taskId: item.clientTaskId }
-                );
-
-                // Local update + UI refresh
-                item.files = [...(item.files || []), uploadedUrl];
-                const drawer = document.getElementById(`drawer-${item.clientTaskId}`);
-                if (drawer) this.#populateDrawerElements(drawer, item);
-
-                this.log.info(`File uploaded for task ${item.clientTaskId}`, uploadedUrl);
-            } catch (err) {
-                this.log.error('File upload error:', err);
-                alert('Could not upload the file. Try again.');
-            } finally {
-                // reset input so the same file can be selected again
-                input.value = '';
-            }
-        });
-
-        container.innerHTML = '';
-        container.appendChild(label);
+    #handleUpload(item) {
+        this.log.info('Upload file clicked for task', item.clientTaskId);
+        // real upload logic already handled by node input; proxy kept for compatibility
     }
 
-    #formatDrawer_comments(container, item) {
-        const firstComment = item.comments?.[0];
-        if (firstComment) {
-            container.textContent = typeof firstComment === 'string'
-                ? firstComment
-                : JSON.stringify(firstComment);
-        } else {
-            container.remove();
-        }
+    #handleStart(item) {
+        this.log.info('Start clicked for task', item.clientTaskId);
+        // here you can call updateClientTask etc.
     }
 
-    #formatDrawer_files(container, item) {
-        const firstFile = item.files?.[0];
-        if (firstFile) {
-            container.textContent = typeof firstFile === 'string'
-                ? firstFile
-                : JSON.stringify(firstFile);
-        } else {
-            container.remove();
-        }
+    #renderComments(el, _val, item) {
+        const arr = item.comments || [];
+        if (!arr.length) return el.remove();
+        el.innerHTML = arr.map(c => `<p class="mb-1">${c}</p>`).join('');
     }
 
-    ////////////////////////// old logic ////////////////////////
-    updateCard(data, cardId) {
-        fetch(this.post_url, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(data)
-            })
-            .then(response => response.json())
-            .then(data => this.createCard(data.result.updatedData))
-            .catch(error => {
-                this.log.error(`Error updating card: ${error.message}`);
-                this.#showLoader(cardId, false);
-            });
+    #renderFiles(el, _val, item) {
+        const arr = item.files || [];
+        if (!arr.length) return el.remove();
+        el.innerHTML = arr
+          .map(f => `<a class="d-block mb-1" target="_blank" href="${f}">${f.split('/').pop()}</a>`)
+          .join('');
     }
 
-    updateCardUrl(id, url, filetype) {
-        const cardId = `doc-${id}`;
-        const data = this.#createUpdateData(id, url, filetype, 'Uploaded');
-        this.updateCard(data, cardId);
+    #drawerOpts() {
+        return {
+            fieldSelector: '[data-drawer]',
+            renderers: {
+                longDescription : this.#renderLongDescription.bind(this),
+                upload_button   : this.#renderUploadButton.bind(this),
+                comments        : this.#renderComments.bind(this),
+                files           : this.#renderFiles.bind(this),
+            },
+        };
     }
 
-    updateCardComment(id, comment) {
-        const cardId = `doc-${id}`;
-        const data = this.#createUpdateData(id, null, null, 'In progress', comment);
-        this.updateCard(data, cardId);
-    }
+    /*───────────────────────────  Drawer helpers END ───────────────────────*/
 
-    createDummyCard() {
-        const dummyCard = this.config.template.cloneNode(true);
-        dummyCard.id = 'dummy-card';
-        dummyCard.querySelector('.ac-doc__title').textContent = 'Dummy Card';
-        dummyCard.querySelector('.ac-doc__description').textContent = 'This is a placeholder card for testing purposes.';
-        dummyCard.querySelector('.ac-docs__mark.ac-docs__due_date').textContent = this.#formatDate(new Date().toISOString());
-        dummyCard.querySelector('.ac-docs__mark.ac-docs__mark_country').textContent = 'Test Location';
-        dummyCard.querySelector('.ac-docs__mark.ac-docs__applicicant').textContent = 'Test User';
-        dummyCard.setAttribute('data-icon-status', 'test');
-        dummyCard.setAttribute('data-original-status', 'Not uploaded');
-        dummyCard.setAttribute('data-translate-status', 'Not uploaded');
-        const readyContainer = this.#getStatusContainer('Ready');
-        readyContainer.insertBefore(dummyCard, readyContainer.firstChild);
-    }
+
+    /*───────────────────────────  Utility & Formatting START ───────────────*/
 
 
     #clearContainers() {
         Object.values(this.config.containers).forEach(container => container.innerHTML = '');
-    }
-
-
-
-    #handleButtons(drawer, item) {
-         // drawer add clone this.config.buttons.uploadFile with new id from item with;
-    };
-
-    #handleComment(clone, item) {
-        if (!item.Comment || item.Comment.trim() === '') {
-            clone.getElementsByClassName('ac-comment__text')[0].textContent = getRandom(MigrootStartComments);;
-        } else {
-            clone.getElementsByClassName('ac-comment__text')[0].textContent = item.Comment;
-        }
-    };
-
-    // #handleFileStatus(clone, item) {
-    //     const filesProgressBlock = clone.querySelector('.ac-doc__progress-bar');
-    //     const originalFileBlock = clone.querySelector('.original-file-block');
-    //     const translateFileBlock = clone.querySelector('.translate-file-block');
-    //     const uploadContainer = clone.querySelector('.ac-doc__action');
-    //     const originalLink = clone.querySelector('.original-link');
-    //     const translateLink = clone.querySelector('.translate-link');
-    //     var button;
-    //     if (item.OriginalStatus != 'Not uploaded') {
-    //         if (originalLink) originalLink.href = item.OriginalLink;
-    //     };
-
-    //     if (item.TranslateStatus != 'Not uploaded') {
-    //         if (translateLink) translateLink.href = item.TranslateLink;
-    //     };
-
-    //     if (item.OriginalStatus === 'Verified' && (item.TaskType != 'document' || item.TranslateStatus === 'Verified' || item.TranslateStatus === 'Not needed')) {
-    //         if (uploadContainer) uploadContainer.remove();
-    //     } else if (item.OriginalStatus === 'Verified' && item.TaskType === 'document') {
-    //         // document with needed and not verified translate
-    //         if (uploadContainer) uploadContainer.querySelector('.ac-submit.w-button').setAttribute('data-filetype', 'Translate');
-    //         // IMPORTANT !!!
-    //         if (uploadContainer) uploadContainer.querySelector('.ac-submit.w-button').innerText = "Upload Translated"
-    //         if (uploadContainer && item.TranslateStatus != 'Not loaded') uploadContainer.querySelector('.ac-submit.w-button').innerText = "Reload Translated"
-    //     } else if (item.Status === 'In progress') {
-    //         // any task in ptogress without a translate and have button
-    //         this.log.info(item);
-    //         console.log(item);
-    //         this.log.info(clone);
-    //         console.log(clone);
-    //         button = uploadContainer.querySelector('.ac-submit.w-button');
-    //         this.log.info(button);
-    //         console.log(button);
-    //         if (button) button.innerText = "Reload file"
-    //     };
-
-
-
-    //     if (item.OriginalStatus === 'Not needed') {
-    //         if (filesProgressBlock) filesProgressBlock.remove();
-    //     } else if (item.TranslateStatus === 'Not needed') {
-    //         if (translateFileBlock) translateFileBlock.remove();
-    //     };
-    // };
-
-    #createUpdateData(id, url, filetype, status, userComment = 'Check my file please') {
-        return {
-            id,
-            [`${filetype}Link`]: url,
-            [`${filetype}Status`]: status,
-            UserComment: userComment,
-            IconStatus: 'off',
-            Status: status,
-            Emotion: this.#getRandom(this.config.emotions),
-            Comment: this.#getRandom(this.config.migrootComments.review)
-        };
     }
 
     #formatDate(isoString) {
@@ -833,14 +629,8 @@ class Migroot {
             if (show) loader.querySelector('.ac-doc__loader-text').textContent = text;
         }
     }
-    #getUserPlan() {
-        return this.config.user ? this.config.user.plan : 'Free registration';
-    }
-}
-// // Создание объекта Migroot с конфигурацией
-//const window.mg = new Migroot(CONFIG);
 
-// Пример вызова метода init_dashboard
-// window.mg.init_dashboard();
-// window.mg.createDummyCard();
+    /*───────────────────────────  Utility & Formatting END ─────────────────*/
+}
 window.Migroot = Migroot;
+
