@@ -484,44 +484,38 @@ class Migroot {
 
     /*───────────────────────────  Drawer helpers START ─────────────────────*/
 
-    #renderLongDescription(el, _val, item) {
-        if (item.longDescription) el.innerHTML = item.longDescription;
+    #renderLongDescription(el, val) {
+        if (val) el.innerHTML = val;
         else el.remove();
     }
 
-    #renderUploadButton(el, _val, item) {
+    #renderUploadButton(el, _val) {
         /* 1) clone HTML snippet that comes from CONFIG
            2) adjust its id using the current item
            3) rely on whatever onclick the template already has.
            No hidden <input> creation or extra DOM building. */
-
         const snippet = this.config.buttons?.uploadButton;
         if (!snippet) {
-            el.remove();           // nothing to render
+            el.remove();
             return;
         }
-
         let node;
         if (snippet instanceof HTMLElement) {
-            // snippet is already a DOM element – just clone it
             node = snippet.cloneNode(true);
         } else {
-            // treat snippet as HTML string
             const tmp = document.createElement('div');
             tmp.innerHTML = snippet;
             node = tmp.firstElementChild.cloneNode(true);
         }
-
         // ensure unique id
+        const taskId = (this.#findItemByAncestorId(el, '').clientTaskId);
         if (node.id) {
-            node.id = `${node.id}-${item.clientTaskId}`;
+            node.id = `${node.id}-${taskId}`;
         } else {
-            node.id = `upload-${item.clientTaskId}`;
+            node.id = `upload-${taskId}`;
         }
-
         // fallback event handler if no inline-onclick
-        node.addEventListener('click', () => this.#handleUpload(item));
-
+        node.addEventListener('click', () => this.#handleUpload(this.#findItemByAncestorId(el, '')));
         el.replaceWith(node);
     }
 
@@ -558,14 +552,14 @@ class Migroot {
         // here you can call updateClientTask etc.
     }
 
-    #renderComments(el, _val, item) {
-        const arr = item.comments || [];
+    #renderComments(el, val) {
+        const arr = Array.isArray(val) ? val : [];
         if (!arr.length) return el.remove();
         el.innerHTML = arr.map(c => `<p class="mb-1">${c}</p>`).join('');
     }
 
-    #renderFiles(el, _val, item) {
-        const arr = item.files || [];
+    #renderFiles(el, val) {
+        const arr = Array.isArray(val) ? val : [];
         if (!arr.length) return el.remove();
         el.innerHTML = arr
           .map(f => `<a class="d-block mb-1" target="_blank" href="${f}">${f.split('/').pop()}</a>`)
