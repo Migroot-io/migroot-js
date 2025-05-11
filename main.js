@@ -306,12 +306,14 @@ class Migroot {
 
         const card = this.config.template?.cloneNode(true);
         if (card) {
-            this.#setCardContent(card, item);
+            this.#insertCard(card, item);
         }
         // drawer logic
         const drawer = this.config.drawer?.cloneNode(true);
         if (drawer) {
-            this.#setDrawerContent(drawer, item);
+            this.#createDrawer(drawer, item);
+
+
         }
 
 
@@ -434,7 +436,7 @@ class Migroot {
         });
     }
 
-    #setCardContent(card, item) {
+    #insertCard(card, item) {
         this.#setContent(card, item);
         const targetContainer = this.#getStatusContainer(item.status);
 
@@ -448,14 +450,21 @@ class Migroot {
         this.#replaceExistingCard(card, targetContainer);
     }
 
-    #setDrawerContent(drawer, item) {
+    #createDrawer(drawer, item) {
         // 1) populate generic [data-task] marks (same as in cards)
-        this.#setContent(drawer, item);
+        this.#setContent(drawer, item, {
+            fieldSelector: '[data-task]',
+            labelSelector: '.t-mark__label'
+        });
 
         // 2) populate drawer‑specific marks (e.g. <div data-drawer="longDescription">)
         //    and render longDescription as HTML rather than plain text.
         this.#setContent(drawer, item, {
             fieldSelector: '[data-drawer]',
+            labelSelector: '.t-mark__label',
+            formatters: {
+                longDescription: val => "longDescription formatter example" + val,
+            },
             renderers: {
                 longDescription: (el, val) => { el.innerHTML = val; },
             },
@@ -463,6 +472,7 @@ class Migroot {
 
         drawer.id = `drawer-${item.clientTaskId}`;
         this.log.info(`Step 7: Setting drawer content for card ID: ${item.clientTaskId}`);
+        // CREATE CLOSE BUTTON
         const closeButton = drawer.querySelector('.t-close');
         if (closeButton) {
             closeButton.onclick = () => {
@@ -470,46 +480,24 @@ class Migroot {
             };
         }
 
+
+
         // this.log.info('Step 8: Handling comment');
         // this.#handleComment(clone, item);
 
         // this.log.info('Step 9: Handling buttons');
         // this.#handleButtons(clone, item);
 
+        // ADD START BUTTON
+        // // add to drower button with onclick - cart update status to IN_PROGRESS if current state == TO_DO or ASAP
+
+        // ADD UPLOAD BUTTON
+        // // add to drower button with onclick - document upload file
+
+
         document.body.appendChild(drawer);
     }
 
-    #addStartButtonToDrawer(drawer) {
-        const el = document.getElementById('start_button');
-        if (el) {
-            const clone = el.cloneNode(true);
-            drawer.appendChild(clone);
-        }
-    }
-
-    #addCommentsPreviewToDrawer(drawer) {
-        const el = document.getElementById('comments_preview');
-        if (el) {
-            const clone = el.cloneNode(true);
-            drawer.appendChild(clone);
-        }
-    }
-
-    #addFilesPreviewToDrawer(drawer) {
-        const el = document.getElementById('files_preview');
-        if (el) {
-            const clone = el.cloneNode(true);
-            drawer.appendChild(clone);
-        }
-    }
-
-    #addUploadFileToDrawer(drawer) {
-        const el = document.getElementById('upload_file');
-        if (el) {
-            const clone = el.cloneNode(true);
-            drawer.appendChild(clone);
-        }
-    }
 
     #handleDataAttributes(clone, item) {
         clone.setAttribute('data-points', item.points);
@@ -550,7 +538,51 @@ class Migroot {
 
     // Stub formatter methods for drawer elements
     #formatDrawer_action_button(container, item) {
-        // Future logic for start_button
+        // Clone pre‑defined button markup if present in config, otherwise build it.
+        let btn;
+        if (this.config.buttons?.startButton) {
+            // stored as HTML string → convert to element
+            const tmp = document.createElement('div');
+            tmp.innerHTML = this.config.buttons.startButton.trim();
+            btn = tmp.firstElementChild;
+        }
+        if (!btn) {
+            // Fallback: build a simple Bootstrap button
+            btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'btn btn-primary w-100 t-start-button';
+            btn.textContent = 'Start task';
+        }
+
+        // Click → PUT /board/task/{taskId} status = IN_PROGRESS
+        btn.addEventListener('click', async () => {
+            try {
+                await this.updateClientTask(
+                    { status: 'IN_PROGRESS' },
+                    { taskId: item.clientTaskId }
+                );
+                this.log.info(`Task ${item.clientTaskId} set to IN_PROGRESS`);
+
+                // Update local model & UI
+                item.status = 'IN_PROGRESS';
+                const cardEl = document.getElementById(`doc-${item.clientTaskId}`);
+                if (cardEl) {
+                    const target = this.#getStatusContainer(item.status);
+                    this.#replaceExistingCard(cardEl, target);
+                }
+
+                // Close drawer
+                const drawer = document.getElementById(`drawer-${item.clientTaskId}`);
+                if (drawer) drawer.style.display = 'none';
+            } catch (err) {
+                this.log.error('Failed to start task:', err);
+                alert('Could not update task status. Try again.');
+            }
+        });
+
+        // Replace placeholder with the real button
+        container.innerHTML = '';
+        container.appendChild(btn);
     }
 
     #formatDrawer_longDescription(container, item) {
@@ -564,7 +596,63 @@ class Migroot {
     }
 
     #formatDrawer_upload_button(container, item) {
-        // Future logic for upload_file
+        // Build/upload control: visible label (Bootstrap button) + hidden input[type=file]
+        const label = document.createElement('label');
+        label.className = 'btn btn-secondary w-100 t-upload-file mb-2';
+        label.textContent = 'Upload file';
+
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.multiple = false;          // change to true if multi‑upload needed
+        input.className = 'd-none';
+        label.appendChild(input);
+
+        // Upload handler
+        input.addEventListener('change', async e => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            try {
+                const formData = new FormData();
+                formData.append('file', file);
+
+                const url = `${this.backend_url}/board/task/${item.clientTaskId}/upload`;
+                const resp = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${this.token}` },
+                    body: formData
+                });
+
+                if (!resp.ok) {
+                    throw new Error(`Upload failed: ${resp.status}`);
+                }
+
+                const data = await resp.json();
+                const uploadedUrl = data.url || data.fileUrl || '';
+
+                // Update task on backend with new file reference
+                await this.updateClientTask(
+                    { files: [...(item.files || []), uploadedUrl] },
+                    { taskId: item.clientTaskId }
+                );
+
+                // Local update + UI refresh
+                item.files = [...(item.files || []), uploadedUrl];
+                const drawer = document.getElementById(`drawer-${item.clientTaskId}`);
+                if (drawer) this.#populateDrawerElements(drawer, item);
+
+                this.log.info(`File uploaded for task ${item.clientTaskId}`, uploadedUrl);
+            } catch (err) {
+                this.log.error('File upload error:', err);
+                alert('Could not upload the file. Try again.');
+            } finally {
+                // reset input so the same file can be selected again
+                input.value = '';
+            }
+        });
+
+        container.innerHTML = '';
+        container.appendChild(label);
     }
 
     #formatDrawer_comments(container, item) {
@@ -639,20 +727,9 @@ class Migroot {
     }
 
 
-    // #shouldDisplayTask(item) {
-    //     if (item.TaskType === 'task-free' && this.config.user.plan !== 'Free registration') return false;
-    //     if (item.TaskType === 'task-paid' && this.config.user.plan === 'Free registration') return false;
-    //     return true;
-    // }
 
-    #handleButtons(clone, item) {
-        const uploadContainer = clone.querySelector('.ac-doc__action');
-        if (item.ButtonLink) {
-            const typeformLink = item.ButtonLink.match(/TF=(.*)/);
-            uploadContainer.innerHTML = typeformLink ? this.config.buttons.openTf : this.config.buttons.openUrl;
-        } else {
-            uploadContainer.innerHTML = this.config.buttons.uploadFile;
-        }
+    #handleButtons(drawer, item) {
+         // drawer add clone this.config.buttons.uploadFile with new id from item with;
     };
 
     #handleComment(clone, item) {
