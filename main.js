@@ -388,11 +388,7 @@ class Migroot {
             if (this.#optionalFields.has(key) && isValueEmpty) {
                 container.remove();
             } else {
-                if (key === 'longDescription') {
-                    label.innerHTML = value;
-                } else {
-                    label.textContent = value;
-                }
+                label.textContent = value;
             }
         });
 
@@ -432,10 +428,7 @@ class Migroot {
         // this.log.info('Step 9: Handling buttons');
         // this.#handleButtons(clone, item);
 
-        this.#addStartButtonToDrawer(drawer);
-        this.#addCommentsPreviewToDrawer(drawer);
-        this.#addFilesPreviewToDrawer(drawer);
-        this.#addUploadFileToDrawer(drawer);
+        this.#populateDrawerElements(drawer);
         document.body.appendChild(drawer);
 
     }
@@ -482,6 +475,49 @@ class Migroot {
         // clone.setAttribute('data-emotion', item.Emotion);
     }
 
+
+    #populateDrawerElements(drawer) {
+        const targets = drawer.querySelectorAll('[data-drawer]');
+        targets.forEach(container => {
+            const key = container.getAttribute('data-drawer');
+            const el = document.getElementById(key);
+            if (el) {
+                const clone = el.cloneNode(true);
+                container.innerHTML = '';
+                container.appendChild(clone);
+                const formatterMethod = this[`#formatDrawer_${key}`];
+                if (typeof formatterMethod === 'function') {
+                    formatterMethod.call(this, clone, drawer);
+                }
+            }
+        });
+    }
+
+    // Stub formatter methods for drawer elements
+    #formatDrawer_action_button(clone, drawer) {
+        // Future logic for start_button
+    }
+
+    #formatDrawer_longDescription(container, item) {
+        const value = item.longDescription;
+        if (value) {
+            container.innerHTML = value;
+        } else {
+            container.remove();
+        }
+    }
+
+    #formatDrawer_upload_button(clone, drawer) {
+        // Future logic for upload_file
+    }
+
+    #formatDrawer_comments(clone, drawer) {
+        // Future logic for comments_preview
+    }
+
+    #formatDrawer_files(clone, drawer) {
+        // Future logic for files_preview
+    }
 
     ////////////////////////// old logic ////////////////////////
     updateCard(data, cardId) {
