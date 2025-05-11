@@ -428,9 +428,8 @@ class Migroot {
         // this.log.info('Step 9: Handling buttons');
         // this.#handleButtons(clone, item);
 
-        this.#populateDrawerElements(drawer);
+        this.#populateDrawerElements(drawer, item);
         document.body.appendChild(drawer);
-
     }
 
     #addStartButtonToDrawer(drawer) {
@@ -476,29 +475,39 @@ class Migroot {
     }
 
 
-    #populateDrawerElements(drawer) {
+    #populateDrawerElements(drawer, item) {
         const targets = drawer.querySelectorAll('[data-drawer]');
         targets.forEach(container => {
             const key = container.getAttribute('data-drawer');
+            this.log.info(`Drawer population: looking for element with ID "${key}" to insert into container with data-drawer="${key}"`);
             const el = document.getElementById(key);
+            const rawValue = item[key];
+            const valuePreview = typeof rawValue === 'string' ? rawValue.slice(0, 25) :
+                                 Array.isArray(rawValue) ? `[Array, length: ${rawValue.length}]` :
+                                 rawValue && typeof rawValue === 'object' ? '[Object]' :
+                                 String(rawValue);
             if (el) {
+                this.log.info(`✅ Found element with ID "${key}". Inserting into drawer. Value type: ${typeof rawValue}, preview: ${valuePreview}`);
                 const clone = el.cloneNode(true);
                 container.innerHTML = '';
                 container.appendChild(clone);
                 const formatterMethod = this[`#formatDrawer_${key}`];
                 if (typeof formatterMethod === 'function') {
-                    formatterMethod.call(this, clone, drawer);
+                    formatterMethod.call(this, clone, item);
                 }
+            } else {
+                this.log.warning(`⚠️ Element with ID "${key}" not found. Cannot populate drawer section.`);
             }
         });
     }
 
     // Stub formatter methods for drawer elements
-    #formatDrawer_action_button(clone, drawer) {
+    #formatDrawer_action_button(container, item) {
         // Future logic for start_button
     }
 
     #formatDrawer_longDescription(container, item) {
+        this.log.info(`Formatting longDescription for drawer`);
         const value = item.longDescription;
         if (value) {
             container.innerHTML = value;
@@ -507,16 +516,30 @@ class Migroot {
         }
     }
 
-    #formatDrawer_upload_button(clone, drawer) {
+    #formatDrawer_upload_button(container, item) {
         // Future logic for upload_file
     }
 
-    #formatDrawer_comments(clone, drawer) {
-        // Future logic for comments_preview
+    #formatDrawer_comments(container, item) {
+        const firstComment = item.comments?.[0];
+        if (firstComment) {
+            container.textContent = typeof firstComment === 'string'
+                ? firstComment
+                : JSON.stringify(firstComment);
+        } else {
+            container.remove();
+        }
     }
 
-    #formatDrawer_files(clone, drawer) {
-        // Future logic for files_preview
+    #formatDrawer_files(container, item) {
+        const firstFile = item.files?.[0];
+        if (firstFile) {
+            container.textContent = typeof firstFile === 'string'
+                ? firstFile
+                : JSON.stringify(firstFile);
+        } else {
+            container.remove();
+        }
     }
 
     ////////////////////////// old logic ////////////////////////
