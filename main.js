@@ -288,7 +288,15 @@ class Migroot {
         await this.fetchData(boardId); // ✅ исправлено имя
 
         this.log.info('Step 3: Creating tasks');
-        this.board.tasks.forEach(item => this.createCard(item));
+        this.board.tasks.forEach(item => {
+            try {
+                this.createCard(item);
+            } catch (err) {
+                this.log.error('createCard failed for item:', item);
+                this.log.error(err.message, err.stack);
+                throw err;
+            }
+        });
 
         this.log.info('Dashboard initialized successfully');
 
@@ -299,7 +307,8 @@ class Migroot {
 
       } catch (error) {
         this.log.error(`Error during init dashboard: ${error.message}`);
-        throw error; // ✅ проброс наружу
+        this.log.error('Stack trace:', error.stack);
+        throw error;
       }
     }
 
@@ -438,7 +447,15 @@ class Migroot {
 
             // Find label element or fall back to the container itself
             const labelEl = container.querySelector(labelSelector) || container;
-            (renderers[key] || defaultRenderer)(labelEl, value);
+            try {
+                (renderers[key] || defaultRenderer)(labelEl, value);
+            } catch (err) {
+                this.log.error(
+                    `Renderer failed for key="${key}" value=`, value
+                );
+                this.log.error(err.message, err.stack);
+                throw err; // bubble up
+            }
         });
     }
 
