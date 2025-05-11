@@ -513,6 +513,16 @@ class Migroot {
         else el.remove();
     }
 
+    /**
+     * Given any element inside a drawer, returns the clientTaskId by
+     * walking up to the ancestor with id="drawer‑{id}".
+     * Returns null if not found.
+     */
+    #taskIdFromDrawer(el) {
+        const drawer = el.closest('[id^="drawer-"]');
+        return drawer ? drawer.id.replace('drawer-', '') : null;
+    }
+
     #renderUploadButton(el, _val) {
         /* 1) clone HTML snippet that comes from CONFIG
            2) adjust its id using the current item
@@ -533,14 +543,18 @@ class Migroot {
             node = tmp.firstElementChild.cloneNode(true);
         }
         // ensure unique id
-        const taskId = (this.#findItemByAncestorId(el, '').clientTaskId);
+        const taskId = this.#taskIdFromDrawer(el) || 'unknown';
         if (node.id) {
             node.id = `${node.id}-${taskId}`;
         } else {
             node.id = `upload-${taskId}`;
         }
         // fallback event handler if no inline-onclick
-        node.addEventListener('click', () => this.#handleUpload(this.#findItemByAncestorId(el, '')));
+        node.addEventListener('click', () => {
+            const id = this.#taskIdFromDrawer(el);
+            const item = this.board?.tasks?.find(t => String(t.clientTaskId) === id);
+            if (item) this.#handleUpload(item);
+        });
         el.replaceWith(node);
     }
 
@@ -563,37 +577,31 @@ class Migroot {
             node = tmp.firstElementChild.cloneNode(true);
         }
         // ensure unique id
-        const taskId = (this.#findItemByAncestorId(el, '').clientTaskId);
+        const taskId = this.#taskIdFromDrawer(el) || 'unknown';
         if (node.id) {
             node.id = `${node.id}-${taskId}`;
         } else {
             node.id = `start-${taskId}`;
         }
-        node.addEventListener('click', () => this.#handleStart(this.#findItemByAncestorId(el, '')));
+        node.addEventListener('click', () => {
+            const id = this.#taskIdFromDrawer(el);
+            const item = this.board?.tasks?.find(t => String(t.clientTaskId) === id);
+            if (item) this.#handleStart(item);
+        });
         el.replaceWith(node);
     }
 
     /* inline‑onclick helpers (used by templates) */
     #handleUploadFromButton(btn) {
-        const item = this.#findItemByAncestorId(btn, 'upload-');
+        const id = this.#taskIdFromDrawer(btn);
+        const item = this.board?.tasks?.find(t => String(t.clientTaskId) === id);
         if (item) this.#handleUpload(item);
     }
 
     #handleStartFromButton(btn) {
-        const item = this.#findItemByAncestorId(btn, 'start-');
+        const id = this.#taskIdFromDrawer(btn);
+        const item = this.board?.tasks?.find(t => String(t.clientTaskId) === id);
         if (item) this.#handleStart(item);
-    }
-
-    #findItemByAncestorId(element, prefix) {
-        let el = element;
-        while (el && el !== document) {
-            if (el.id && el.id.startsWith(prefix)) {
-                const taskId = el.id.slice(prefix.length);
-                return this.board?.tasks?.find(t => String(t.clientTaskId) === taskId);
-            }
-            el = el.parentElement;
-        }
-        return null;
     }
 
     #handleUpload(item) {
