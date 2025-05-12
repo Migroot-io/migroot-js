@@ -5,8 +5,7 @@ class Logger {
 
     _getCurrentTime() {
         const now = new Date();
-        const timeString = now.toISOString().slice(11, 23);
-        return timeString;
+        return now.toISOString().slice(11, 23);
     }
 
     _log(message, vars = null, type = 'info') {
@@ -383,7 +382,6 @@ class Migroot {
      * @param {Object}      [opts] – optional behaviour overrides.
      * @param {string}      [opts.fieldSelector='[data-task]']   – selector for all “data holders”.
      * @param {string}      [opts.labelSelector='.t-mark__label'] – selector for the label inside each holder.
-     * @param {Object}      [opts.formatters]                    – additional/override value formatters.
      * @param {Object}      [opts.renderers]                     – per‑field rendering functions (receive (el, value)).
      */
 
@@ -393,18 +391,9 @@ class Migroot {
         {
             fieldSelector = '[data-task]',
             labelSelector = '.t-mark__label',
-            formatters    = {},
-            renderers     = {},
+            renderers     = {}
         } = {}
     ) {
-        // default formatters that exist for every call
-        const defaultFormatters = {
-            deadline  : val => this.#formatDate(val),
-            difficulty: val => this.#formatDifficulty(val),
-        };
-
-        // user‑supplied formatters override the defaults
-        const fns = { ...defaultFormatters, ...formatters };
         const defaultRenderer = (el, val) => { el.textContent = val; };
 
         const allFields = clone.querySelectorAll(fieldSelector);
@@ -427,14 +416,9 @@ class Migroot {
             let value = item[key];
 
             if (!value) return;
-            // Arrays → their length, unless a formatter overrides it
-            if (Array.isArray(value) && !fns[key]) {
+            // Arrays → their length
+            if (Array.isArray(value)) {
                 value = value.length;
-            }
-
-            // Apply formatter (default or custom) if any
-            if (fns[key]) {
-                value = fns[key](value);
             }
 
             const isValueEmpty =
@@ -467,7 +451,14 @@ class Migroot {
     }
 
     #insertCard(card, item) {
-        this.#setContent(card, item);
+        this.#setContent(drawer, item, {
+            fieldSelector: '[data-task]',
+            labelSelector: '.t-mark__label',
+            renderers: {
+                deadline          : this.#renderDeadline.bind(this),
+                difficulty        : this.#renderDifficulty.bind(this)
+            }
+        });
         const targetContainer = this.#getStatusContainer(item.status);
 
         card.id = `doc-${item.clientTaskId}`;
@@ -484,11 +475,16 @@ class Migroot {
         // 1) populate generic [data-task] marks (same as in cards)
         this.#setContent(drawer, item, {
             fieldSelector: '[data-task]',
-            labelSelector: '.t-mark__label'
+            labelSelector: '.t-mark__label',
+            renderers: {
+                deadline          : this.#renderDeadline.bind(this),
+                difficulty        : this.#renderDifficulty.bind(this)
+            }
         });
 
         // 2) drawer‑specific content via unified renderers
-        this.#setContent(drawer, item, this.#drawerOpts());
+        this.#setContent(drawer, item,
+            this.#drawerOpts());
 
         drawer.id = `drawer-${item.clientTaskId}`;
         this.log.info(`Step 7: Setting drawer content for card ID: ${item.clientTaskId}`);
@@ -503,16 +499,26 @@ class Migroot {
         document.body.appendChild(drawer);
     }
 
-    /*───────────────────────────  Card & Drawer DOM END ────────────────────*/
+    /*───────────────────────────  Card & Drawer DOM END ────────────────────*/
 
 
     /*───────────────────────────  Drawer helpers START ─────────────────────*/
 
-    #renderLongDescription(el, val) {
-        if (val) el.innerHTML = val;
-        else el.remove();
+    #drawerOpts() {
+        return {
+            fieldSelector: '[data-drawer]',
+            labelSelector: '.t-mark__label',
+            renderers: {
+                deadline          : this.#renderDeadline.bind(this),
+                difficulty        : this.#renderDifficulty.bind(this),
+                longDescription   : this.#renderLongDescription.bind(this),
+                upload_button     : this.#renderUploadButton.bind(this),
+                start_button      : this.#renderStartButton.bind(this),
+                comments          : this.#renderComments.bind(this),
+                files             : this.#renderFiles.bind(this),
+            }
+        };
     }
-
     /**
      * Given any element inside a drawer, returns the clientTaskId by
      * walking up to the ancestor with id="drawer‑{id}".
@@ -523,11 +529,22 @@ class Migroot {
         return drawer ? drawer.id.replace('drawer-', '') : null;
     }
 
+    #renderLongDescription(el, val) {
+        if (val) el.innerHTML = val;
+        else el.remove();
+    }
+
+    #renderDeadline(el, val) {
+        if (val) el.textContent = this.#formatDate(val);
+        else el.remove();
+    }
+
+    #renderDifficulty(el, val) {
+        if (val) el.textContent = this.#formatDifficulty(val);
+        else el.remove();
+    }
+
     #renderUploadButton(el, _val) {
-        /* 1) clone HTML snippet that comes from CONFIG
-           2) adjust its id using the current item
-           3) rely on whatever onclick the template already has.
-           No hidden <input> creation or extra DOM building. */
         const snippet = this.config.buttons?.uploadButton;
         this.log.info('Render upload button – snippet found:', !!snippet);
         if (!snippet) {
@@ -535,33 +552,13 @@ class Migroot {
             return;
         }
         let node;
-        if (snippet instanceof HTMLElement) {
-            node = snippet.cloneNode(true);
-        } else {
-            const tmp = document.createElement('div');
-            tmp.innerHTML = snippet;
-            node = tmp.firstElementChild.cloneNode(true);
-        }
-        // ensure unique id
-        const taskId = this.#taskIdFromDrawer(el) || 'unknown';
-        if (node.id) {
-            node.id = `${node.id}-${taskId}`;
-        } else {
-            node.id = `upload-${taskId}`;
-        }
-        // fallback event handler if no inline-onclick
-        node.addEventListener('click', () => {
-            const id = this.#taskIdFromDrawer(el);
-            const item = this.board?.tasks?.find(t => String(t.clientTaskId) === id);
-            if (item) this.#handleUpload(item);
-        });
+        node = snippet.cloneNode(true);
+        const taskId = this.#taskIdFromDrawer(el);
+        node.id = `upload-${taskId}`;
         el.replaceWith(node);
     }
 
     #renderStartButton(el, _val) {
-        // 1) clone HTML snippet that comes from CONFIG
-        // 2) adjust its id using the current item
-        // 3) rely on whatever onclick the template already has.
         const snippet = this.config.buttons?.startButton;
         this.log.info('Render start button – snippet found:', !!snippet);
         if (!snippet) {
@@ -569,26 +566,30 @@ class Migroot {
             return;
         }
         let node;
-        if (snippet instanceof HTMLElement) {
-            node = snippet.cloneNode(true);
-        } else {
-            const tmp = document.createElement('div');
-            tmp.innerHTML = snippet;
-            node = tmp.firstElementChild.cloneNode(true);
-        }
-        // ensure unique id
-        const taskId = this.#taskIdFromDrawer(el) || 'unknown';
-        if (node.id) {
-            node.id = `${node.id}-${taskId}`;
-        } else {
-            node.id = `start-${taskId}`;
-        }
-        node.addEventListener('click', () => {
-            const id = this.#taskIdFromDrawer(el);
-            const item = this.board?.tasks?.find(t => String(t.clientTaskId) === id);
-            if (item) this.#handleStart(item);
-        });
+        node = snippet.cloneNode(true);
+        const taskId = this.#taskIdFromDrawer(el);
+        node.id = `upload-${taskId}`;
         el.replaceWith(node);
+    }
+
+    #renderComments(el, val) {
+        const arr = Array.isArray(val) ? val : [];
+        if (!arr.length) {
+            el.textContent = 'No comments yet';
+            return;
+        }
+        el.innerHTML = arr.map(c => `<p class="mb-1">${c}</p>`).join('');
+    }
+
+    #renderFiles(el, val) {
+        const arr = Array.isArray(val) ? val : [];
+        if (!arr.length) {
+            el.textContent = 'No files yet';
+            return;
+        }
+        el.innerHTML = arr
+          .map(f => `<a class="d-block mb-1" target="_blank" href="${f}">${f.split('/').pop()}</a>`)
+          .join('');
     }
 
     /* inline‑onclick helpers (used by templates) */
@@ -612,33 +613,6 @@ class Migroot {
     #handleStart(item) {
         this.log.info('Start clicked for task', item.clientTaskId);
         // here you can call updateClientTask etc.
-    }
-
-    #renderComments(el, val) {
-        const arr = Array.isArray(val) ? val : [];
-        if (!arr.length) return el.remove();
-        el.innerHTML = arr.map(c => `<p class="mb-1">${c}</p>`).join('');
-    }
-
-    #renderFiles(el, val) {
-        const arr = Array.isArray(val) ? val : [];
-        if (!arr.length) return el.remove();
-        el.innerHTML = arr
-          .map(f => `<a class="d-block mb-1" target="_blank" href="${f}">${f.split('/').pop()}</a>`)
-          .join('');
-    }
-
-    #drawerOpts() {
-        return {
-            fieldSelector: '[data-drawer]',
-            renderers: {
-                longDescription   : this.#renderLongDescription.bind(this),
-                upload_button     : this.#renderUploadButton.bind(this),
-                start_button      : this.#renderStartButton.bind(this),
-                comments          : this.#renderComments.bind(this),
-                files             : this.#renderFiles.bind(this)
-            }
-        };
     }
 
     /*───────────────────────────  Drawer helpers END ───────────────────────*/
