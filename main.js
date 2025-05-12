@@ -317,6 +317,8 @@ class Migroot {
         item.upload_button = true;                                      // always show upload
         if (item.status === 'TO_DO' || item.status === 'ASAP') {
             item.start_button = true;                                   // show start only for new / urgent
+        } else {
+            item.start_button = false;
         }
         const card = this.config.template?.cloneNode(true);
         if (card) {
@@ -558,6 +560,10 @@ class Migroot {
             el.remove();
             return;
         }
+        if (!val) {
+            el.remove();
+            return;
+        }
         let node;
         if (snippet instanceof HTMLElement) {
             node = snippet.cloneNode(true);
@@ -575,6 +581,10 @@ class Migroot {
         const snippet = this.config.buttons?.startButton;
         this.log.info('Render start button – snippet found:', !!snippet);
         if (!snippet) {
+            el.remove();
+            return;
+        }
+        if (!val) {
             el.remove();
             return;
         }
