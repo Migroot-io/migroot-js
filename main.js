@@ -424,8 +424,8 @@ class Migroot {
                 container.remove();
                 return;
             } else if (!value) {
-                this.log.info(`Null value="${value}" for key="${key}" in ${fieldSelector} skipping`);
-                return;
+                this.log.warning(`Null value="${value}" for key="${key}" in ${fieldSelector} skipping`);
+                // return;
             }
             // Arrays → their length
             if (Array.isArray(value)) {
