@@ -313,9 +313,11 @@ class Migroot {
 
     createCard(item) {
         this.log.info(`Step 5: Creating card for item: ${item}`);
-        // need to add item keys
-        item['upload_button'] = true;
-        item['start_button'] = true;
+        // pseudo‑fields for drawer buttons
+        item.upload_button = true;                                      // always show upload
+        if (item.status === 'TO_DO' || item.status === 'ASAP') {
+            item.start_button = true;                                   // show start only for new / urgent
+        }
         const card = this.config.template?.cloneNode(true);
         if (card) {
             this.#insertCard(card, item);
@@ -324,11 +326,7 @@ class Migroot {
         const drawer = this.config.drawer?.cloneNode(true);
         if (drawer) {
             this.#createDrawer(drawer, item);
-
-
         }
-
-
     }
 
     /*───────────────────────────  Dashboard END ────────────────────────────*/
@@ -394,8 +392,6 @@ class Migroot {
             renderers     = {}
         } = {}
     ) {
-        const defaultRenderer = (el, val) => { el.textContent = val; };
-
         const allFields = clone.querySelectorAll(fieldSelector);
         // Derive the attribute name from selector, e.g. '[data-task]' → 'data-task'
         const attrMatch = fieldSelector.match(/\[([^\]=]+)(?:=[^\]]+)?\]/);
@@ -439,7 +435,7 @@ class Migroot {
                 this.log.info('Value to render:', value);
                 const which = renderers[key] ? 'custom' : 'default';
                 this.log.info(`Using ${which} renderer for key="${key}"`);
-                (renderers[key] || defaultRenderer)(labelEl, value);
+                (renderers[key] || this.#defaultRenderer)(labelEl, value);
             } catch (err) {
                 this.log.error(
                     `Renderer failed for key="${key}" value=`, value
@@ -451,7 +447,7 @@ class Migroot {
     }
 
     #insertCard(card, item) {
-        this.#setContent(drawer, item, {
+        this.#setContent(card, item, {
             fieldSelector: '[data-task]',
             labelSelector: '.t-mark__label',
             renderers: {
@@ -529,6 +525,14 @@ class Migroot {
         return drawer ? drawer.id.replace('drawer-', '') : null;
     }
 
+     #defaultRenderer = (el, val) => {
+      if (val === undefined || val === null || val === '') {
+        el.remove();          // ничего нет – убираем блок
+      } else {
+        el.textContent = val; // иначе пишем текст
+      }
+    };
+
     #renderLongDescription(el, val) {
         if (val) el.innerHTML = val;
         else el.remove();
@@ -568,7 +572,7 @@ class Migroot {
         let node;
         node = snippet.cloneNode(true);
         const taskId = this.#taskIdFromDrawer(el);
-        node.id = `upload-${taskId}`;
+        node.id = `start-${taskId}`;
         el.replaceWith(node);
     }
 
@@ -612,7 +616,29 @@ class Migroot {
 
     #handleStart(item) {
         this.log.info('Start clicked for task', item.clientTaskId);
-        // here you can call updateClientTask etc.
+        const card = this.config.template?.cloneNode(true);
+
+        const previousStatus = item.status;
+        item.status = 'IN_PROGRESS';                 // optimistic
+        // Move card immediately
+        let drawerEl = document.getElementById(`drawer-${item.clientTaskId}`);
+        this.#insertCard(card, item)
+        if (drawerEl) drawerEl.style.display = 'none';
+
+        // Persist to backend
+        this.updateClientTask(
+            { status: 'IN_PROGRESS' },
+            { taskId: item.clientTaskId }
+        ).catch(err => {
+            // rollback on failure
+            this.log.error('Failed to update task status:', err);
+            alert('Server error: Could not start the task. Try again.');
+            // restore status and position
+            item.status = previousStatus;
+            this.#insertCard(card, item)
+            let drawerEl = document.getElementById(`drawer-${item.clientTaskId}`);
+            if (drawerEl) drawerEl.style.display = 'flex';
+        });
     }
 
     /*───────────────────────────  Drawer helpers END ───────────────────────*/
