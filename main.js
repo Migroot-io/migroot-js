@@ -556,7 +556,13 @@ class Migroot {
             return;
         }
         let node;
-        node = snippet.cloneNode(true);
+        if (snippet instanceof HTMLElement) {
+            node = snippet.cloneNode(true);
+        } else {
+            const tmp = document.createElement('div');
+            tmp.innerHTML = snippet;
+            node = tmp.firstElementChild.cloneNode(true);
+        }
         const taskId = this.#taskIdFromDrawer(el);
         node.id = `upload-${taskId}`;
         el.replaceWith(node);
@@ -570,7 +576,13 @@ class Migroot {
             return;
         }
         let node;
-        node = snippet.cloneNode(true);
+        if (snippet instanceof HTMLElement) {
+            node = snippet.cloneNode(true);
+        } else {
+            const tmp = document.createElement('div');
+            tmp.innerHTML = snippet;
+            node = tmp.firstElementChild.cloneNode(true);
+        }
         const taskId = this.#taskIdFromDrawer(el);
         node.id = `start-${taskId}`;
         el.replaceWith(node);
