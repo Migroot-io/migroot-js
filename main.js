@@ -553,7 +553,7 @@ class Migroot {
         else el.remove();
     }
 
-    #renderUploadButton(el, _val) {
+    #renderUploadButton(el, val) {
         const snippet = this.config.buttons?.uploadButton;
         this.log.info('Render upload button – snippet found:', !!snippet);
         if (!snippet) {
@@ -577,7 +577,7 @@ class Migroot {
         el.replaceWith(node);
     }
 
-    #renderStartButton(el, _val) {
+    #renderStartButton(el, val) {
         const snippet = this.config.buttons?.startButton;
         this.log.info('Render start button – snippet found:', !!snippet);
         if (!snippet) {
