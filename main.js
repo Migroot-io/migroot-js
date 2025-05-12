@@ -411,6 +411,11 @@ class Migroot {
 
             let value = item[key];
             this.log.info(`Found value="${value}" for key="${key}" in ${fieldSelector}`);
+            const isValueEmpty =
+                value === undefined ||
+                value === null ||
+                value === '' ||
+                (typeof value === 'number' && Number.isNaN(value));
 
             if (this.#optionalFields.has(key) && isValueEmpty) {
                 this.log.info(`Optional value="${value}" for key="${key}" in ${fieldSelector} removing`);
@@ -424,12 +429,6 @@ class Migroot {
             if (Array.isArray(value)) {
                 value = value.length;
             }
-
-            const isValueEmpty =
-                value === undefined ||
-                value === null ||
-                value === '' ||
-                (typeof value === 'number' && Number.isNaN(value));
 
 
             // Find label element or fall back to the container itself
