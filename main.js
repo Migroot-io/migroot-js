@@ -314,12 +314,8 @@ class Migroot {
     createCard(item) {
         this.log.info(`Step 5: Creating card for item: ${item}`);
         // pseudo‑fields for drawer buttons
-        item.upload_button = true;                                      // always show upload
-        if (item.status === 'TO_DO' || item.status === 'ASAP') {
-            item.start_button = true;                                   // show start only for new / urgent
-        } else {
-            item.start_button = false;
-        }
+        item.upload_button = item.status !== 'READY';
+        item.start_button = item.status === 'TO_DO' || item.status === 'ASAP';
         const card = this.config.template?.cloneNode(true);
         if (card) {
             this.#insertCard(card, item);
@@ -497,7 +493,13 @@ class Migroot {
             };
         }
 
-        document.body.appendChild(drawer);
+        const existingDrawer = document.getElementById(`drawer-${item.clientTaskId}`);
+        if (existingDrawer) {
+            existingDrawer.replaceWith(drawer);
+        } else {
+            document.body.appendChild(drawer);
+        }
+
     }
 
     /*───────────────────────────  Card & Drawer DOM END ────────────────────*/
@@ -646,8 +648,8 @@ class Migroot {
         item.status = 'IN_PROGRESS';                 // optimistic
         // Move card immediately
         this.createCard(item)
-        let drawerEl = document.getElementById(`drawer-${item.clientTaskId}`);
-        if (drawerEl) drawerEl.style.display = 'none';
+        // let drawerEl = document.getElementById(`drawer-${item.clientTaskId}`);
+        // if (drawerEl) drawerEl.style.display = 'none';
 
         // Persist to backend
         this.updateClientTask(
@@ -660,8 +662,8 @@ class Migroot {
             // restore status and position
             item.status = previousStatus;
             this.createCard(item)
-            let drawerEl = document.getElementById(`drawer-${item.clientTaskId}`);
-            if (drawerEl) drawerEl.style.display = 'flex';
+            // let drawerEl = document.getElementById(`drawer-${item.clientTaskId}`);
+            // if (drawerEl) drawerEl.style.display = 'flex';
         });
     }
 
