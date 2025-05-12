@@ -410,8 +410,16 @@ class Migroot {
             if (!key) return;
 
             let value = item[key];
+            this.log.info(`Found value="${value}" for key="${key}" in ${fieldSelector}`);
 
-            if (!value) return;
+            if (this.#optionalFields.has(key) && isValueEmpty) {
+                this.log.info(`Optional value="${value}" for key="${key}" in ${fieldSelector} removing`);
+                container.remove();
+                return;
+            } else if (!value) {
+                this.log.info(`Null value="${value}" for key="${key}" in ${fieldSelector} skipping`);
+                return;
+            }
             // Arrays → their length
             if (Array.isArray(value)) {
                 value = value.length;
@@ -423,10 +431,6 @@ class Migroot {
                 value === '' ||
                 (typeof value === 'number' && Number.isNaN(value));
 
-            if (this.#optionalFields.has(key) && isValueEmpty) {
-                container.remove();
-                return;
-            }
 
             // Find label element or fall back to the container itself
             const labelEl = container.querySelector(labelSelector) || container;
@@ -628,13 +632,12 @@ class Migroot {
 
     #handleStart(item) {
         this.log.info('Start clicked for task', item.clientTaskId);
-        const card = this.config.template?.cloneNode(true);
 
         const previousStatus = item.status;
         item.status = 'IN_PROGRESS';                 // optimistic
         // Move card immediately
+        this.createCard(item)
         let drawerEl = document.getElementById(`drawer-${item.clientTaskId}`);
-        this.#insertCard(card, item)
         if (drawerEl) drawerEl.style.display = 'none';
 
         // Persist to backend
@@ -647,7 +650,7 @@ class Migroot {
             alert('Server error: Could not start the task. Try again.');
             // restore status and position
             item.status = previousStatus;
-            this.#insertCard(card, item)
+            this.createCard(item)
             let drawerEl = document.getElementById(`drawer-${item.clientTaskId}`);
             if (drawerEl) drawerEl.style.display = 'flex';
         });
