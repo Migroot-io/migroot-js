@@ -648,8 +648,6 @@ class Migroot {
         item.status = 'IN_PROGRESS';                 // optimistic
         // Move card immediately
         this.createCard(item)
-        // let drawerEl = document.getElementById(`drawer-${item.clientTaskId}`);
-        // if (drawerEl) drawerEl.style.display = 'none';
 
         // Persist to backend
         this.updateClientTask(
@@ -665,12 +663,13 @@ class Migroot {
             // let drawerEl = document.getElementById(`drawer-${item.clientTaskId}`);
             // if (drawerEl) drawerEl.style.display = 'flex';
         });
+        // TODO if success - update mg.board.tasks by id
     }
 
     /*───────────────────────────  Drawer helpers END ───────────────────────*/
 
 
-    /*───────────────────────────  Utility & Formatting START ───────────────*/
+    /*───────────────────────────  Utility & Formatting START ───────────────*/
 
 
     #clearContainers() {
