@@ -474,6 +474,7 @@ class Migroot {
                 drawerEl.style.display = 'flex';
                 this.log.info(`Drawer opened for card ID: ${item.clientTaskId}`);
 
+                // drawer closing logic start ///
                 if (this._drawerOutsideHandler) {
                     document.removeEventListener('pointerdown', this._drawerOutsideHandler);
                 }
@@ -490,6 +491,7 @@ class Migroot {
                 };
 
                 document.addEventListener('pointerdown', this._drawerOutsideHandler);
+                // drawer closing logic end ///
             }
         };
         this.log.info('Step 11: Replacing existing card if needed');
@@ -527,24 +529,6 @@ class Migroot {
             existingDrawer.replaceWith(drawer);
         } else {
             this.config.allDrawers.appendChild(drawer);
-
-            // if (this._drawerOutsideHandler) {
-            //     document.removeEventListener('pointerdown', this._drawerOutsideHandler);
-            // }
-
-            // this._drawerOutsideHandler = (event) => {
-            //     const activeDrawer = document.getElementById(`drawer-${item.clientTaskId}`);
-            //     if (activeDrawer && !activeDrawer.contains(event.target)) {
-            //         this.log.info(`Click outside drawer-${item.clientTaskId}, closing`);
-            //         activeDrawer.style.display = 'none';
-            //         document.removeEventListener('pointerdown', this._drawerOutsideHandler);
-            //         this._drawerOutsideHandler = null;
-            //     } else {
-            //         this.log.info(`Click inside drawer-${item.clientTaskId}, not closing`);
-            //     }
-            // };
-
-            // document.addEventListener('pointerdown', this._drawerOutsideHandler);
         }
     }
 
