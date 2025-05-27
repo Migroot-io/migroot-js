@@ -510,7 +510,7 @@ class Migroot {
     #drawerOpts() {
         return {
             fieldSelector: '[data-drawer]',
-            labelSelector: '.t-mark__label',
+            labelSelector: '.t-label',
             renderers: {
                 deadline          : this.#renderDeadline.bind(this),
                 difficulty        : this.#renderDifficulty.bind(this),
