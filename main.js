@@ -695,12 +695,7 @@ class Migroot {
     }
 
     #formatDifficulty(value) {
-      const map = {
-        EASY: 'fun',
-        MEDIUM: 'challenge',
-        HARD: 'nightmare',
-      };
-      return map[value] || value;
+      return value?.toLowerCase?.() || value;
     }
 
     #getRandom(arr) {
