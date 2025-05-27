@@ -416,9 +416,17 @@ class Migroot {
                 (typeof value === 'number' && Number.isNaN(value));
 
             if (this.#optionalFields.has(key) && isValueEmpty) {
-                this.log.info(`Optional value="${value}" for key="${key}" in ${fieldSelector} removing`);
-                container.remove();
-                return;
+                if (key === 'location') {
+                    this.log.info(`Missing location; setting default to "online"`);
+                    value = 'online';
+                } else if (key === 'deadline') {
+                    this.log.info(`Missing deadline; setting default to "TBD"`);
+                    value = 'TBD';
+                } else {
+                    this.log.info(`Optional value="${value}" for key="${key}" in ${fieldSelector} removing`);
+                    container.remove(); // not working in drawer
+                    return;
+                }
             } else if (!value) {
                 this.log.warning(`Null value="${value}" for key="${key}" in ${fieldSelector} skipping`);
                 // return;
