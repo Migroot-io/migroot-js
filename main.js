@@ -506,7 +506,7 @@ class Migroot {
         if (existingDrawer) {
             existingDrawer.replaceWith(drawer);
         } else {
-            document.body.appendChild(drawer);
+            this.config.containers.allDrawers.appendChild(drawer);
         }
 
     }
