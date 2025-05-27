@@ -494,9 +494,10 @@ class Migroot {
         drawer.id = `drawer-${item.clientTaskId}`;
         this.log.info(`Step 7: Setting drawer content for card ID: ${item.clientTaskId}`);
         // CREATE CLOSE BUTTON
-        const closeButton = drawer.querySelector('.t-close');
+        const closeButton = drawer.querySelector('.drw-close');
         if (closeButton) {
-            closeButton.onclick = () => {
+            closeButton.onclick = (e) => {
+                e.preventDefault();
                 drawer.style.display = 'none';
             };
         }
