@@ -511,15 +511,22 @@ class Migroot {
                 if (d !== drawer) d.style.display = 'none';
             });
             this.config.allDrawers.appendChild(drawer);
+            // Явно показываем drawer
+            drawer.style.display = 'flex';
+            this.log.info(`Drawer shown for card ID: ${item.clientTaskId}`);
+
             // Добавляем обработчик клика вне drawer для его закрытия
             setTimeout(() => {
                 const onClickOutside = (event) => {
                     if (!drawer.contains(event.target)) {
+                        this.log.info(`Click outside drawer-${item.clientTaskId}, closing`);
                         drawer.style.display = 'none';
-                        document.removeEventListener('mousedown', onClickOutside);
+                        document.removeEventListener('pointerdown', onClickOutside);
+                    } else {
+                        this.log.info(`Click inside drawer-${item.clientTaskId}, not closing`);
                     }
                 };
-                document.addEventListener('mousedown', onClickOutside);
+                document.addEventListener('pointerdown', onClickOutside);
             }, 0);
         }
 
