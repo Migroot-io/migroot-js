@@ -506,7 +506,21 @@ class Migroot {
         if (existingDrawer) {
             existingDrawer.replaceWith(drawer);
         } else {
+            // Закрываем все остальные открытые drawer'ы
+            document.querySelectorAll('[id^="drawer-"]').forEach(d => {
+                if (d !== drawer) d.style.display = 'none';
+            });
             this.config.allDrawers.appendChild(drawer);
+            // Добавляем обработчик клика вне drawer для его закрытия
+            setTimeout(() => {
+                const onClickOutside = (event) => {
+                    if (!drawer.contains(event.target)) {
+                        drawer.style.display = 'none';
+                        document.removeEventListener('mousedown', onClickOutside);
+                    }
+                };
+                document.addEventListener('mousedown', onClickOutside);
+            }, 0);
         }
 
     }
