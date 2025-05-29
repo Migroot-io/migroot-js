@@ -474,6 +474,19 @@ class Migroot {
                 drawerEl.style.display = 'flex';
                 this.log.info(`Drawer opened for card ID: ${item.clientTaskId}`);
 
+                // --- Enrich with full task data if not fetched yet ---
+                const task = this.board?.tasks?.find(t => String(t.clientTaskId) === item.clientTaskId);
+                if (task && !task._detailsFetched) {
+                    this.getClientTask({}, { taskId: item.clientTaskId }).then(fullTask => {
+                        Object.assign(task, fullTask);
+                        task._detailsFetched = true;
+                        this.log.info(`Task ${task.clientTaskId} enriched with full data`);
+                    }).catch(err => {
+                        this.log.error('Failed to enrich task data:', err);
+                    });
+                }
+                // --- End enrichment ---
+
                 // drawer closing logic start ///
                 if (this._drawerOutsideHandler) {
                     document.removeEventListener('pointerdown', this._drawerOutsideHandler);
