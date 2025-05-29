@@ -664,18 +664,49 @@ class Migroot {
             el.textContent = 'No comments yet';
             return;
         }
-        el.innerHTML = arr.map(c => `<p class="mb-1">${c}</p>`).join('');
+
+        el.innerHTML = arr.map(c => {
+            const isUser = c.type === 'USER';
+            const positionClass = isUser ? 'cmt-left' : 'cmt-right';
+            const initials = `${(c.author?.firstName || '')[0] || ''}${(c.author?.lastName || '')[0] || ''}`.toUpperCase();
+            const name = `${c.author?.firstName || ''} ${c.author?.lastName || ''}`.trim();
+            const date = this.#formatDate(c.createdDate);
+            return `
+              <div class="cmt-item ${positionClass}">
+                <div class="cmt-item__header">
+                  <div class="cmt-item__photo">${initials}</div>
+                  <div class="cmt-item__name">${name}</div>
+                  <div class="cmt-item__date">${date}</div>
+                </div>
+                <div class="cmt-item__content">${c.message}</div>
+              </div>
+            `;
+        }).join('');
     }
 
     #renderFiles(el, val) {
         const arr = Array.isArray(val) ? val : [];
-        if (!arr.length) {
-            el.textContent = 'No files yet';
+        const container = el.querySelector('.drw-uploaded');
+        if (!container) {
+            el.textContent = 'Files container not found';
             return;
         }
-        el.innerHTML = arr
-          .map(f => `<a class="d-block mb-1" target="_blank" href="${f}">${f.split('/').pop()}</a>`)
-          .join('');
+
+        if (!arr.length) {
+            container.innerHTML = '<div class="t-label">No files yet</div>';
+            return;
+        }
+
+        container.innerHTML = arr.map(file => `
+            <div class="f-item">
+                <div class="f-item__header">
+                    <img src="https://cdn.prod.website-files.com/679bc8f10611c9a0d94a0caa/683476cbb9aeb76905819fc7_document-color.svg" alt="" class="f-item__icon">
+                    <div class="f-item__name"><a href="${file.downloadLink}" target="_blank">${file.fileName}</a></div>
+                    <div class="f-item__status ${file.status}">${file.status}</div>
+                </div>
+                <div class="f-item__date">${this.#formatDate(file.createdDate)}</div>
+            </div>
+        `).join('');
     }
 
     #onTaskEnriched(task) {
