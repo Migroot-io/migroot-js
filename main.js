@@ -469,6 +469,8 @@ class Migroot {
         card.id = `doc-${item.clientTaskId}`;
         this.log.info(`Step 6: Setting card content for card ID: ${card.id}`);
         card.onclick = () => {
+            // Log card click
+            this.log.info(`Card clicked: ${item.clientTaskId}`);
             const drawerEl = document.getElementById(`drawer-${item.clientTaskId}`);
             if (drawerEl) {
                 drawerEl.style.display = 'flex';
@@ -476,7 +478,13 @@ class Migroot {
 
                 // --- Enrich with full task data if not fetched yet ---
                 const task = this.board?.tasks?.find(t => String(t.clientTaskId) === item.clientTaskId);
+                this.log.info('Checking task: ', task);
+
+                // Logging before checking enrichment
+                this.log.info('Checking if task needs enrichment', { hasTask: !!task, alreadyFetched: task?._detailsFetched });
                 if (task && !task._detailsFetched) {
+                    // Log before enrichment
+                    this.log.info(`Enriching task ${item.clientTaskId} with full details`);
                     this.getClientTask({}, { taskId: item.clientTaskId }).then(fullTask => {
                         Object.assign(task, fullTask);
                         task._detailsFetched = true;
@@ -484,6 +492,8 @@ class Migroot {
                     }).catch(err => {
                         this.log.error('Failed to enrich task data:', err);
                     });
+                } else {
+                    this.log.info(`Task ${item.clientTaskId} already enriched or not found`);
                 }
                 // --- End enrichment ---
 
