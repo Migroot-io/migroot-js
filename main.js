@@ -106,6 +106,10 @@ const ENDPOINTS = {
         path: 'board/task/{taskId}',
         method: 'PUT'
     },
+    uploadFile: {
+        path: 'board/task/{taskId}/uploadFile',
+        method: 'POST'
+    }
 };
 
 
@@ -125,7 +129,7 @@ class Migroot {
         window.mg = this;
         window.handleFileUpload   = el => this.#handleUploadFromButton(el);
         window.handleUpdateStatus = el => this.#handleStartFromButton(el);
-
+        window.handleFileUploadSubmit = el => this.#handleFileUploadSubmit(el);
     }
 
     init() {
@@ -763,6 +767,29 @@ class Migroot {
             // if (drawerEl) drawerEl.style.display = 'flex';
         });
         // TODO if success - update mg.board.tasks by id
+    }
+
+    // File upload submit handler (overwritten)
+    #handleFileUploadSubmit(formEl) {
+        const formData = new FormData(formEl);
+        const taskId = this.#taskIdFromDrawer(formEl);
+        if (!taskId) {
+            this.log.error('Cannot extract task ID from form');
+            return;
+        }
+
+        this.uploadFile(formData, { taskId }).then(updatedTask => {
+            const taskIndex = this.board.tasks.findIndex(t => String(t.clientTaskId) === taskId);
+            if (taskIndex !== -1) {
+                Object.assign(this.board.tasks[taskIndex], updatedTask);
+                this.board.tasks[taskIndex]._detailsFetched = true;
+                this.#onTaskEnriched(this.board.tasks[taskIndex]);
+            } else {
+                this.log.warning(`Task with ID ${taskId} not found in board`);
+            }
+        }).catch(err => {
+            this.log.error('File upload failed:', err);
+        });
     }
 
     /*───────────────────────────  Drawer helpers END ───────────────────────*/
