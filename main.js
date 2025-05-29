@@ -489,6 +489,7 @@ class Migroot {
                         Object.assign(task, fullTask);
                         task._detailsFetched = true;
                         this.log.info(`Task ${task.clientTaskId} enriched with full data`);
+                        this.#onTaskEnriched(task);
                     }).catch(err => {
                         this.log.error('Failed to enrich task data:', err);
                     });
@@ -575,6 +576,7 @@ class Migroot {
             }
         };
     }
+
     /**
      * Given any element inside a drawer, returns the clientTaskId by
      * walking up to the ancestor with id="drawer‑{id}".
@@ -674,6 +676,19 @@ class Migroot {
         el.innerHTML = arr
           .map(f => `<a class="d-block mb-1" target="_blank" href="${f}">${f.split('/').pop()}</a>`)
           .join('');
+    }
+
+    #onTaskEnriched(task) {
+        const drawer = document.getElementById(`drawer-${task.clientTaskId}`);
+        if (!drawer) return;
+
+        // Tab 2: Comments
+        const commentsPane = drawer.querySelector('.tb-pane[data-w-tab="Tab 2"]');
+        if (commentsPane) this.#renderComments(commentsPane, task.comments);
+
+        // Tab 3: Files
+        const filesPane = drawer.querySelector('.tb-pane[data-w-tab="Tab 3"]');
+        if (filesPane) this.#renderFiles(filesPane, task.files);
     }
 
     /* inline‑onclick helpers (used by templates) */
