@@ -678,7 +678,7 @@ class Migroot {
             return;
         }
         if (!arr.length) {
-            el.textContent = 'No comments yet';
+            container.textContent = 'No comments yet';
             return;
         }
 
