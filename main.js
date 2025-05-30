@@ -672,6 +672,11 @@ class Migroot {
 
     #renderComments(el, val) {
         const arr = Array.isArray(val) ? val : [];
+        const container = el.querySelector('.cmt-wrap');
+        if (!container) {
+            el.textContent = 'Files container not found';
+            return;
+        }
         if (!arr.length) {
             el.textContent = 'No comments yet';
             return;
@@ -779,12 +784,15 @@ class Migroot {
 
     // File upload submit handler (overwritten)
     #handleFileUploadSubmit(formEl) {
-        const formData = new FormData(formEl);
+        const raw = new FormData(formEl);
+        const formData = new FormData();
         const taskId = this.#taskIdFromDrawer(formEl);
         if (!taskId) {
             this.log.error('Cannot extract task ID from form');
             return;
         }
+        const uploadedFile = raw.get('fileToUpload');
+        formData.append('file', uploadedFile);
 
         this.uploadFile(formData, { taskId }).then(updatedTask => {
             const taskIndex = this.board.tasks.findIndex(t => String(t.clientTaskId) === taskId);
