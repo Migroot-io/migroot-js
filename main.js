@@ -682,7 +682,7 @@ class Migroot {
             return;
         }
 
-        el.innerHTML = arr.map(c => {
+        container.innerHTML = arr.map(c => {
             const isUser = c.type === 'USER';
             const positionClass = isUser ? 'cmt-left' : 'cmt-right';
             const initials = `${(c.author?.firstName || '')[0] || ''}${(c.author?.lastName || '')[0] || ''}`.toUpperCase();
