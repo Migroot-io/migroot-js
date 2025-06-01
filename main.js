@@ -131,7 +131,7 @@ class Migroot {
 
         // expose instance and proxy helpers to window (for inline‑onclick in templates)
         window.mg = this;
-        window.handleFileUpload   = el => this.#handleUploadFromButton(el);
+        // window.handleFileUpload   = el => this.#handleUploadFromButton(el);
         window.handleUpdateStatus = el => this.#handleStartFromButton(el);
         window.handleFileUploadSubmit = el => this.#handleFileUploadSubmit(el);
         window.handleCommentSubmit = el => this.#handleCommentSubmit(el);
