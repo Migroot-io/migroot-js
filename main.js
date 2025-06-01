@@ -689,7 +689,7 @@ class Migroot {
             container.textContent = 'No comments yet';
         } else {
             container.innerHTML = arr.map(c => {
-                const isUser = c.type === 'USER';
+                const isUser = c.author.id === this.currentUser.id;
                 const positionClass = isUser ? 'cmt-left' : 'cmt-right';
                 const initials = `${(c.author?.firstName || '')[0] || ''}${(c.author?.lastName || '')[0] || ''}`.toUpperCase();
                 const name = `${c.author?.firstName || ''} ${c.author?.lastName || ''}`.trim();
