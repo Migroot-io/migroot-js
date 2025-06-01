@@ -109,6 +109,10 @@ const ENDPOINTS = {
     uploadFile: {
         path: 'board/task/{taskId}/uploadFile',
         method: 'POST'
+    },
+    commentClientTask: {
+        path: 'board/task/{taskId}/comment',
+        method: 'POST'
     }
 };
 
@@ -130,6 +134,7 @@ class Migroot {
         window.handleFileUpload   = el => this.#handleUploadFromButton(el);
         window.handleUpdateStatus = el => this.#handleStartFromButton(el);
         window.handleFileUploadSubmit = el => this.#handleFileUploadSubmit(el);
+        window.handleCommentSubmit = el => this.#handleCommentSubmit(el);
     }
 
     init() {
@@ -679,26 +684,25 @@ class Migroot {
         }
         if (!arr.length) {
             container.textContent = 'No comments yet';
-            return;
+        } else {
+            container.innerHTML = arr.map(c => {
+                const isUser = c.type === 'USER';
+                const positionClass = isUser ? 'cmt-left' : 'cmt-right';
+                const initials = `${(c.author?.firstName || '')[0] || ''}${(c.author?.lastName || '')[0] || ''}`.toUpperCase();
+                const name = `${c.author?.firstName || ''} ${c.author?.lastName || ''}`.trim();
+                const date = this.#formatDate(c.createdDate);
+                return `
+                  <div class="cmt-item ${positionClass}">
+                    <div class="cmt-item__header">
+                      <div class="cmt-item__photo">${initials}</div>
+                      <div class="cmt-item__name">${name}</div>
+                      <div class="cmt-item__date">${date}</div>
+                    </div>
+                    <div class="cmt-item__content">${c.message}</div>
+                  </div>
+                `;
+            }).join('');
         }
-
-        container.innerHTML = arr.map(c => {
-            const isUser = c.type === 'USER';
-            const positionClass = isUser ? 'cmt-left' : 'cmt-right';
-            const initials = `${(c.author?.firstName || '')[0] || ''}${(c.author?.lastName || '')[0] || ''}`.toUpperCase();
-            const name = `${c.author?.firstName || ''} ${c.author?.lastName || ''}`.trim();
-            const date = this.#formatDate(c.createdDate);
-            return `
-              <div class="cmt-item ${positionClass}">
-                <div class="cmt-item__header">
-                  <div class="cmt-item__photo">${initials}</div>
-                  <div class="cmt-item__name">${name}</div>
-                  <div class="cmt-item__date">${date}</div>
-                </div>
-                <div class="cmt-item__content">${c.message}</div>
-              </div>
-            `;
-        }).join('');
     }
 
     #renderFiles(el, val) {
@@ -740,11 +744,11 @@ class Migroot {
     }
 
     /* inline‑onclick helpers (used by templates) */
-    #handleUploadFromButton(btn) {
-        const id = this.#taskIdFromDrawer(btn);
-        const item = this.board?.tasks?.find(t => String(t.clientTaskId) === id);
-        if (item) this.#handleUpload(item);
-    }
+    // #handleUploadFromButton(btn) {
+    //     const id = this.#taskIdFromDrawer(btn);
+    //     const item = this.board?.tasks?.find(t => String(t.clientTaskId) === id);
+    //     if (item) this.#handleUpload(item);
+    // }
 
     #handleStartFromButton(btn) {
         const id = this.#taskIdFromDrawer(btn);
@@ -752,10 +756,10 @@ class Migroot {
         if (item) this.#handleStart(item);
     }
 
-    #handleUpload(item) {
-        this.log.info('Upload file clicked for task', item.clientTaskId);
-        // real upload logic already handled by node input; proxy kept for compatibility
-    }
+    // #handleUpload(item) {
+    //     this.log.info('Upload file clicked for task', item.clientTaskId);
+    //     // real upload logic already handled by node input; proxy kept for compatibility
+    // }
 
     #handleStart(item) {
         this.log.info('Start clicked for task', item.clientTaskId);
@@ -769,7 +773,13 @@ class Migroot {
         this.updateClientTask(
             { status: 'IN_PROGRESS' },
             { taskId: item.clientTaskId }
-        ).catch(err => {
+        ).then(() => {
+            const taskIndex = this.board.tasks.findIndex(t => String(t.clientTaskId) === item.clientTaskId);
+            if (taskIndex !== -1) {
+                this.board.tasks[taskIndex]._detailsFetched = true;
+                this.#onTaskEnriched(this.board.tasks[taskIndex]);
+            }
+        }).catch(err => {
             // rollback on failure
             this.log.error('Failed to update task status:', err);
             alert('Server error: Could not start the task. Try again.');
@@ -805,6 +815,34 @@ class Migroot {
             }
         }).catch(err => {
             this.log.error('File upload failed:', err);
+        });
+    }
+
+    #handleCommentSubmit(formEl) {
+        const input = formEl.querySelector('input[name="Comment"]');
+        const message = input?.value?.trim();
+        const taskId = this.#taskIdFromDrawer(formEl);
+
+        if (!taskId || !message) {
+            this.log.error('Missing taskId or message');
+            return;
+        }
+
+        const body = { message };
+
+        this.commentClientTask(body, { taskId }).then(updatedTask => {
+            const taskIndex = this.board.tasks.findIndex(t => String(t.clientTaskId) === taskId);
+            if (taskIndex !== -1) {
+                Object.assign(this.board.tasks[taskIndex], updatedTask);
+                this.board.tasks[taskIndex]._detailsFetched = true;
+                this.#onTaskEnriched(this.board.tasks[taskIndex]);
+            } else {
+                this.log.warning(`Task with ID ${taskId} not found in board`);
+            }
+
+            input.value = ''; // clear field
+        }).catch(err => {
+            this.log.error('Comment submit failed:', err);
         });
     }
 
@@ -852,4 +890,3 @@ class Migroot {
     /*───────────────────────────  Utility & Formatting END ─────────────────*/
 }
 window.Migroot = Migroot;
-
