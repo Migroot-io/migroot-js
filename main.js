@@ -828,8 +828,7 @@ class Migroot {
             return;
         }
 
-        const body = { message };
-
+        const body = { comment: message };
         this.commentClientTask(body, { taskId }).then(updatedTask => {
             const taskIndex = this.board.tasks.findIndex(t => String(t.clientTaskId) === taskId);
             if (taskIndex !== -1) {
