@@ -147,6 +147,8 @@ class Migroot {
     async fetchData(boardId = null) {
         try {
             this.token = await this.getAccessToken();
+            this.currentUser = await this.api.currentUser();
+            this.log.info('Current user set from API:', this.currentUser);
 
             let finalBoardId = boardId;
 
@@ -168,7 +170,7 @@ class Migroot {
 
 
     async loadBoardById(boardId) {
-        this.board = await this.getBoard({}, {
+        this.board = await this.api.getBoard({}, {
             boardId: boardId
         });
         this.boardId = this.board.boardId;
@@ -191,7 +193,7 @@ class Migroot {
         };
         console.log('Dummy user initialized:', this.user);
 
-        const boards = await this.searchBoard({
+        const boards = await this.api.searchBoard({
             userType: this.user.type,
             userId: this.user.id
         });
@@ -286,8 +288,9 @@ class Migroot {
     }
 
     generateMethodsFromEndpoints() {
+        this.api = {};
         for (const [name, config] of Object.entries(this.endpoints)) {
-            this[name] = async (body = {}, pathParams = {}) => {
+            this.api[name] = async (body = {}, pathParams = {}) => {
                 return await this.request(name, body, config.method, pathParams);
             };
         }
@@ -502,7 +505,7 @@ class Migroot {
                 if (task && !task._detailsFetched) {
                     // Log before enrichment
                     this.log.info(`Enriching task ${item.clientTaskId} with full details`);
-                    this.getClientTask({}, { taskId: item.clientTaskId }).then(fullTask => {
+                    this.api.getClientTask({}, { taskId: item.clientTaskId }).then(fullTask => {
                         Object.assign(task, fullTask);
                         task._detailsFetched = true;
                         this.log.info(`Task ${task.clientTaskId} enriched with full data`);
@@ -770,7 +773,7 @@ class Migroot {
         this.createCard(item)
 
         // Persist to backend
-        this.updateClientTask(
+        this.api.updateClientTask(
             { status: 'IN_PROGRESS' },
             { taskId: item.clientTaskId }
         ).then(() => {
@@ -804,7 +807,7 @@ class Migroot {
         const uploadedFile = raw.get('fileToUpload');
         formData.append('file', uploadedFile);
 
-        this.uploadFile(formData, { taskId }).then(updatedTask => {
+        this.api.uploadFile(formData, { taskId }).then(updatedTask => {
             const taskIndex = this.board.tasks.findIndex(t => String(t.clientTaskId) === taskId);
             if (taskIndex !== -1) {
                 Object.assign(this.board.tasks[taskIndex], updatedTask);
@@ -827,9 +830,12 @@ class Migroot {
             this.log.error('Missing taskId or message');
             return;
         }
-
-        const body = { comment: message };
-        this.commentClientTask(body, { taskId }).then(updatedTask => {
+        const authorId = this.currentUser?.id;
+        const body = {
+            author: authorId,
+            message: message
+        };
+        this.api.commentClientTask(body, { taskId }).then(updatedTask => {
             const taskIndex = this.board.tasks.findIndex(t => String(t.clientTaskId) === taskId);
             if (taskIndex !== -1) {
                 Object.assign(this.board.tasks[taskIndex], updatedTask);
