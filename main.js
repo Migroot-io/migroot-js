@@ -691,7 +691,7 @@ class Migroot {
             container.innerHTML = arr.map(c => {
                 const isUser = c.author.id === this.currentUser.id;
                 const positionClass = isUser ? 'cmt-left' : 'cmt-right';
-                const initials = `${(c.author?.firstName || '')[0] || ''}${(c.author?.lastName || '')[0] || ''}`.toUpperCase();
+                const initials = `${(c.author?.firstName || '')[0] || ''}${(c.author?.lastName || '')[0] || (c.author?.firstName || ' ')[1] || ''}`.toUpperCase();
                 const name = `${c.author?.firstName || ''} ${c.author?.lastName || ''}`.trim();
                 const date = this.#formatDate(c.createdDate);
                 return `
