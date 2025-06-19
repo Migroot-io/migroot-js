@@ -370,13 +370,13 @@ class Migroot {
 
     #getStatusContainer(status) {
         switch (status) {
-            case 'TO_DO':
+            case 'NOT_STARTED':
                 return this.config.containers.notStarted;
-            case 'URGENT':
+            case 'ASAP':
                 return this.config.containers.asap;
             case 'IN_PROGRESS':
                 return this.config.containers.inProgress;
-            case 'EDIT':
+            case 'REQUIRES_CHANGES':
                 return this.config.containers.edit;
             case 'READY':
                 return this.config.containers.ready;
@@ -487,6 +487,9 @@ class Migroot {
         const targetContainer = this.#getStatusContainer(item.status);
 
         card.id = `doc-${item.clientTaskId}`;
+        card.dataset.required = item.documentRequired ? 'true' : 'false';
+        card.dataset.difficulty = item.difficulty || '';
+        card.dataset.status = item.status || '';
         this.log.info(`Step 6: Setting card content for card ID: ${card.id}`);
         card.onclick = () => {
             // Log card click
@@ -558,6 +561,9 @@ class Migroot {
             this.#drawerOpts());
 
         drawer.id = `drawer-${item.clientTaskId}`;
+        drawer.dataset.required = item.documentRequired ? 'true' : 'false';
+        drawer.dataset.difficulty = item.difficulty || '';
+        drawer.dataset.status = item.status || '';
         this.log.info(`Step 7: Setting drawer content for card ID: ${item.clientTaskId}`);
         // CREATE CLOSE BUTTON
         const closeButton = drawer.querySelector('.drw-close');
@@ -697,7 +703,10 @@ class Migroot {
                 return `
                   <div class="cmt-item ${positionClass}">
                     <div class="cmt-item__header">
-                      <div class="cmt-item__photo">${initials}</div>
+                      <div class="cmt-item__avatar-wrap">
+                        <img class="cmt-item__avatar" src="">
+                            ${initials}
+                      </div>
                       <div class="cmt-item__name">${name}</div>
                       <div class="cmt-item__date">${date}</div>
                     </div>
