@@ -692,7 +692,7 @@ class Migroot {
             return;
         }
         if (!arr.length) {
-            container.textContent = 'No comments yet';
+            container.innerHTML = '<div class="drw-empty">No comments yet</div>';
         } else {
             container.innerHTML = arr.map(c => {
                 const isUser = c.author.id === this.currentUser.id;
@@ -719,14 +719,15 @@ class Migroot {
 
     #renderFiles(el, val) {
         const arr = Array.isArray(val) ? val : [];
-        const container = el.querySelector('.drw-uploaded');
+        const container = el.querySelector('.drw-uploaded .f-wrap');
         if (!container) {
             el.textContent = 'Files container not found';
             return;
         }
 
         if (!arr.length) {
-            container.innerHTML = '<div class="t-label">No files yet</div>';
+            // const container = el.querySelector('.drw-uploaded');
+            container.innerHTML = '<div class="drw-empty">Nothing yet...</div>';
             return;
         }
 
