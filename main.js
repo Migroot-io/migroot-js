@@ -732,14 +732,14 @@ class Migroot {
         }
 
         container.innerHTML = arr.map(file => `
-            <div class="f-item">
+            <a class="f-item" href="${file.downloadLink}" target="_blank">
                 <div class="f-item__header">
                     <img src="https://cdn.prod.website-files.com/679bc8f10611c9a0d94a0caa/683476cbb9aeb76905819fc7_document-color.svg" alt="" class="f-item__icon">
-                    <div class="f-item__name"><a href="${file.downloadLink}" target="_blank">${file.fileName}</a></div>
+                    <div class="f-item__name">${file.fileName}</div>
                     <div class="f-item__status ${file.status}">${file.status}</div>
                 </div>
                 <div class="f-item__date">${this.#formatDate(file.createdDate)}</div>
-            </div>
+            </a>
         `).join('');
     }
 
