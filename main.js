@@ -69,6 +69,14 @@ const CONFIG = {
 };
 */
 
+const STATUS_FLOW = {
+  NOT_STARTED: { next: 'ASAP', prev: null },
+  ASAP: { next: 'IN_PROGRESS', prev: 'NOT_STARTED' },
+  IN_PROGRESS: { next: 'REQUIRES_CHANGES', prev: 'ASAP' },
+  REQUIRES_CHANGES: { next: 'READY', prev: 'IN_PROGRESS' },
+  READY: { next: null, prev: 'REQUIRES_CHANGES' },
+};
+
 const ENDPOINTS = {
     searchBoard: {
         path: 'board/search',
@@ -136,6 +144,11 @@ class Migroot {
         window.handleFileUploadSubmit = el => this.#handleFileUploadSubmit(el);
         window.handleCommentSubmit = el => this.#handleCommentSubmit(el);
         window.handleChooseFile = el => this.#handleChooseFile(el);
+        window.handleNextButton = el => this.#handleNextButton(el);
+        window.handlePrevButton = el => this.#handlePrevButton(el);
+        window.handleReadyButton = el => this.#handleReadyButton(el);
+        window.handleChooseFile = el => this.#handleChooseFile(el);
+
     }
 
     init() {
@@ -332,11 +345,19 @@ class Migroot {
       }
     }
 
+    getNextStatus(current) {
+            return STATUS_FLOW[current]?.next ?? null;
+        }
+
+    getPrevStatus(current) {
+            return STATUS_FLOW[current]?.prev ?? null;
+        }
+
     createCard(item) {
         this.log.info(`Step 5: Creating card for item: ${item}`);
         // pseudo‑fields for drawer buttons
-        item.upload_button = item.status !== 'READY';
-        item.start_button = item.status === 'TO_DO' || item.status === 'ASAP';
+        // item.upload_button = item.status !== 'READY';
+        // item.start_button = item.status === 'TO_DO' || item.status === 'ASAP';
         const card = this.config.template?.cloneNode(true);
         if (card) {
             this.#insertCard(card, item);
@@ -344,7 +365,7 @@ class Migroot {
         // drawer logic
         const drawer = this.config.drawer?.cloneNode(true);
         if (drawer) {
-            this.#createDrawer(drawer, item);
+            this.#insertDrawer(drawer, item);
         }
     }
 
@@ -546,7 +567,7 @@ class Migroot {
         this.#replaceExistingCard(card, targetContainer);
     }
 
-    #createDrawer(drawer, item) {
+    #insertDrawer(drawer, item) {
         // 1) populate generic [data-task] marks (same as in cards)
         this.#setContent(drawer, item, {
             fieldSelector: '[data-task]',
@@ -596,8 +617,8 @@ class Migroot {
                 deadline          : this.#renderDeadline.bind(this),
                 difficulty        : this.#renderDifficulty.bind(this),
                 longDescription   : this.#renderLongDescription.bind(this),
-                upload_button     : this.#renderUploadButton.bind(this),
-                start_button      : this.#renderStartButton.bind(this),
+                // upload_button     : this.#renderUploadButton.bind(this),
+                // start_button      : this.#renderStartButton.bind(this),
                 comments          : this.#renderComments.bind(this),
                 files             : this.#renderFiles.bind(this),
             }
@@ -637,53 +658,53 @@ class Migroot {
         else el.remove();
     }
 
-    #renderUploadButton(el, val) {
-        const snippet = this.config.buttons?.uploadButton;
-        this.log.info('Render upload button – snippet found:', !!snippet);
-        if (!snippet) {
-            el.remove();
-            return;
-        }
-        if (!val) {
-            el.remove();
-            return;
-        }
-        let node;
-        if (snippet instanceof HTMLElement) {
-            node = snippet.cloneNode(true);
-        } else {
-            const tmp = document.createElement('div');
-            tmp.innerHTML = snippet;
-            node = tmp.firstElementChild.cloneNode(true);
-        }
-        const taskId = this.#taskIdFromDrawer(el);
-        node.id = `upload-${taskId}`;
-        el.replaceWith(node);
-    }
+    // #renderUploadButton(el, val) {
+    //     const snippet = this.config.buttons?.uploadButton;
+    //     this.log.info('Render upload button – snippet found:', !!snippet);
+    //     if (!snippet) {
+    //         el.remove();
+    //         return;
+    //     }
+    //     if (!val) {
+    //         el.remove();
+    //         return;
+    //     }
+    //     let node;
+    //     if (snippet instanceof HTMLElement) {
+    //         node = snippet.cloneNode(true);
+    //     } else {
+    //         const tmp = document.createElement('div');
+    //         tmp.innerHTML = snippet;
+    //         node = tmp.firstElementChild.cloneNode(true);
+    //     }
+    //     const taskId = this.#taskIdFromDrawer(el);
+    //     node.id = `upload-${taskId}`;
+    //     el.replaceWith(node);
+    // }
 
-    #renderStartButton(el, val) {
-        const snippet = this.config.buttons?.startButton;
-        this.log.info('Render start button – snippet found:', !!snippet);
-        if (!snippet) {
-            el.remove();
-            return;
-        }
-        if (!val) {
-            el.remove();
-            return;
-        }
-        let node;
-        if (snippet instanceof HTMLElement) {
-            node = snippet.cloneNode(true);
-        } else {
-            const tmp = document.createElement('div');
-            tmp.innerHTML = snippet;
-            node = tmp.firstElementChild.cloneNode(true);
-        }
-        const taskId = this.#taskIdFromDrawer(el);
-        node.id = `start-${taskId}`;
-        el.replaceWith(node);
-    }
+    // #renderStartButton(el, val) {
+    //     const snippet = this.config.buttons?.startButton;
+    //     this.log.info('Render start button – snippet found:', !!snippet);
+    //     if (!snippet) {
+    //         el.remove();
+    //         return;
+    //     }
+    //     if (!val) {
+    //         el.remove();
+    //         return;
+    //     }
+    //     let node;
+    //     if (snippet instanceof HTMLElement) {
+    //         node = snippet.cloneNode(true);
+    //     } else {
+    //         const tmp = document.createElement('div');
+    //         tmp.innerHTML = snippet;
+    //         node = tmp.firstElementChild.cloneNode(true);
+    //     }
+    //     const taskId = this.#taskIdFromDrawer(el);
+    //     node.id = `start-${taskId}`;
+    //     el.replaceWith(node);
+    // }
 
     #renderComments(el, val) {
         const arr = Array.isArray(val) ? val : [];
@@ -745,6 +766,7 @@ class Migroot {
     }
 
     #onTaskEnriched(task) {
+        // # find the drawer linked and upd comments and files
         const drawer = document.getElementById(`drawer-${task.clientTaskId}`);
         if (!drawer) return;
 
@@ -760,31 +782,53 @@ class Migroot {
     #handleStartFromButton(btn) {
         const id = this.#taskIdFromDrawer(btn);
         const item = this.board?.tasks?.find(t => String(t.clientTaskId) === id);
-        if (item) this.#handleStart(item);
+        if (item) this.#handleStatusChange(item, 'IN_PROGRESS');
     }
 
-    #handleStart(item) {
-        this.log.info('Start clicked for task', item.clientTaskId);
+    #handleNextButton(btn) {
+        const id = this.#taskIdFromDrawer(btn);
+        const item = this.board?.tasks?.find(t => String(t.clientTaskId) === id);
+        const next_status = this.getNextStatus( item.status );
+        if (item) this.#handleStatusChange(item, next_status);
+    }
+
+    #handlePrevButton(btn) {
+        const id = this.#taskIdFromDrawer(btn);
+        const item = this.board?.tasks?.find(t => String(t.clientTaskId) === id);
+        const prev_status = this.getPrevStatus( item.status );
+        if (item) this.#handleStatusChange(item, prev_status);
+    }
+
+    #handleReadyButton(btn) {
+        const id = this.#taskIdFromDrawer(btn);
+        const item = this.board?.tasks?.find(t => String(t.clientTaskId) === id);
+        if (item) this.#handleStatusChange(item, 'READY');
+    }
+
+    #handleStatusChange(item, status) {
+        this.log.info('Set new status for task', item.clientTaskId);
 
         const previousStatus = item.status;
-        item.status = 'IN_PROGRESS';                 // optimistic
-        // Move card immediately
+        item.status = status;                 // optimistic
+        // // Move card immediately
         this.createCard(item)
 
         // Persist to backend
         this.api.updateClientTask(
-            { status: 'IN_PROGRESS' },
+            { status: status },
             { taskId: item.clientTaskId }
         ).then(() => {
             const taskIndex = this.board.tasks.findIndex(t => String(t.clientTaskId) === item.clientTaskId);
             if (taskIndex !== -1) {
+
                 this.board.tasks[taskIndex]._detailsFetched = true;
-                this.#onTaskEnriched(this.board.tasks[taskIndex]);
+                this.#onTaskEnriched(this.board.tasks[taskIndex]); // upd comments and files
+
             }
         }).catch(err => {
             // rollback on failure
             this.log.error('Failed to update task status:', err);
-            alert('Server error: Could not start the task. Try again.');
+            // alert('Server error: Could not change status the task. Try again.');
             // restore status and position
             item.status = previousStatus;
             this.createCard(item)
