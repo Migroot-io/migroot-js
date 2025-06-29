@@ -353,7 +353,9 @@ class Migroot {
             return STATUS_FLOW[current]?.prev ?? null;
         }
 
-    createCard(item, skip_drawer = false) {
+    createCard(item, options = {}) {
+        const { skip_drawer = false } = options;
+
         this.log.info(`Step 5: Creating card for item: ${item}`);
         // pseudo‑fields for drawer buttons
         // item.upload_button = item.status !== 'READY';
@@ -815,7 +817,7 @@ class Migroot {
         const previousStatus = item.status;
         item.status = status;                 // optimistic
         // // Move card immediately
-        this.createCard(item, skip_drawer = true)
+        this.createCard(item, { skip_drawer: true });
 
         // Persist to backend
         this.api.updateClientTask(
@@ -826,7 +828,7 @@ class Migroot {
             if (taskIndex !== -1) {
                 Object.assign(this.board.tasks[taskIndex], updatedTask);
                 this.board.tasks[taskIndex]._detailsFetched = true;
-                this.createCard(updatedTask, skip_drawer = true)
+                this.createCard(updatedTask, { skip_drawer: true });
                 this.#onTaskEnriched(this.board.tasks[taskIndex]);
 
             }
@@ -891,7 +893,7 @@ class Migroot {
             if (taskIndex !== -1) {
                 Object.assign(this.board.tasks[taskIndex], updatedTask);
                 this.board.tasks[taskIndex]._detailsFetched = true;
-                this.createCard(updatedTask, skip_drawer = true)
+                this.createCard(updatedTask, { skip_drawer: true });
                 this.#onTaskEnriched(this.board.tasks[taskIndex]);
             } else {
                 this.log.warning(`Task with ID ${taskId} not found in board`);
@@ -919,7 +921,7 @@ class Migroot {
             const taskIndex = this.board.tasks.findIndex(t => String(t.clientTaskId) === taskId);
             if (taskIndex !== -1) {
                 Object.assign(this.board.tasks[taskIndex], updatedTask);
-                this.createCard(updatedTask, skip_drawer = true)
+                this.createCard(updatedTask, { skip_drawer: true });
                 this.board.tasks[taskIndex]._detailsFetched = true;
                 this.#onTaskEnriched(this.board.tasks[taskIndex]);
             } else {
