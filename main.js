@@ -135,6 +135,7 @@ class Migroot {
         window.handleUpdateStatus = el => this.#handleStartFromButton(el);
         window.handleFileUploadSubmit = el => this.#handleFileUploadSubmit(el);
         window.handleCommentSubmit = el => this.#handleCommentSubmit(el);
+        window.handleChooseFile = el => this.#handleChooseFile(el);
     }
 
     init() {
@@ -756,23 +757,11 @@ class Migroot {
         if (filesPane) this.#renderFiles(filesPane, task.files);
     }
 
-    /* inline‑onclick helpers (used by templates) */
-    // #handleUploadFromButton(btn) {
-    //     const id = this.#taskIdFromDrawer(btn);
-    //     const item = this.board?.tasks?.find(t => String(t.clientTaskId) === id);
-    //     if (item) this.#handleUpload(item);
-    // }
-
     #handleStartFromButton(btn) {
         const id = this.#taskIdFromDrawer(btn);
         const item = this.board?.tasks?.find(t => String(t.clientTaskId) === id);
         if (item) this.#handleStart(item);
     }
-
-    // #handleUpload(item) {
-    //     this.log.info('Upload file clicked for task', item.clientTaskId);
-    //     // real upload logic already handled by node input; proxy kept for compatibility
-    // }
 
     #handleStart(item) {
         this.log.info('Start clicked for task', item.clientTaskId);
@@ -803,6 +792,37 @@ class Migroot {
             // if (drawerEl) drawerEl.style.display = 'flex';
         });
         // TODO if success - update mg.board.tasks by id
+    }
+
+    #handleChooseFile(input) {
+      const labelText = input.closest('.frm-upload__label').querySelector('.frm-upload__text');
+      const errorEl = input.closest('.frm-upload__card').querySelector('.frm-upload__error');
+
+      errorEl.textContent = ""; // сбросить ошибку
+
+      if (input.files && input.files.length > 0) {
+        const file = input.files[0];
+
+        if (file.size > 25 * 1024 * 1024) {
+          errorEl.textContent = "File is too large! Max 25 MB.";
+          input.value = "";
+          labelText.textContent = 'Add file';
+          return;
+        }
+
+        const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png'];
+        if (!allowedTypes.includes(file.type)) {
+          errorEl.textContent = "Invalid file type. Allowed: PDF, JPG, PNG.";
+          input.value = "";
+          labelText.textContent = 'Add file';
+          return;
+        }
+
+        // Всё ок — показываем имя
+        labelText.textContent = file.name;
+      } else {
+        labelText.textContent = 'Add file';
+      }
     }
 
     // File upload submit handler (overwritten)
