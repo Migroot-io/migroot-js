@@ -808,9 +808,9 @@ class Migroot {
         if (filesPane) this.#renderFiles(filesPane, task.files);
 
         // todo upd status and numbers
-        // this.#setContent(drawer, task,
-        //     this.#drawerOpts()
-        // );
+        this.#setContent(drawer, task,
+            this.#drawerOpts()
+        );
         drawer.dataset.status = task.status || '';
 
     }
