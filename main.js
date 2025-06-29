@@ -346,21 +346,29 @@ class Migroot {
     }
 
     smartMerge(target, source) {
-        for (const key of Object.keys(source)) {
-            const srcVal = source[key];
-            if (Array.isArray(srcVal)) {
-                // Если массив, то просто заменяем (или можно сделать merge по ID, если нужно)
-                target[key] = srcVal;
-            } else if (srcVal !== null && typeof srcVal === 'object') {
-                if (!target[key] || typeof target[key] !== 'object') {
-                    target[key] = {};
-                }
-                smartMerge(target[key], srcVal);
-            } else if (srcVal !== undefined) {
-                target[key] = srcVal;
+    for (const key of Object.keys(source)) {
+        const srcVal = source[key];
+        const tgtVal = target[key];
+
+        if (Array.isArray(srcVal)) {
+            // Если пустой массив и в target уже что-то есть — пропускаем
+            if (srcVal.length === 0 && Array.isArray(tgtVal) && tgtVal.length > 0) {
+                continue;
             }
+            target[key] = srcVal;
+        } else if (srcVal !== null && typeof srcVal === 'object') {
+            if (!tgtVal || typeof tgtVal !== 'object') {
+                target[key] = {};
+            }
+            this.smartMerge(target[key], srcVal);
+        } else if (srcVal === null && tgtVal !== null) {
+            // Если новое значение null, а старое не null — пропускаем
+            continue;
+        } else if (srcVal !== undefined) {
+            target[key] = srcVal;
         }
     }
+}
 
     getNextStatus(current) {
             return STATUS_FLOW[current]?.next ?? null;
