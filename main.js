@@ -345,6 +345,23 @@ class Migroot {
       }
     }
 
+    smartMerge(target, source) {
+        for (const key of Object.keys(source)) {
+            const srcVal = source[key];
+            if (Array.isArray(srcVal)) {
+                // Если массив, то просто заменяем (или можно сделать merge по ID, если нужно)
+                target[key] = srcVal;
+            } else if (srcVal !== null && typeof srcVal === 'object') {
+                if (!target[key] || typeof target[key] !== 'object') {
+                    target[key] = {};
+                }
+                smartMerge(target[key], srcVal);
+            } else if (srcVal !== undefined) {
+                target[key] = srcVal;
+            }
+        }
+    }
+
     getNextStatus(current) {
             return STATUS_FLOW[current]?.next ?? null;
         }
@@ -535,8 +552,8 @@ class Migroot {
                     // Log before enrichment
                     this.log.info(`Enriching task ${item.clientTaskId} with full details`);
                     this.api.getClientTask({}, { taskId: item.clientTaskId }).then(fullTask => {
-                        Object.assign(task, fullTask);
-                        task._detailsFetched = true;
+                    this.smartMerge(task, fullTask);
+                    task._detailsFetched = true;
                         this.log.info(`Task ${task.clientTaskId} enriched with full data`);
                         this.#onTaskEnriched(task);
                     }).catch(err => {
@@ -573,14 +590,14 @@ class Migroot {
 
     #insertDrawer(drawer, item) {
         // 1) populate generic [data-task] marks (same as in cards)
-        // this.#setContent(drawer, item, {
-        //     fieldSelector: '[data-task]',
-        //     labelSelector: '.t-mark__label',
-        //     renderers: {
-        //         deadline          : this.#renderDeadline.bind(this),
-        //         difficulty        : this.#renderDifficulty.bind(this)
-        //     }
-        // });
+        this.#setContent(drawer, item, {
+            fieldSelector: '[data-task]',
+            labelSelector: '.t-mark__label',
+            renderers: {
+                deadline          : this.#renderDeadline.bind(this),
+                difficulty        : this.#renderDifficulty.bind(this)
+            }
+        });
 
         // 2) drawer‑specific content via unified renderers
         this.#setContent(drawer, item,
@@ -783,9 +800,9 @@ class Migroot {
         if (filesPane) this.#renderFiles(filesPane, task.files);
 
         // todo upd status and numbers
-        this.#setContent(drawer, task,
-            this.#drawerOpts()
-        );
+        // this.#setContent(drawer, task,
+        //     this.#drawerOpts()
+        // );
         drawer.dataset.status = task.status || '';
 
     }
@@ -831,9 +848,10 @@ class Migroot {
         ).then(updatedTask => {
             const taskIndex = this.board.tasks.findIndex(t => String(t.clientTaskId) === item.clientTaskId);
             if (taskIndex !== -1) {
-                Object.assign(this.board.tasks[taskIndex], updatedTask);
+                this.smartMerge(this.board.tasks[taskIndex], updatedTask);
+                // Object.assign(this.board.tasks[taskIndex], updatedTask);
                 this.board.tasks[taskIndex]._detailsFetched = true;
-                this.createCard(updatedTask, { skip_drawer: true });
+                this.createCard(this.board.tasks[taskIndex], { skip_drawer: true });
                 this.#onTaskEnriched(this.board.tasks[taskIndex]);
 
             }
@@ -896,9 +914,10 @@ class Migroot {
         this.api.uploadFile(formData, { taskId }).then(updatedTask => {
             const taskIndex = this.board.tasks.findIndex(t => String(t.clientTaskId) === taskId);
             if (taskIndex !== -1) {
-                Object.assign(this.board.tasks[taskIndex], updatedTask);
+                this.smartMerge(this.board.tasks[taskIndex], updatedTask);
+                // Object.assign(this.board.tasks[taskIndex], updatedTask);
                 this.board.tasks[taskIndex]._detailsFetched = true;
-                this.createCard(updatedTask, { skip_drawer: true });
+                this.createCard(this.board.tasks[taskIndex], { skip_drawer: true });
                 this.#onTaskEnriched(this.board.tasks[taskIndex]);
             } else {
                 this.log.warning(`Task with ID ${taskId} not found in board`);
@@ -925,9 +944,10 @@ class Migroot {
         this.api.commentClientTask(body, { taskId }).then(updatedTask => {
             const taskIndex = this.board.tasks.findIndex(t => String(t.clientTaskId) === taskId);
             if (taskIndex !== -1) {
-                Object.assign(this.board.tasks[taskIndex], updatedTask);
-                this.createCard(updatedTask, { skip_drawer: true });
+                this.smartMerge(this.board.tasks[taskIndex], updatedTask);
+                // Object.assign(this.board.tasks[taskIndex], updatedTask);
                 this.board.tasks[taskIndex]._detailsFetched = true;
+                this.createCard(this.board.tasks[taskIndex], { skip_drawer: true });
                 this.#onTaskEnriched(this.board.tasks[taskIndex]);
             } else {
                 this.log.warning(`Task with ID ${taskId} not found in board`);
