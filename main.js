@@ -131,7 +131,8 @@ class Migroot {
         this.backend_url = config.backend_url || 'https://migroot-447015.oa.r.appspot.com/v1'; // taking from config
         this.endpoints = ENDPOINTS;
         this.log = new Logger(this.config.debug);
-        this.user = null;
+        this.boardUser = null; // for what ??? for dummy user?
+        this.currentUser = null;
         this.boardId = null;
         this.board = null;
         this.token = null;
@@ -232,28 +233,29 @@ class Migroot {
             boardId: boardId
         });
         this.boardId = this.board.boardId;
-        this.user = this.board.owner;
+        this.boardUser = this.board.owner;
 
         console.log('Board loaded by ID:', this.board);
-        console.log('User initialized from board owner:', this.user);
+        console.log('User initialized from board owner:', this.boardUser);
 
-        if (!this.user?.id || !this.user?.type) {
+        if (!this.boardUser?.id || !this.boardUser?.type) {
             throw new Error('Owner of the board is missing id or type.');
         }
     }
 
     async loadDummyUserBoard() {
-        this.user = {
+        this.boardUser = {
             id: 'f73b9855-efe5-4a89-9c80-3798dc10d1ab',
             type: 'CLIENT',
             email: 'dummyemail@dog.com',
             name: 'Dummy user'
         };
-        console.log('Dummy user initialized:', this.user);
+        console.log('Dummy user initialized:', this.boardUser);
 
+        // use loadUserBoard instead
         const boards = await this.api.searchBoard({
-            userType: this.user.type,
-            userId: this.user.id
+            userType: this.boardUser.type,
+            userId: this.boardUser.id
         });
 
         console.log('Boards found for dummy user:', boards);
@@ -264,28 +266,28 @@ class Migroot {
 
         this.board = boards[0];
         this.boardId = this.board.boardId;
-        this.user = this.board.owner;
+        this.boardUser = this.board.owner;
 
         console.log('First board initialized for dummy user:', this.board);
-        console.log('User replaced from board owner:', this.user);
+        console.log('User replaced from board owner:', this.boardUser);
 
-        if (!this.user?.id || !this.user?.type) {
+        if (!this.boardUser?.id || !this.boardUser?.type) {
             throw new Error('Owner of the dummy board is missing id or type.');
         }
     }
 
-    async loadUserBoard() {
-        this.user = this.currentUser
+    async loadUserBoard(boardUser = null) {
+        this.boardUser = boardUser || this.currentUser
 
-        if (!this.user?.id || !this.user?.type) {
+        if (!this.boardUser?.id || !this.boardUser?.type) {
             throw new Error('User init error');
         }
 
-        console.log(' user initialized:', this.user);
+        console.log(' user initialized:', this.boardUser);
 
         const boards = await this.api.searchBoard({
-            userType: this.user.type,
-            userId: this.user.id
+            userType: this.boardUser.type,
+            userId: this.boardUser.id
         });
 
         console.log('Boards found for user:', boards);
@@ -296,7 +298,6 @@ class Migroot {
 
         this.board = boards[0];
         this.boardId = this.board.boardId;
-        // this.user = this.board.owner;
 
         console.log('First board initialized for user:', this.board);
 
