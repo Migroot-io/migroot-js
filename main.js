@@ -207,8 +207,8 @@ class Migroot {
                 owner: { id: this.currentUser?.id },
                 features: features
         }).then(createdBoard => {
-            this.log.info('board created:', createdBoard)
-            // redirect to todopage
+            this.log.info('board created:', createdBoard);
+            return createdBoard;
         }).catch(err => {
             // rollback on failure
             this.log.error('Failed to createdBoard status:', err);
@@ -961,11 +961,18 @@ class Migroot {
             }
         }
 
-        this.createBoard(features).then(() => {
-            this.log.info('Board successfully created');
-            window.location.href = '/app/todo-new';
+        this.createBoard(features).then((createdBoard) => {
+            this.log.info('Board successfully created', createdBoard);
+
+            if (createdBoard && createdBoard.boardId) {
+                window.location.href = '/app/todo-new';
+            } else {
+                this.log.error('Invalid response: boardId or status missing', createdBoard);
+                alert('Board was not created correctly. Please try again.');
+            }
         }).catch(err => {
             this.log.error('Failed to create board:', err);
+            alert('Failed to create board. Please try again.');
         });
 
         return false;
