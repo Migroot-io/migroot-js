@@ -78,9 +78,17 @@ const STATUS_FLOW = {
 };
 
 const ENDPOINTS = {
+    createBoard: {
+        path: 'board',
+        method: 'POST'
+    },
     searchBoard: {
         path: 'board/search',
         method: 'POST'
+    },
+    getBoard: {
+        path: 'board/{boardId}',
+        method: 'GET'
     },
     currentUser: {
         path: 'currentUser',
@@ -92,14 +100,6 @@ const ENDPOINTS = {
     },
     searchUsers: {
         path: 'user/search',
-        method: 'POST'
-    },
-    getBoard: {
-        path: 'board/{boardId}',
-        method: 'GET'
-    },
-    searchBoards: {
-        path: 'board/search',
         method: 'POST'
     },
     addClientTask: {
@@ -174,8 +174,44 @@ class Migroot {
             if (finalBoardId) {
                 await this.loadBoardById(finalBoardId);
             } else {
-                await this.loadDummyUserBoard();
+                await this.loadUserBoard()
+                // await this.loadDummyUserBoard();
             }
+        } catch (error) {
+            this.log.error('Initialization failed:', error);
+            throw error;
+        }
+    }
+    /**
+     * Creates a new board.
+     *
+     * @param {Array<Feature>} features - Array of feature objects. Must include at least:
+     *   COUNTRY_OF_CITIZENSHIP and COUNTRY_OF_VISA_APPLICATION.
+     */
+    async createBoard(features) {
+        if (!Array.isArray(features)) {
+            throw new Error('features must be an array of Feature objects');
+        }
+        try {
+            this.token = await this.getAccessToken();
+            this.currentUser = await this.api.currentUser();
+            this.log.info('Current user set from API:', this.currentUser);
+
+            if (!this.currentUser?.id || !this.currentUser?.type) {
+                throw new Error('User init error');
+            }
+
+            // ## createBoard
+            await this.api.createBoard({}, {
+                owner: this.currentUser?.id,
+                features: features
+        }).then(createdBoard => {
+            this.log.info('board created:', createdBoard)
+            // redirect to todopage
+        }).catch(err => {
+            // rollback on failure
+            this.log.error('Failed to createdBoard status:', err);
+        });
         } catch (error) {
             this.log.error('Initialization failed:', error);
             throw error;
@@ -228,6 +264,35 @@ class Migroot {
         if (!this.user?.id || !this.user?.type) {
             throw new Error('Owner of the dummy board is missing id or type.');
         }
+    }
+
+    async loadUserBoard() {
+        this.user = this.currentUser
+
+        if (!this.user?.id || !this.user?.type) {
+            throw new Error('User init error');
+        }
+
+        console.log(' user initialized:', this.user);
+
+        const boards = await this.api.searchBoard({
+            userType: this.user.type,
+            userId: this.user.id
+        });
+
+        console.log('Boards found for user:', boards);
+
+        if (!Array.isArray(boards) || boards.length === 0) {
+            throw new Error('No boards found for user.');
+        }
+
+        this.board = boards[0];
+        this.boardId = this.board.boardId;
+        // this.user = this.board.owner;
+
+        console.log('First board initialized for user:', this.board);
+
+
     }
 
 
