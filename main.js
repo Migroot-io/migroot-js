@@ -148,6 +148,7 @@ class Migroot {
         window.handlePrevButton = el => this.#handlePrevButton(el);
         window.handleReadyButton = el => this.#handleReadyButton(el);
         window.handleChooseFile = el => this.#handleChooseFile(el);
+        window.handleCreateBoard = el => this.#handleCreateBoard(el);
 
     }
 
@@ -203,7 +204,7 @@ class Migroot {
 
             // ## createBoard
             await this.api.createBoard({
-                owner: this.currentUser?.id,
+                owner: { id: this.currentUser?.id },
                 features: features
         }).then(createdBoard => {
             this.log.info('board created:', createdBoard)
@@ -939,6 +940,35 @@ class Migroot {
             // if (drawerEl) drawerEl.style.display = 'flex';
         });
         // TODO if success - update mg.board.tasks by id
+    }
+
+    #handleCreateBoard(formEl) {
+        // Prevent default behavior (если вызывается напрямую из onsubmit)
+        if (formEl?.preventDefault) {
+            formEl.preventDefault();
+            formEl = formEl.target; // formEl теперь — сама форма
+        }
+
+        const formData = new FormData(formEl);
+
+        const features = [];
+        for (const [key, value] of formData.entries()) {
+            if (value && value.trim() !== "") {
+                features.push({
+                    type: key,
+                    value: value.trim()
+                });
+            }
+        }
+
+        this.createBoard(features).then(() => {
+            this.log.info('Board successfully created');
+            window.location.href = '/app/todo-new';
+        }).catch(err => {
+            this.log.error('Failed to create board:', err);
+        });
+
+        return false;
     }
 
     #handleChooseFile(input) {
