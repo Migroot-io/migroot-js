@@ -961,14 +961,13 @@ class Migroot {
             }
         }
 
-        this.createBoard(features).then((createdBoard) => {
-            this.log.info('Board successfully created', createdBoard);
-
+        this.createBoard(features).then(async (createdBoard) => {
             if (createdBoard && createdBoard.boardId) {
-                window.location.href = '/app/todo-new';
+                this.log.info('Board successfully created', createdBoard);
+                await new Promise(resolve => setTimeout(resolve, 2000));
+                window.location.href = `/app/todo-new?boardId=${createdBoard.boardId}`;
             } else {
                 this.log.error('Invalid response: boardId or status missing', createdBoard);
-                alert('Board was not created correctly. Please try again.');
             }
         }).catch(err => {
             this.log.error('Failed to create board:', err);
