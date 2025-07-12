@@ -204,7 +204,9 @@ class Migroot {
 
             // ## createBoard
             await this.api.createBoard({
-                owner: { id: this.currentUser?.id },
+                owner: { id: this.currentUser?.id,
+                        type: this.currentUser?.type
+                },
                 features: features
         }).then(createdBoard => {
             this.log.info('board created:', createdBoard);
