@@ -159,12 +159,19 @@ class Migroot {
 
     /*───────────────────────────  API helpers START ────────────────────────*/
 
-    async fetchData(boardId = null) {
+    async fetchUserData() {
         try {
             this.token = await this.getAccessToken();
             this.currentUser = await this.api.currentUser();
             this.log.info('Current user set from API:', this.currentUser);
+        } catch (error) {
+            this.log.error('User initialization failed:', error);
+            throw error;
+        }
+    }
 
+        async fetchBoard(boardId = null) {
+        try {
             let finalBoardId = boardId;
 
             if (!finalBoardId) {
@@ -179,7 +186,7 @@ class Migroot {
                 // await this.loadDummyUserBoard();
             }
         } catch (error) {
-            this.log.error('Initialization failed:', error);
+            this.log.error('Board initialization failed:', error);
             throw error;
         }
     }
@@ -384,7 +391,8 @@ class Migroot {
         this.#clearContainers();
 
         this.log.info('Step 2: Fetching user and board');
-        await this.fetchData(boardId); // ✅ исправлено имя
+        await this.fetchUserData();
+        await this.fetchBoard(boardId);
 
         this.log.info('Step 3: Creating tasks');
         this.board.tasks.forEach(item => {
