@@ -243,39 +243,6 @@ class Migroot {
         }
     }
 
-    async loadDummyUserBoard() {
-        this.boardUser = {
-            id: 'f73b9855-efe5-4a89-9c80-3798dc10d1ab',
-            type: 'CLIENT',
-            email: 'dummyemail@dog.com',
-            name: 'Dummy user'
-        };
-        console.log('Dummy user initialized:', this.boardUser);
-
-        // use loadUserBoard instead
-        const boards = await this.api.searchBoard({
-            userType: this.boardUser.type,
-            userId: this.boardUser.id
-        });
-
-        console.log('Boards found for dummy user:', boards);
-
-        if (!Array.isArray(boards) || boards.length === 0) {
-            throw new Error('No boards found for dummy user.');
-        }
-
-        this.board = boards[0];
-        this.boardId = this.board.boardId;
-        this.boardUser = this.board.owner;
-
-        console.log('First board initialized for dummy user:', this.board);
-        console.log('User replaced from board owner:', this.boardUser);
-
-        if (!this.boardUser?.id || !this.boardUser?.type) {
-            throw new Error('Owner of the dummy board is missing id or type.');
-        }
-    }
-
     async loadUserBoard(boardUser = null) {
         this.boardUser = boardUser || this.currentUser
 
@@ -300,10 +267,19 @@ class Migroot {
         this.boardId = this.board.boardId;
 
         console.log('First board initialized for user:', this.board);
-
-
     }
 
+    async loadDummyUserBoard() {
+        const dummy_user = {
+            id: 'f73b9855-efe5-4a89-9c80-3798dc10d1ab',
+            type: 'CLIENT',
+            email: 'dummyemail@dog.com',
+            name: 'Dummy user'
+        };
+        console.log('Dummy user initialized:', dummy_user);
+
+        await this.loadUserBoard(dummy_user);
+    }
 
     async getAccessToken() {
         // First, try to get token from config -- for dev only
