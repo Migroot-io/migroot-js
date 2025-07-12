@@ -203,20 +203,18 @@ class Migroot {
             }
 
             // ## createBoard
-            await this.api.createBoard({
-                owner: { id: this.currentUser?.id,
-                        type: this.currentUser?.type
+            const createdBoard = await this.api.createBoard({
+                owner: {
+                    id: this.currentUser?.id,
+                    type: this.currentUser?.type
                 },
                 features: features
-        }).then(createdBoard => {
+            });
+
             this.log.info('board created:', createdBoard);
             return createdBoard;
-        }).catch(err => {
-            // rollback on failure
-            this.log.error('Failed to createdBoard status:', err);
-        });
         } catch (error) {
-            this.log.error('Initialization failed:', error);
+            this.log.error('Board creation failed:', error);
             throw error;
         }
     }
