@@ -118,6 +118,10 @@ const ENDPOINTS = {
         path: 'board/task/{taskId}/uploadFile',
         method: 'POST'
     },
+    filesView: {
+        path: '/board/{boardId}/files/view',
+        method: 'GET'
+    },
     commentClientTask: {
         path: 'board/task/{taskId}/comment',
         method: 'POST'
@@ -135,11 +139,20 @@ class Migroot {
         this.currentUser = null;
         this.boardId = null;
         this.board = null;
+        this.docs = null;
         this.token = null;
         this.init()
+    }
 
+    init() {
         // expose instance and proxy helpers to window (for inline‑onclick in templates)
         window.mg = this;
+        this.generateMethodsFromEndpoints();
+        this.initHandlers();
+        this.log.info('Migroot initialized');
+    }
+
+    initHandlers() {
         // window.handleFileUpload   = el => this.#handleUploadFromButton(el);
         window.handleUpdateStatus = el => this.#handleStartFromButton(el);
         window.handleFileUploadSubmit = el => this.#handleFileUploadSubmit(el);
@@ -150,12 +163,6 @@ class Migroot {
         window.handleReadyButton = el => this.#handleReadyButton(el);
         window.handleChooseFile = el => this.#handleChooseFile(el);
         window.handleCreateBoard = el => this.#handleCreateBoard(el);
-
-    }
-
-    init() {
-        this.generateMethodsFromEndpoints();
-        this.log.info('Migroot initialized');
     }
 
     /*───────────────────────────  API helpers START ────────────────────────*/
@@ -171,7 +178,7 @@ class Migroot {
         }
     }
 
-        async fetchBoard(boardId = null) {
+    async fetchBoard(boardId = null) {
         try {
             let finalBoardId = boardId;
 
@@ -191,6 +198,27 @@ class Migroot {
             throw error;
         }
     }
+
+    async fetchDocs(boardId = null) {
+        try {
+            let finalBoardId = boardId;
+
+            if (!finalBoardId) {
+                const urlParams = new URLSearchParams(window.location.search);
+                finalBoardId = urlParams.get('boardId');
+            }
+
+            if (finalBoardId) {
+                await this.loadBoardDocsById(finalBoardId);
+            } else {
+                await this.loadUserBoardDocs()
+            }
+        } catch (error) {
+            this.log.error('Board initialization failed:', error);
+            throw error;
+        }
+    }
+
     /**
      * Creates a new board.
      *
@@ -243,10 +271,22 @@ class Migroot {
         }
     }
 
+    async loadBoardDocsById(boardId) {
+        try {
+            const res = await this.api.filesView({}, { boardId });
+            this.docs = res;
+            this.log.info(`Docs loaded for board ID ${boardId}:`, res);
+        } catch (error) {
+            this.log.error(`Failed to load docs for board ID ${boardId}:`, error);
+            throw new Error('Fetch docs error');
+        }
+    }
+
     async loadUserBoard(boardUser = null) {
         this.boardUser = boardUser || this.currentUser
 
         if (!this.boardUser?.id || !this.boardUser?.type) {
+            this.log.error('User inin error for user:', this.boardUser)
             throw new Error('User init error');
         }
 
@@ -260,6 +300,7 @@ class Migroot {
         console.log('Boards found for user:', boards);
 
         if (!Array.isArray(boards) || boards.length === 0) {
+            this.log.error('No boards found for user:', this.boardUser)
             throw new Error('No boards found for user.');
         }
 
@@ -269,17 +310,26 @@ class Migroot {
         console.log('First board initialized for user:', this.board);
     }
 
-    async loadDummyUserBoard() {
-        const dummy_user = {
-            id: 'f73b9855-efe5-4a89-9c80-3798dc10d1ab',
-            type: 'CLIENT',
-            email: 'dummyemail@dog.com',
-            name: 'Dummy user'
-        };
-        console.log('Dummy user initialized:', dummy_user);
-
-        await this.loadUserBoard(dummy_user);
+    async loadUserBoardDocs(boardUser = null) {
+        await this.loadUserBoard(boardUser);
+        if (!this.boardId) {
+            this.log.error('No docs and boards found for user:', this.boardUser)
+            throw new Error('Fetch docs error: cant get board for user');
+        }
+        await this.loadBoardDocsById(this.boardId)
     }
+
+    // async loadDummyUserBoard() {
+    //     const dummy_user = {
+    //         id: 'f73b9855-efe5-4a89-9c80-3798dc10d1ab',
+    //         type: 'CLIENT',
+    //         email: 'dummyemail@dog.com',
+    //         name: 'Dummy user'
+    //     };
+    //     console.log('Dummy user initialized:', dummy_user);
+    //
+    //     await this.loadUserBoard(dummy_user);
+    // }
 
     async getAccessToken() {
         // First, try to get token from config -- for dev only
@@ -381,7 +431,7 @@ class Migroot {
                 throw err;
             }
         });
-
+        this.renderUserFields();
         this.log.info('Dashboard initialized successfully');
 
         if (typeof callback === 'function') {
@@ -396,30 +446,115 @@ class Migroot {
       }
     }
 
-    smartMerge(target, source) {
-    for (const key of Object.keys(source)) {
-        const srcVal = source[key];
-        const tgtVal = target[key];
+    async init_docs({ boardId = null, callback = null } = {}) {
+      try {
+        this.log.info('Step 1: Clearing  Docs containers');
+        this.#clearDocsContainers();
 
-        if (Array.isArray(srcVal)) {
-            // Если пустой массив и в target уже что-то есть — пропускаем
-            if (srcVal.length === 0 && Array.isArray(tgtVal) && tgtVal.length > 0) {
+        this.log.info('Step 2: Fetching user and docs');
+        await this.fetchUserData();
+        await this.fetchDocs(boardId);
+        this.log.info('Step 3: Creating docs');
+        this.docs.forEach(item => {
+            try {
+                this.createDocCard(item);
+            } catch (err) {
+                this.log.error('createDocCard failed for item:', item);
+                this.log.error(err.message, err.stack);
+                throw err;
+            }
+        });
+        this.renderUserFields();
+        this.log.info('Dashboard initialized successfully');
+        if (typeof callback === 'function') {
+          this.log.info('callback called');
+          callback({ taskCount: this.docs.length }); // можно передавать аргументы
+        }
+
+      } catch (error) {
+        this.log.error(`Error during init dashboard: ${error.message}`);
+        this.log.error('Stack trace:', error.stack);
+        throw error;
+      }
+    }
+
+    async init_hub({ boardId = null, callback = null } = {}) {
+      try {
+        this.log.info('Step 1: Fetching user and board');
+        await this.fetchUserData();
+        await this.fetchBoard(boardId);
+
+        this.renderUserFields();
+        this.log.info('Hub initialized successfully');
+
+        if (typeof callback === 'function') {
+          this.log.info('callback called');
+          callback({ taskCount: this.board.tasks.length }); // можно передавать аргументы
+        }
+
+      } catch (error) {
+        this.log.error(`Error during init dashboard: ${error.message}`);
+        this.log.error('Stack trace:', error.stack);
+        throw error;
+      }
+    }
+
+
+
+    renderUserFields() {
+        this.renderUserPoints();
+        // render url
+        // rendrer country flag
+        // ect
+    }
+
+    renderUserPoints() {
+        var points = 0
+        if (!this.config?.user?.pointsContainerId) {
+            this.log.warning('config.user.pointsContainerId is not defined');
+            return;
+        }
+
+        const el = document.getElementById(this.config.user.pointsContainerId);
+        if (!el) {
+            this.log.warning(`Element with id ${this.config.user.pointsContainerId} not found`);
+            return;
+        }
+
+        if (!this.currentUser || typeof this.currentUser.points !== 'number') {
+            this.log.warning('boardUser or points not set');
+        } else {
+            points = this.currentUser.points
+        }
+
+        el.textContent = points;
+        this.log.info(`User points rendered into #${this.config.user.pointsContainerId}: ${points}`);
+    }
+
+    smartMerge(target, source) {
+        for (const key of Object.keys(source)) {
+            const srcVal = source[key];
+            const tgtVal = target[key];
+
+            if (Array.isArray(srcVal)) {
+                // Если пустой массив и в target уже что-то есть — пропускаем
+                if (srcVal.length === 0 && Array.isArray(tgtVal) && tgtVal.length > 0) {
+                    continue;
+                }
+                target[key] = srcVal;
+            } else if (srcVal !== null && typeof srcVal === 'object') {
+                if (!tgtVal || typeof tgtVal !== 'object') {
+                    target[key] = {};
+                }
+                this.smartMerge(target[key], srcVal);
+            } else if (srcVal === null && tgtVal !== null) {
+                // Если новое значение null, а старое не null — пропускаем
                 continue;
+            } else if (srcVal !== undefined) {
+                target[key] = srcVal;
             }
-            target[key] = srcVal;
-        } else if (srcVal !== null && typeof srcVal === 'object') {
-            if (!tgtVal || typeof tgtVal !== 'object') {
-                target[key] = {};
-            }
-            this.smartMerge(target[key], srcVal);
-        } else if (srcVal === null && tgtVal !== null) {
-            // Если новое значение null, а старое не null — пропускаем
-            continue;
-        } else if (srcVal !== undefined) {
-            target[key] = srcVal;
         }
     }
-}
 
     getNextStatus(current) {
             return STATUS_FLOW[current]?.next ?? null;
@@ -446,6 +581,15 @@ class Migroot {
             if (drawer) {
                 this.#insertDrawer(drawer, item);
             }
+        }
+    }
+
+    createDocCard(item,) {
+        this.log.info(`Step 5: Creating Doc card for item: ${item}`);
+
+        const doc_card = this.config.docTemplate?.cloneNode(true);
+        if (doc_card) {
+            this.#insertDocCard(doc_card, item);
         }
     }
 
@@ -485,6 +629,22 @@ class Migroot {
             default:
                 this.log.error(`Unknown status: ${status}`);
                 return this.config.containers.notStarted;
+        }
+    }
+
+    #getDocStatusContainer(status) {
+        switch (status) {
+            case 'REVIEW':
+                return this.config.docsContainers.review;
+            case 'APPROVED':
+                return this.config.docsContainers.approved;
+            case 'REJECTED':
+                return this.config.docsContainers.rejected;
+            case 'NOT_UPLOADED':
+                return this.config.docsContainers.notUploaded;
+            default:
+                this.log.error(`Unknown status: ${status}`);
+                return this.config.docsContainers.notUploaded;
         }
     }
 
@@ -586,9 +746,9 @@ class Migroot {
                 difficulty        : this.#renderDifficulty.bind(this)
             }
         });
-        const targetContainer = this.#getStatusContainer(item.status);
+        const targetContainer = this.#getDocStatusContainer(item.status);
 
-        card.id = `doc-${item.clientTaskId}`;
+        card.id = `task-${item.clientTaskId}`;
         card.dataset.required = item.documentRequired ? 'true' : 'false';
         card.dataset.difficulty = item.difficulty || '';
         card.dataset.status = item.status || '';
@@ -645,6 +805,19 @@ class Migroot {
         };
         this.log.info('Step 11: Replacing existing card if needed');
         this.#replaceExistingCard(card, targetContainer);
+    }
+
+    #insertDocCard(card, item) {
+        this.#setContent(card, item, {
+            fieldSelector: '[data-doc]',
+            labelSelector: '.t-mark__label'
+        });
+        const targetContainer = this.#getStatusContainer(item.status);
+
+        card.id = `doc-${item.fileId}`;
+        card.dataset.status = item.status || '';
+        this.#replaceExistingCard(card, targetContainer);
+
     }
 
     #insertDrawer(drawer, item) {
@@ -737,54 +910,6 @@ class Migroot {
         if (val) el.textContent = this.#formatDifficulty(val);
         else el.remove();
     }
-
-    // #renderUploadButton(el, val) {
-    //     const snippet = this.config.buttons?.uploadButton;
-    //     this.log.info('Render upload button – snippet found:', !!snippet);
-    //     if (!snippet) {
-    //         el.remove();
-    //         return;
-    //     }
-    //     if (!val) {
-    //         el.remove();
-    //         return;
-    //     }
-    //     let node;
-    //     if (snippet instanceof HTMLElement) {
-    //         node = snippet.cloneNode(true);
-    //     } else {
-    //         const tmp = document.createElement('div');
-    //         tmp.innerHTML = snippet;
-    //         node = tmp.firstElementChild.cloneNode(true);
-    //     }
-    //     const taskId = this.#taskIdFromDrawer(el);
-    //     node.id = `upload-${taskId}`;
-    //     el.replaceWith(node);
-    // }
-
-    // #renderStartButton(el, val) {
-    //     const snippet = this.config.buttons?.startButton;
-    //     this.log.info('Render start button – snippet found:', !!snippet);
-    //     if (!snippet) {
-    //         el.remove();
-    //         return;
-    //     }
-    //     if (!val) {
-    //         el.remove();
-    //         return;
-    //     }
-    //     let node;
-    //     if (snippet instanceof HTMLElement) {
-    //         node = snippet.cloneNode(true);
-    //     } else {
-    //         const tmp = document.createElement('div');
-    //         tmp.innerHTML = snippet;
-    //         node = tmp.firstElementChild.cloneNode(true);
-    //     }
-    //     const taskId = this.#taskIdFromDrawer(el);
-    //     node.id = `start-${taskId}`;
-    //     el.replaceWith(node);
-    // }
 
     #renderComments(el, val) {
         const arr = Array.isArray(val) ? val : [];
@@ -1061,6 +1186,10 @@ class Migroot {
 
     #clearContainers() {
         Object.values(this.config.containers).forEach(container => container.innerHTML = '');
+    }
+
+    #clearDocsContainers() {
+        Object.values(this.config.docsContainers).forEach(container => container.innerHTML = '');
     }
 
     #formatDate(isoString) {
