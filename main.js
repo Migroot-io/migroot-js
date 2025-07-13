@@ -166,6 +166,24 @@ class Migroot {
     }
 
     /*───────────────────────────  API helpers START ────────────────────────*/
+    // main fetchers start
+    async getAccessToken() {
+        // First, try to get token from config -- for dev only
+        if (this.config?.token) {
+            return this.config.token;
+        }
+
+        // If not found, try to get token from Outseta
+        if (window.Outseta?.getAccessToken) {
+            const accessToken = await window.Outseta.getAccessToken();
+            if (accessToken) {
+                return accessToken;
+            }
+        }
+
+        // If no token found at all, throw an error
+        throw new Error("Access token is missing in config and window.Outseta.");
+    }
 
     async fetchUserData() {
         try {
@@ -218,42 +236,7 @@ class Migroot {
             throw error;
         }
     }
-
-    /**
-     * Creates a new board.
-     *
-     * @param {Array<Feature>} features - Array of feature objects. Must include at least:
-     *   COUNTRY_OF_CITIZENSHIP and COUNTRY_OF_VISA_APPLICATION.
-     */
-    async createBoard(features) {
-        if (!Array.isArray(features)) {
-            throw new Error('features must be an array of Feature objects');
-        }
-        try {
-            this.token = await this.getAccessToken();
-            this.currentUser = await this.api.currentUser();
-            this.log.info('Current user set from API:', this.currentUser);
-
-            if (!this.currentUser?.id || !this.currentUser?.type) {
-                throw new Error('User init error');
-            }
-
-            // ## createBoard
-            const createdBoard = await this.api.createBoard({
-                owner: {
-                    id: this.currentUser?.id,
-                    type: this.currentUser?.type
-                },
-                features: features
-            });
-
-            this.log.info('board created:', createdBoard);
-            return createdBoard;
-        } catch (error) {
-            this.log.error('Board creation failed:', error);
-            throw error;
-        }
-    }
+    // main fetchers end
 
 
     async loadBoardById(boardId) {
@@ -286,7 +269,7 @@ class Migroot {
         this.boardUser = boardUser || this.currentUser
 
         if (!this.boardUser?.id || !this.boardUser?.type) {
-            this.log.error('User inin error for user:', this.boardUser)
+            this.log.error('User init error for user:', this.boardUser)
             throw new Error('User init error');
         }
 
@@ -331,25 +314,44 @@ class Migroot {
     //     await this.loadUserBoard(dummy_user);
     // }
 
-    async getAccessToken() {
-        // First, try to get token from config -- for dev only
-        if (this.config?.token) {
-            return this.config.token;
+    /**
+     * Creates a new board.
+     *
+     * @param {Array<Feature>} features - Array of feature objects. Must include at least:
+     *   COUNTRY_OF_CITIZENSHIP and COUNTRY_OF_VISA_APPLICATION.
+     */
+    async createBoard(features) {
+        if (!Array.isArray(features)) {
+            throw new Error('features must be an array of Feature objects');
         }
+        try {
+            this.token = await this.getAccessToken();
+            this.currentUser = await this.api.currentUser();
+            this.log.info('Current user set from API:', this.currentUser);
 
-        // If not found, try to get token from Outseta
-        if (window.Outseta?.getAccessToken) {
-            const accessToken = await window.Outseta.getAccessToken();
-            if (accessToken) {
-                return accessToken;
+            if (!this.currentUser?.id || !this.currentUser?.type) {
+                throw new Error('User init error');
             }
-        }
 
-        // If no token found at all, throw an error
-        throw new Error("Access token is missing in config and window.Outseta.");
+            const createdBoard = await this.api.createBoard({
+                owner: {
+                    id: this.currentUser?.id,
+                    type: this.currentUser?.type
+                },
+                features: features
+            });
+
+            this.log.info('board created:', createdBoard);
+            return createdBoard;
+        } catch (error) {
+            this.log.error('Board creation failed:', error);
+            throw error;
+        }
     }
 
     /*───────────────────────────  API helpers END ──────────────────────────*/
+
+    /*───────────────────────────  Dynamic API request generator  START ──────────────────────────*/
 
     async request(endpointName, body = {}, method, pathParams = {}) {
         if (!this.backend_url) {
@@ -410,7 +412,9 @@ class Migroot {
         }
     }
 
-    /*───────────────────────────  Dashboard START ──────────────────────────*/
+    /*───────────────────────────  Dynamic API request generator END ──────────────────────────*/
+
+    /*───────────────────────────  Dashboard/Docs/HUB START ──────────────────────────*/
 
     async init_dashboard({ boardId = null, callback = null } = {}) {
       try {
@@ -498,7 +502,9 @@ class Migroot {
         throw error;
       }
     }
+    /*───────────────────────────  Dashboard/Docs/HUB END ──────────────────────────*/
 
+    /*───────────────────────────  Dashboard helpers START ────────────────────────────*/
 
 
     renderUserFields() {
@@ -593,7 +599,7 @@ class Migroot {
         }
     }
 
-    /*───────────────────────────  Dashboard END ────────────────────────────*/
+    /*───────────────────────────  Dashboard helpers END ────────────────────────────*/
 
     /**
      * @typedef {Object} TaskItem
