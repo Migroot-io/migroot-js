@@ -439,7 +439,8 @@ class Migroot {
                     var task = item.taskRef
                     task.fileName = item.fileName;
                     task.viewLink = item.viewLink;
-                    task.fileStatus = item.status
+                    task.fileStatus = item.status;
+                    task.card_type = type;
                     this.board.tasks.push(task);
                 } catch (err) {
                     this.log.error('createDocCard failed for item:', item);
@@ -455,7 +456,7 @@ class Migroot {
         this.log.info('Step 3: Creating tasks');
         this.board.tasks.forEach(item => {
             try {
-                this.createCard(item);
+                this.createCard(item, { card_type: type });
             } catch (err) {
                 this.log.error('createCard failed for item:', item);
                 this.log.error(err.message, err.stack);
@@ -657,13 +658,17 @@ class Migroot {
         }
 
     createCard(item, options = {}) {
-        const { skip_drawer = false } = options;
+        const { skip_drawer = false , card_type = 'todo'} = options;
 
         this.log.info(`Step 5: Creating card for item: ${item}`);
         // pseudo‑fields for drawer buttons
         // item.upload_button = item.status !== 'READY';
         // item.start_button = item.status === 'TO_DO' || item.status === 'ASAP';
-        const card = this.config.template?.cloneNode(true);
+        if (card_type === 'todo') {
+            const card = this.config.template?.cloneNode(true);
+        } else if (card_type === 'docs') {
+            const card = this.config.docTemplate?.cloneNode(true);
+        }
         if (card) {
             this.#insertCard(card, item);
         }
@@ -1181,7 +1186,7 @@ class Migroot {
         const previousStatus = item.status;
         item.status = status;                 // optimistic
         // // Move card immediately
-        this.createCard(item, { skip_drawer: true });
+        this.createCard(item, { skip_drawer: true, card_type: item.card_type });
 
         // Persist to backend
         this.api.updateClientTask(
@@ -1193,7 +1198,7 @@ class Migroot {
                 this.smartMerge(this.board.tasks[taskIndex], updatedTask);
                 // Object.assign(this.board.tasks[taskIndex], updatedTask);
                 this.board.tasks[taskIndex]._detailsFetched = true;
-                this.createCard(this.board.tasks[taskIndex], { skip_drawer: true });
+                this.createCard(this.board.tasks[taskIndex], { skip_drawer: true , card_type: this.board.tasks[taskIndex].card_type});
                 this.#onTaskEnriched(this.board.tasks[taskIndex]);
 
             }
@@ -1203,7 +1208,7 @@ class Migroot {
             // alert('Server error: Could not change status the task. Try again.');
             // restore status and position
             item.status = previousStatus;
-            this.createCard(item)
+            this.createCard(item, { card_type: item.card_type })
             // let drawerEl = document.getElementById(`drawer-${item.clientTaskId}`);
             // if (drawerEl) drawerEl.style.display = 'flex';
         });
@@ -1294,7 +1299,7 @@ class Migroot {
                 this.smartMerge(this.board.tasks[taskIndex], updatedTask);
                 // Object.assign(this.board.tasks[taskIndex], updatedTask);
                 this.board.tasks[taskIndex]._detailsFetched = true;
-                this.createCard(this.board.tasks[taskIndex], { skip_drawer: true });
+                this.createCard(this.board.tasks[taskIndex], { skip_drawer: true, card_type: this.board.tasks[taskIndex].card_type });
                 this.#onTaskEnriched(this.board.tasks[taskIndex]);
             } else {
                 this.log.warning(`Task with ID ${taskId} not found in board`);
@@ -1324,7 +1329,7 @@ class Migroot {
                 this.smartMerge(this.board.tasks[taskIndex], updatedTask);
                 // Object.assign(this.board.tasks[taskIndex], updatedTask);
                 this.board.tasks[taskIndex]._detailsFetched = true;
-                this.createCard(this.board.tasks[taskIndex], { skip_drawer: true });
+                this.createCard(this.board.tasks[taskIndex], { skip_drawer: true, card_type: this.board.tasks[taskIndex].card_type });
                 this.#onTaskEnriched(this.board.tasks[taskIndex]);
             } else {
                 this.log.warning(`Task with ID ${taskId} not found in board`);
