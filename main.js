@@ -119,7 +119,7 @@ const ENDPOINTS = {
         method: 'POST'
     },
     filesView: {
-        path: '/board/{boardId}/files/view',
+        path: 'board/{boardId}/files/view',
         method: 'GET'
     },
     commentClientTask: {
