@@ -615,9 +615,12 @@ class Migroot {
         }
         if (!skip_drawer) {
             // drawer logic
+            this.log.info(`Step 5: Creating drawer for Doc card for item: ${item}`);
             const drawer = this.config.drawer?.cloneNode(true);
             if (drawer) {
                 this.#insertDrawer(drawer, item.taskRef);
+            } else {
+                this.log.error('cant find drawer template node');
             }
         }
     }
