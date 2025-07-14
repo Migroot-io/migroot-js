@@ -472,6 +472,7 @@ class Migroot {
         this.log.info('Step 3: Creating docs');
         this.docs.forEach(item => {
             try {
+                item.taskName = item.taskRef.name;
                 this.createDocCard(item);
             } catch (err) {
                 this.log.error('createDocCard failed for item:', item);
@@ -601,7 +602,7 @@ class Migroot {
         }
     }
 
-    createDocCard(item,) {
+    createDocCard(item) {
         this.log.info(`Step 5: Creating Doc card for item: ${item}`);
 
         const doc_card = this.config.docTemplate?.cloneNode(true);
