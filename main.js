@@ -472,12 +472,12 @@ class Migroot {
             await this.fetchDocs(finalBoardId);
             this.docs.forEach(item => {
                 try {
-                    item.taskRef.fileName = item.fileName;
-                    item.taskRef.viewLink = item.viewLink;
-                    item.taskRef.fileStatus = item.status
+                    var task = item.taskRef
+                    task.fileName = item.fileName;
+                    task.viewLink = item.viewLink;
+                    task.fileStatus = item.status
                     this.board = []
-                    this.board.push(item.taskRef);
-                    this.createDocCard(item);
+                    this.board.push(task);
                 } catch (err) {
                     this.log.error('createDocCard failed for item:', item);
                     this.log.error(err.message, err.stack);
