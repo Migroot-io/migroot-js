@@ -827,14 +827,20 @@ class Migroot {
     #insertDocCard(card, item) {
         this.#setContent(card, item, {
             fieldSelector: '[data-doc]',
-            labelSelector: '.t-mark__label'
+            labelSelector: '.t-mark__label',
+            renderers: {
+                deadline          : this.#renderDeadline.bind(this),
+                difficulty        : this.#renderDifficulty.bind(this)
+            }
         });
-        const targetContainer = this.#getDocStatusContainer(item.status);
+        const targetContainer = this.#getStatusContainer(item.taskRef.status);
 
-        card.id = `doc-${item.fileId}`;
-        card.dataset.status = item.status || '';
+        card.id = `doc-${item.taskRef.clientTaskId}`;
+        card.dataset.status = item.taskRef.status || '';
+        this.log.info(`Step 6: Setting card content for card ID: ${card.id}`);
+        card.onclick = () => this.handleCardClick(item.taskRef);
+        this.log.info('Step 11: Replacing existing card if needed');
         this.#replaceExistingCard(card, targetContainer);
-
     }
 
     #insertDrawer(drawer, item) {
@@ -871,6 +877,56 @@ class Migroot {
             existingDrawer.replaceWith(drawer);
         } else {
             this.config.allDrawers.appendChild(drawer);
+        }
+    }
+
+    handleCardClick(item) {
+        this.log.info(`Card clicked: ${item.clientTaskId}`);
+        const drawerEl = document.getElementById(`drawer-${item.clientTaskId}`);
+        if (drawerEl) {
+            drawerEl.style.display = 'flex';
+            this.log.info(`Drawer opened for card ID: ${item.clientTaskId}`);
+
+            // --- Enrich with full task data if not fetched yet ---
+            const task = this.board?.tasks?.find(t => String(t.clientTaskId) === item.clientTaskId);
+            this.log.info('Checking task: ', task);
+
+            this.log.info('Checking if task needs enrichment', { hasTask: !!task, alreadyFetched: task?._detailsFetched });
+            if (task && !task._detailsFetched) {
+                this.log.info(`Enriching task ${item.clientTaskId} with full details`);
+                this.api.getClientTask({}, { taskId: item.clientTaskId })
+                    .then(fullTask => {
+                        this.smartMerge(task, fullTask);
+                        task._detailsFetched = true;
+                        this.log.info(`Task ${task.clientTaskId} enriched with full data`);
+                        this.#onTaskEnriched(task);
+                    })
+                    .catch(err => {
+                        this.log.error('Failed to enrich task data:', err);
+                    });
+            } else {
+                this.log.info(`Task ${item.clientTaskId} already enriched or not found`);
+            }
+            // --- End enrichment ---
+
+            // drawer closing logic start ///
+            if (this._drawerOutsideHandler) {
+                document.removeEventListener('pointerdown', this._drawerOutsideHandler);
+            }
+
+            this._drawerOutsideHandler = (event) => {
+                if (drawerEl && !drawerEl.contains(event.target)) {
+                    this.log.info(`Click outside reopened drawer-${item.clientTaskId}, closing`);
+                    drawerEl.style.display = 'none';
+                    document.removeEventListener('pointerdown', this._drawerOutsideHandler);
+                    this._drawerOutsideHandler = null;
+                } else {
+                    this.log.info(`Click inside reopened drawer-${item.clientTaskId}, not closing`);
+                }
+            };
+
+            document.addEventListener('pointerdown', this._drawerOutsideHandler);
+            // drawer closing logic end ///
         }
     }
 
