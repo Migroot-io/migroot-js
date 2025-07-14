@@ -423,7 +423,13 @@ class Migroot {
 
         this.log.info('Step 2: Fetching user and board');
         await this.fetchUserData();
-        await this.fetchBoard(boardId);
+        let finalBoardId = boardId;
+
+        if (!finalBoardId) {
+            const urlParams = new URLSearchParams(window.location.search);
+            finalBoardId = urlParams.get('boardId');
+        }
+        await this.fetchBoard(finalBoardId);
 
         this.log.info('Step 3: Creating tasks');
         this.board.tasks.forEach(item => {
@@ -454,10 +460,15 @@ class Migroot {
       try {
         this.log.info('Step 1: Clearing  Docs containers');
         this.#clearDocsContainers();
+        let finalBoardId = boardId;
 
+        if (!finalBoardId) {
+            const urlParams = new URLSearchParams(window.location.search);
+            finalBoardId = urlParams.get('boardId');
+        }
         this.log.info('Step 2: Fetching user and docs');
         await this.fetchUserData();
-        await this.fetchDocs(boardId);
+        await this.fetchDocs(finalBoardId);
         this.log.info('Step 3: Creating docs');
         this.docs.forEach(item => {
             try {
