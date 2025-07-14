@@ -257,7 +257,7 @@ class Migroot {
     async loadBoardDocsById(boardId) {
         try {
             const res = await this.api.filesView({}, { boardId });
-            this.docs = res;
+            this.docs = res.files;
             this.log.info(`Docs loaded for board ID ${boardId}:`, res);
         } catch (error) {
             this.log.error(`Failed to load docs for board ID ${boardId}:`, error);
