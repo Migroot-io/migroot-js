@@ -483,7 +483,7 @@ class Migroot {
         this.log.info('Dashboard initialized successfully');
         if (typeof callback === 'function') {
           this.log.info('callback called');
-          callback({ taskCount: this.docs.length }); // можно передавать аргументы
+          callback({ docsCount: this.docs.length }); // можно передавать аргументы
         }
 
       } catch (error) {
