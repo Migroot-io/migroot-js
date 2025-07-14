@@ -437,6 +437,8 @@ class Migroot {
             this.docs.forEach(item => {
                 try {
                     var task = item.taskRef
+                    task.commentsCount = 0;
+                    task.filesCount = 0;
                     task.fileName = item.fileName;
                     task.viewLink = item.viewLink;
                     task.fileStatus = item.status;
@@ -597,7 +599,7 @@ class Migroot {
     renderUserFields() {
         this.renderUserPoints();
         // render url
-        // rendrer country flag
+        // todo rendrer country flag
         // ect
     }
 
@@ -661,9 +663,7 @@ class Migroot {
         const { skip_drawer = false , card_type = 'todo'} = options;
 
         this.log.info(`Step 5: Creating card for ${card_type} item: ${item}`);
-        // pseudo‑fields for drawer buttons
-        // item.upload_button = item.status !== 'READY';
-        // item.start_button = item.status === 'TO_DO' || item.status === 'ASAP';
+
         var card = null;
         if (card_type === 'todo') {
             card = this.config.template?.cloneNode(true);
@@ -946,7 +946,8 @@ class Migroot {
     #insertDrawer(drawer, item) {
         // item == board task object
         this.#setContent(drawer, item,
-            this.#drawerOpts());
+            this.#drawerOpts()
+        );
 
         drawer.id = `drawer-${item.clientTaskId}`;
         drawer.dataset.required = item.documentRequired ? 'true' : 'false';
@@ -1336,7 +1337,10 @@ class Migroot {
                 this.smartMerge(this.board.tasks[taskIndex], updatedTask);
                 // Object.assign(this.board.tasks[taskIndex], updatedTask);
                 this.board.tasks[taskIndex]._detailsFetched = true;
-                this.createCard(this.board.tasks[taskIndex], { skip_drawer: true, card_type: this.board.tasks[taskIndex].card_type });
+                this.createCard(this.board.tasks[taskIndex], {
+                    skip_drawer: true,
+                    card_type: this.board.tasks[taskIndex].card_type
+                });
                 this.#onTaskEnriched(this.board.tasks[taskIndex]);
             } else {
                 this.log.warning(`Task with ID ${taskId} not found in board`);
