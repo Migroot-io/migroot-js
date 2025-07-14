@@ -474,6 +474,8 @@ class Migroot {
             try {
                 item.taskName = item.taskRef.name;
                 item.points = item.taskRef.points;
+                this.board = []
+                this.board.push(item.taskRef);
                 this.createDocCard(item);
             } catch (err) {
                 this.log.error('createDocCard failed for item:', item);
@@ -609,6 +611,13 @@ class Migroot {
         const doc_card = this.config.docTemplate?.cloneNode(true);
         if (doc_card) {
             this.#insertDocCard(doc_card, item);
+        }
+        if (!skip_drawer) {
+            // drawer logic
+            const drawer = this.config.drawer?.cloneNode(true);
+            if (drawer) {
+                this.#insertDrawer(drawer, item.taskRef);
+            }
         }
     }
 
@@ -848,14 +857,14 @@ class Migroot {
 
     #insertDrawer(drawer, item) {
         // 1) populate generic [data-task] marks (same as in cards)
-        this.#setContent(drawer, item, {
-            fieldSelector: '[data-task]',
-            labelSelector: '.t-mark__label',
-            renderers: {
-                deadline          : this.#renderDeadline.bind(this),
-                difficulty        : this.#renderDifficulty.bind(this)
-            }
-        });
+        // this.#setContent(drawer, item, {
+        //     fieldSelector: '[data-task]',
+        //     labelSelector: '.t-mark__label',
+        //     renderers: {
+        //         deadline          : this.#renderDeadline.bind(this),
+        //         difficulty        : this.#renderDifficulty.bind(this)
+        //     }
+        // });
 
         // 2) drawer‑specific content via unified renderers
         this.#setContent(drawer, item,
