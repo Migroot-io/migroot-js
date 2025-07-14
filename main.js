@@ -605,7 +605,8 @@ class Migroot {
         }
     }
 
-    createDocCard(item) {
+    createDocCard(item, options = {}) {
+        const { skip_drawer = false } = options;
         this.log.info(`Step 5: Creating Doc card for item: ${item}`);
 
         const doc_card = this.config.docTemplate?.cloneNode(true);
