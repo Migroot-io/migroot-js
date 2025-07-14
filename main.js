@@ -679,6 +679,7 @@ class Migroot {
         }
 
         if (!skip_drawer) {
+            this.log.info(`Step 5a: Creating drawer for ${card_type} item: ${item}`);
             // drawer logic
             const drawer = this.config.drawer?.cloneNode(true);
             if (drawer) {
