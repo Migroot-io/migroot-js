@@ -138,7 +138,8 @@ class Migroot {
         this.boardUser = null; // for what ??? for dummy user?
         this.currentUser = null;
         this.boardId = null;
-        this.board = null;
+        this.board = {};
+        this.board.tasks = [];
         this.docs = null;
         this.token = null;
         this.init()
