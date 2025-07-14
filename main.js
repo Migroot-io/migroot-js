@@ -752,7 +752,7 @@ class Migroot {
                 difficulty        : this.#renderDifficulty.bind(this)
             }
         });
-        const targetContainer = this.#getDocStatusContainer(item.status);
+        const targetContainer = this.#getStatusContainer(item.status);
 
         card.id = `task-${item.clientTaskId}`;
         card.dataset.required = item.documentRequired ? 'true' : 'false';
@@ -818,7 +818,7 @@ class Migroot {
             fieldSelector: '[data-doc]',
             labelSelector: '.t-mark__label'
         });
-        const targetContainer = this.#getStatusContainer(item.status);
+        const targetContainer = this.#getDocStatusContainer(item.status);
 
         card.id = `doc-${item.fileId}`;
         card.dataset.status = item.status || '';
