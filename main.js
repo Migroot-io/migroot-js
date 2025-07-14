@@ -660,18 +660,24 @@ class Migroot {
     createCard(item, options = {}) {
         const { skip_drawer = false , card_type = 'todo'} = options;
 
-        this.log.info(`Step 5: Creating card for item: ${item}`);
+        this.log.info(`Step 5: Creating card for ${card_type} item: ${item}`);
         // pseudo‑fields for drawer buttons
         // item.upload_button = item.status !== 'READY';
         // item.start_button = item.status === 'TO_DO' || item.status === 'ASAP';
+        var card = null;
         if (card_type === 'todo') {
-            const card = this.config.template?.cloneNode(true);
+            card = this.config.template?.cloneNode(true);
         } else if (card_type === 'docs') {
-            const card = this.config.docTemplate?.cloneNode(true);
+            card = this.config.docTemplate?.cloneNode(true);
         }
         if (card) {
             this.#insertCard(card, item);
+        } else {
+            throw new Error(
+                `unknown card type "${card_type}". `
+            );
         }
+
         if (!skip_drawer) {
             // drawer logic
             const drawer = this.config.drawer?.cloneNode(true);
