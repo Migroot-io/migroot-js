@@ -457,44 +457,94 @@ class Migroot {
     }
 
     async init_docs({ boardId = null, callback = null } = {}) {
-      try {
-        this.log.info('Step 1: Clearing  Docs containers');
-        this.#clearDocsContainers();
-        let finalBoardId = boardId;
+        try {
+            this.log.info('Step 1: Clearing containers');
+            this.#clearContainers();
 
-        if (!finalBoardId) {
-            const urlParams = new URLSearchParams(window.location.search);
-            finalBoardId = urlParams.get('boardId');
-        }
-        this.log.info('Step 2: Fetching user and docs');
-        await this.fetchUserData();
-        await this.fetchDocs(finalBoardId);
-        this.log.info('Step 3: Creating docs');
-        this.docs.forEach(item => {
-            try {
-                item.taskName = item.taskRef.name;
-                item.points = item.taskRef.points;
-                this.board = []
-                this.board.push(item.taskRef);
-                this.createDocCard(item);
-            } catch (err) {
-                this.log.error('createDocCard failed for item:', item);
-                this.log.error(err.message, err.stack);
-                throw err;
+            this.log.info('Step 2: Fetching user and board');
+            await this.fetchUserData();
+            let finalBoardId = boardId;
+
+            if (!finalBoardId) {
+                const urlParams = new URLSearchParams(window.location.search);
+                finalBoardId = urlParams.get('boardId');
             }
-        });
-        this.renderUserFields();
-        this.log.info('Dashboard initialized successfully');
-        if (typeof callback === 'function') {
-          this.log.info('callback called');
-          callback({ docsCount: this.docs.length }); // можно передавать аргументы
-        }
+            await this.fetchDocs(finalBoardId);
+            this.docs.forEach(item => {
+                try {
+                    item.taskRef.fileName = item.fileName;
+                    item.taskRef.viewLink = item.viewLink;
+                    item.taskRef.fileStatus = item.status
+                    this.board = []
+                    this.board.push(item.taskRef);
+                    this.createDocCard(item);
+                } catch (err) {
+                    this.log.error('createDocCard failed for item:', item);
+                    this.log.error(err.message, err.stack);
+                    throw err;
+                }
+            });
+            this.log.info('Step 3: Creating tasks');
+            this.board.tasks.forEach(item => {
+                try {
+                    this.createCard(item);
+                } catch (err) {
+                    this.log.error('createCard failed for item:', item);
+                    this.log.error(err.message, err.stack);
+                    throw err;
+                }
+            });
+            this.renderUserFields();
+            this.log.info('Dashboard initialized successfully');
 
-      } catch (error) {
-        this.log.error(`Error during init dashboard: ${error.message}`);
-        this.log.error('Stack trace:', error.stack);
-        throw error;
+            if (typeof callback === 'function') {
+              this.log.info('callback called');
+              callback({ taskCount: this.board.tasks.length }); // можно передавать аргументы
+            }
+
+          } catch (error) {
+            this.log.error(`Error during init dashboard: ${error.message}`);
+            this.log.error('Stack trace:', error.stack);
+            throw error;
       }
+        // try {
+      //   this.log.info('Step 1: Clearing  Docs containers');
+      //   this.#clearDocsContainers();
+      //   let finalBoardId = boardId;
+      //
+      //   if (!finalBoardId) {
+      //       const urlParams = new URLSearchParams(window.location.search);
+      //       finalBoardId = urlParams.get('boardId');
+      //   }
+      //   this.log.info('Step 2: Fetching user and docs');
+      //   await this.fetchUserData();
+      //   await this.fetchDocs(finalBoardId);
+      //   this.log.info('Step 3: Creating docs');
+      //   this.docs.forEach(item => {
+      //       try {
+      //           item.taskName = item.taskRef.name;
+      //           item.points = item.taskRef.points;
+      //           this.board = []
+      //           this.board.push(item.taskRef);
+      //           this.createDocCard(item);
+      //       } catch (err) {
+      //           this.log.error('createDocCard failed for item:', item);
+      //           this.log.error(err.message, err.stack);
+      //           throw err;
+      //       }
+      //   });
+      //   this.renderUserFields();
+      //   this.log.info('Dashboard initialized successfully');
+      //   if (typeof callback === 'function') {
+      //     this.log.info('callback called');
+      //     callback({ docsCount: this.docs.length }); // можно передавать аргументы
+      //   }
+      //
+      // } catch (error) {
+      //   this.log.error(`Error during init dashboard: ${error.message}`);
+      //   this.log.error('Stack trace:', error.stack);
+      //   throw error;
+      // }
     }
 
     async init_hub({ boardId = null, callback = null } = {}) {
@@ -774,6 +824,7 @@ class Migroot {
             fieldSelector: '[data-task]',
             labelSelector: '.t-mark__label',
             renderers: {
+                viewLink           : this.#renderFileUrl.bind(this),
                 deadline          : this.#renderDeadline.bind(this),
                 difficulty        : this.#renderDifficulty.bind(this)
             }
