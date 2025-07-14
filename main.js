@@ -473,6 +473,7 @@ class Migroot {
         this.docs.forEach(item => {
             try {
                 item.taskName = item.taskRef.name;
+                item.points = item.taskRef.points;
                 this.createDocCard(item);
             } catch (err) {
                 this.log.error('createDocCard failed for item:', item);
@@ -830,6 +831,7 @@ class Migroot {
             fieldSelector: '[data-doc]',
             labelSelector: '.t-mark__label',
             renderers: {
+                viewLink           : this.#renderFileUrl.bind(this),
                 deadline          : this.#renderDeadline.bind(this),
                 difficulty        : this.#renderDifficulty.bind(this)
             }
@@ -1042,6 +1044,13 @@ class Migroot {
                 <div class="f-item__date">${this.#formatDate(file.createdDate)}</div>
             </a>
         `).join('');
+    }
+
+    #renderFileUrl(el, val) {
+        if (!val) {
+            return;
+        }
+        el.setAttribute('href', val);
     }
 
     #onTaskEnriched(task) {
