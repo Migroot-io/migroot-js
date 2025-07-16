@@ -424,41 +424,44 @@ class Migroot {
       try {
 
 
-        this.log.info('Step 2: Fetching user and board');
-        await this.fetchUserData();
-        let finalBoardId = boardId;
+          this.log.info('Step 2: Fetching user and board');
+          await this.fetchUserData();
+          let finalBoardId = boardId;
 
-        if (!finalBoardId) {
-            const urlParams = new URLSearchParams(window.location.search);
-            finalBoardId = urlParams.get('boardId');
-        }
-        if (type === 'todo') {
-            this.log.info('Step 1: Clearing containers');
-            this.#clearContainers();
-            await this.fetchBoard(finalBoardId);
-        } else if (type === 'docs') {
-            this.log.info('Step 1: Clearing containers');
-            this.#clearContainers();
-            await this.fetchDocs(finalBoardId);
-            this.docs.forEach(item => {
-                try {
-                    var task = item.taskRef
-                    task.commentsCount = 0;
-                    task.filesCount = 0;
-                    task.fileName = item.fileName;
-                    task.viewLink = item.viewLink;
-                    task.fileStatus = item.status;
-                    task.card_type = type;
-                    this.board.tasks.push(task);
-                } catch (err) {
-                    this.log.error('createDocCard failed for item:', item);
-                    this.log.error(err.message, err.stack);
-                    throw err;
-                }
-            });
-        } else {
-            this.log.info('page is not a dashboard: ', type);
-            return;
+          if (!finalBoardId) {
+              const urlParams = new URLSearchParams(window.location.search);
+              finalBoardId = urlParams.get('boardId');
+          }
+          if (type === 'todo') {
+              this.log.info('Step 1: Clearing containers');
+              this.#clearContainers();
+              await this.fetchBoard(finalBoardId);
+          } else if (type === 'docs') {
+              this.log.info('Step 1: Clearing containers');
+              this.#clearContainers();
+              await this.fetchDocs(finalBoardId);
+              this.docs.forEach(item => {
+                  try {
+                      var task = item.taskRef
+                      task.commentsCount = 0;
+                      task.filesCount = 0;
+                      task.fileName = item.fileName;
+                      task.viewLink = item.viewLink;
+                      task.fileStatus = item.status;
+                      task.card_type = type;
+                      this.board.tasks.push(task);
+                  } catch (err) {
+                      this.log.error('createDocCard failed for item:', item);
+                      this.log.error(err.message, err.stack);
+                      throw err;
+                  }
+              });
+          } else if (type === 'create-board') {
+              this.renderUserFields();
+              return;
+          } else {
+                this.log.info('page is not a dashboard: ', type);
+                return;
         }
 
         this.log.info('Step 3: Creating cards based on tasks');
@@ -1433,7 +1436,7 @@ class Migroot {
       // Добавить кнопку
       const button = document.createElement('a');
       button.textContent = 'Lets go';
-      button.href = '/createBoard';
+      button.href = '/app/create-board';
       button.style.display = 'inline-block';
       button.style.padding = '12px 24px';
       button.style.backgroundColor = '#ff9900';
