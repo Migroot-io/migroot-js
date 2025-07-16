@@ -1273,7 +1273,7 @@ class Migroot {
             if (createdBoard && createdBoard.boardId) {
                 this.log.info('Board successfully created', createdBoard);
                 await new Promise(resolve => setTimeout(resolve, 2000));
-                window.location.href = `/app/todo-new?boardId=${createdBoard.boardId}`;
+                window.location.href = `/app/todo?boardId=${createdBoard.boardId}`;
             } else {
                 this.log.error('Invalid response: boardId or status missing', createdBoard);
             }
