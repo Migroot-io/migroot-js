@@ -417,10 +417,11 @@ class Migroot {
 
     /*───────────────────────────  Dashboard/Docs/HUB START ──────────────────────────*/
 
+
+
     async init_dashboard({ boardId = null, callback = null, type = 'todo' } = {}) {
       try {
-        this.log.info('Step 1: Clearing containers');
-        this.#clearContainers();
+
 
         this.log.info('Step 2: Fetching user and board');
         await this.fetchUserData();
@@ -431,8 +432,12 @@ class Migroot {
             finalBoardId = urlParams.get('boardId');
         }
         if (type === 'todo') {
+            this.log.info('Step 1: Clearing containers');
+            this.#clearContainers();
             await this.fetchBoard(finalBoardId);
         } else if (type === 'docs') {
+            this.log.info('Step 1: Clearing containers');
+            this.#clearContainers();
             await this.fetchDocs(finalBoardId);
             this.docs.forEach(item => {
                 try {
@@ -451,11 +456,11 @@ class Migroot {
                 }
             });
         } else {
-            this.log.error('unknown dashboard type: ', type);
-            throw new Error(`unknown dashboard type: "${type}".`);
+            this.log.info('page is not a dashboard: ', type);
+            return;
         }
 
-        this.log.info('Step 3: Creating tasks');
+        this.log.info('Step 3: Creating cards based on tasks');
         this.board.tasks.forEach(item => {
             try {
                 this.createCard(item, { card_type: type });
@@ -479,6 +484,14 @@ class Migroot {
         throw error;
       }
     }
+
+    async init_mg({ boardId = null, callback = null} = {}) {
+        const path = window.location.pathname;
+        const segments = path.split('/').filter(Boolean);
+        const page_type = segments[segments.length - 1];
+        await this.init_dashboard({boardId: boardId, callback: callback, type: page_type})
+    }
+
     //
     // async init_docs({ boardId = null, callback = null } = {}) {
     //     try {
