@@ -450,6 +450,7 @@ class Migroot {
               this.log.info('Step 1: Clearing containers');
               this.#clearContainers();
               await this.fetchDocs(finalBoardId);
+              this.board.tasks = []
               this.docs.forEach(item => {
                   try {
                       var task = item.taskRef
