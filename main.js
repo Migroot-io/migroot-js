@@ -274,24 +274,25 @@ class Migroot {
             throw new Error('User init error');
         }
 
-        console.log(' user initialized:', this.boardUser);
+        this.log.info(' user initialized:', this.boardUser);
 
         const boards = await this.api.searchBoard({
             userType: this.boardUser.type,
             userId: this.boardUser.id
         });
 
-        console.log('Boards found for user:', boards);
+        this.log.info('Boards found for user:', boards);
 
         if (!Array.isArray(boards) || boards.length === 0) {
-            this.log.error('No boards found for user:', this.boardUser)
+            this.log.warning('No boards found for user:', this.boardUser)
+            this.#showCreateButton();
             throw new Error('No boards found for user.');
         }
 
         this.board = boards[0];
         this.boardId = this.board.boardId;
 
-        console.log('First board initialized for user:', this.board);
+        this.log.info('First board initialized for user:', this.board);
     }
 
     async loadUserBoardDocs(boardUser = null) {
@@ -1409,6 +1410,46 @@ class Migroot {
             if (show) loader.querySelector('.ac-doc__loader-text').textContent = text;
         }
     }
+
+    #showCreateButton() {
+      const original = document.getElementById('screen-preloader');
+
+      if (!original) {
+        console.error('Элемент с id="screen-preloader" не найден.');
+        return;
+      }
+
+      const clone = original.cloneNode(true);
+
+      clone.innerHTML = '';
+
+      const text = document.createElement('h1');
+      text.textContent = 'You need to pass short quiz to generate your journey';
+      text.style.color = '#333';
+      text.style.marginBottom = '20px';
+      text.style.fontSize = '32px';
+      text.style.textAlign = 'center';
+
+      // Добавить кнопку
+      const button = document.createElement('a');
+      button.textContent = 'Lets go';
+      button.href = '/createBoard';
+      button.style.display = 'inline-block';
+      button.style.padding = '12px 24px';
+      button.style.backgroundColor = '#ff9900';
+      button.style.color = '#fff';
+      button.style.textDecoration = 'none';
+      button.style.fontSize = '18px';
+      button.style.borderRadius = '8px';
+
+      // Вставляем новый контент
+      clone.appendChild(text);
+      clone.appendChild(button);
+
+      // Вставить клон сразу после оригинала
+      original.parentNode.insertBefore(clone, original.nextSibling);
+    }
+
 
     /*───────────────────────────  Utility & Formatting END ─────────────────*/
 }
