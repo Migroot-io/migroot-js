@@ -436,6 +436,16 @@ class Migroot {
               this.log.info('Step 1: Clearing containers');
               this.#clearContainers();
               await this.fetchBoard(finalBoardId);
+              this.log.info('Step 3: Creating cards based on tasks');
+              this.board.tasks.forEach(item => {
+                    try {
+                        this.createCard(item, { card_type: type });
+                    } catch (err) {
+                        this.log.error('createCard failed for item:', item);
+                        this.log.error(err.message, err.stack);
+                        throw err;
+                    }
+                });
           } else if (type === 'docs') {
               this.log.info('Step 1: Clearing containers');
               this.#clearContainers();
@@ -456,24 +466,24 @@ class Migroot {
                       throw err;
                   }
               });
+              this.log.info('Step 3: Creating cards based on tasks');
+              this.board.tasks.forEach(item => {
+                    try {
+                        this.createCard(item, { card_type: type });
+                    } catch (err) {
+                        this.log.error('createCard failed for item:', item);
+                        this.log.error(err.message, err.stack);
+                        throw err;
+                    }
+                });
           } else if (type === 'create-board') {
-              this.renderUserFields();
-              return;
+              // this.renderUserFields();
           } else {
                 this.log.info('page is not a dashboard: ', type);
                 return;
         }
 
-        this.log.info('Step 3: Creating cards based on tasks');
-        this.board.tasks.forEach(item => {
-            try {
-                this.createCard(item, { card_type: type });
-            } catch (err) {
-                this.log.error('createCard failed for item:', item);
-                this.log.error(err.message, err.stack);
-                throw err;
-            }
-        });
+
         this.renderUserFields();
         this.log.info('Dashboard initialized successfully');
 
@@ -1418,7 +1428,7 @@ class Migroot {
       const original = document.getElementById('screen-preloader');
 
       if (!original) {
-        console.error('Элемент с id="screen-preloader" не найден.');
+        this.log.warning('no preloader to render');
         return;
       }
 
