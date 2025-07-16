@@ -627,7 +627,7 @@ class Migroot {
             return;
         }
 
-        const el = document.getElementById(this.config.user.pointsContainerId);
+        const el = this.config.user.pointsContainerId;
         if (!el) {
             this.log.warning(`Element with id ${this.config.user.pointsContainerId} not found`);
             return;
@@ -636,7 +636,7 @@ class Migroot {
         if (!this.currentUser || typeof this.currentUser.points !== 'number') {
             this.log.warning('boardUser or points not set');
         } else {
-            points = this.currentUser.points
+            points = mg.currentUser.points || 0
         }
 
         el.textContent = points;
