@@ -1325,6 +1325,10 @@ class Migroot {
             return;
         }
         const uploadedFile = raw.get('fileToUpload');
+        const fileInput = formEl.querySelector('input[name="fileToUpload"]');
+        const fileLabel = formEl.querySelector('.frm-upload__text');
+        const fileError = formEl.querySelector('.frm-upload__error');
+        const submitBtn = formEl.querySelector('input[type="submit"]');
 
         if (!uploadedFile) {
             this.log.error('No file selected for upload');
@@ -1334,7 +1338,7 @@ class Migroot {
         const maxSize = 25 * 1024 * 1024;
         if (uploadedFile.size > maxSize) {
             this.log.error('File is too large. Maximum size is 25MB.');
-            alert('File is too large. Maximum size is 25MB.');
+            if (fileError) fileError.textContent = 'File is too large. Maximum size is 25MB.';
             return;
         }
 
@@ -1347,10 +1351,7 @@ class Migroot {
         }
 
         formData.append('file', uploadedFile);
-        const fileInput = formEl.querySelector('input[name="fileToUpload"]');
-        const fileLabel = formEl.querySelector('.frm-upload__text');
-        const fileError = formEl.querySelector('.frm-upload__error');
-        const submitBtn = formEl.querySelector('input[type="submit"]');
+
         if (fileLabel) fileLabel.textContent = 'Loading';
         if (submitBtn) submitBtn.disabled = true;
 
@@ -1366,10 +1367,12 @@ class Migroot {
                 this.log.warning(`Task with ID ${taskId} not found in board`);
             }
 
+            if (submitBtn) submitBtn.disabled = false;
             if (fileInput) fileInput.value = '';
             if (fileLabel) fileLabel.textContent = 'Add file';
             if (fileError) fileError.textContent = '';
         }).catch(err => {
+            if (fileError) fileError.textContent = 'File upload failed';
             this.log.error('File upload failed:', err);
         });
     }
