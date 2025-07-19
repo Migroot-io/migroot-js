@@ -214,8 +214,7 @@ class Migroot {
 
     async fetchBoard(boardId = null) {
         function updateLocalStorage() {
-            const { board } = this;
-
+            const board = this.board;
             if (!board || !Array.isArray(board.tasks)) {
                 console.warn('Board data is missing or malformed');
                 return;
