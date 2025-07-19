@@ -213,8 +213,7 @@ class Migroot {
     }
 
     async fetchBoard(boardId = null) {
-        function updateLocalStorage() {
-            const board = this.board;
+        function updateLocalStorage(board) {
             if (!board || !Array.isArray(board.tasks)) {
                 console.warn('Board data is missing or malformed');
                 return;
@@ -249,7 +248,7 @@ class Migroot {
                 await this.loadUserBoard()
                 // await this.loadDummyUserBoard();
             }
-            updateLocalStorage();
+            updateLocalStorage(this.board);
         } catch (error) {
             this.log.error('Board initialization failed:', error);
             throw error;
