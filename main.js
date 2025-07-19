@@ -617,7 +617,6 @@ class Migroot {
     renderProgressBar() {
         const goal = parseInt(localStorage.getItem('defaultBoardGoalTasks'), 10) || 0;
         const done = parseInt(localStorage.getItem('defaultBoardDoneTasks'), 10) || 0;
-
         const percent = goal > 0 ? Math.round((done / goal) * 100) : 0;
 
         const countEl = document.getElementById('progress-bar-count');
