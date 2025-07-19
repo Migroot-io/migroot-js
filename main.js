@@ -1327,7 +1327,34 @@ class Migroot {
             return;
         }
         const uploadedFile = raw.get('fileToUpload');
+
+        if (!uploadedFile) {
+            this.log.error('No file selected for upload');
+            return;
+        }
+
+        const maxSize = 25 * 1024 * 1024;
+        if (uploadedFile.size > maxSize) {
+            this.log.error('File is too large. Maximum size is 25MB.');
+            alert('File is too large. Maximum size is 25MB.');
+            return;
+        }
+
+        // 🔒 Проверка формата
+        const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png'];
+        if (!allowedTypes.includes(uploadedFile.type)) {
+            this.log.error(`Invalid file type: ${uploadedFile.type}`);
+            alert('Invalid file type. Allowed: PDF, JPG, PNG.');
+            return;
+        }
+
         formData.append('file', uploadedFile);
+        const fileInput = formEl.querySelector('input[name="fileToUpload"]');
+        const fileLabel = formEl.querySelector('.frm-upload__text');
+        const fileError = formEl.querySelector('.frm-upload__error');
+        const submitBtn = formEl.querySelector('input[type="submit"]');
+        if (fileLabel) fileLabel.textContent = 'Loading';
+        if (submitBtn) submitBtn.disabled = true;
 
         this.api.uploadFile(formData, { taskId }).then(updatedTask => {
             const taskIndex = this.board.tasks.findIndex(t => String(t.clientTaskId) === taskId);
@@ -1340,6 +1367,10 @@ class Migroot {
             } else {
                 this.log.warning(`Task with ID ${taskId} not found in board`);
             }
+
+            if (fileInput) fileInput.value = '';
+            if (fileLabel) fileLabel.textContent = 'Add file';
+            if (fileError) fileError.textContent = '';
         }).catch(err => {
             this.log.error('File upload failed:', err);
         });
