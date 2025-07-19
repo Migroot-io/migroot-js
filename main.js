@@ -98,6 +98,10 @@ const ENDPOINTS = {
         path: 'user/{userId}',
         method: 'GET'
     },
+    getCountryList: {
+        path: 'countries',
+        method: 'GET'
+    },
     searchUsers: {
         path: 'user/search',
         method: 'POST'
@@ -140,7 +144,8 @@ class Migroot {
         this.boardId = null;
         this.board = {};
         this.board.tasks = [];
-        this.docs = null;
+        this.board.docs = null;
+        this.countries = null;
         this.token = null;
         this.init()
     }
@@ -193,6 +198,16 @@ class Migroot {
             this.log.info('Current user set from API:', this.currentUser);
         } catch (error) {
             this.log.error('User initialization failed:', error);
+            throw error;
+        }
+    }
+
+    async fetchCountryList() {
+        try {
+            this.countries = await this.api.getCountryList();
+            this.log.info('fetch country list done:', this.countries);
+        } catch (error) {
+            this.log.error('fetch countries failed:', error);
             throw error;
         }
     }
@@ -258,7 +273,7 @@ class Migroot {
     async loadBoardDocsById(boardId) {
         try {
             const res = await this.api.filesView({}, { boardId });
-            this.docs = res.files;
+            this.board.docs = res.files;
             this.log.info(`Docs loaded for board ID ${boardId}:`, res);
         } catch (error) {
             this.log.error(`Failed to load docs for board ID ${boardId}:`, error);
@@ -451,7 +466,7 @@ class Migroot {
               this.#clearContainers();
               await this.fetchDocs(finalBoardId);
               this.board.tasks = []
-              this.docs.forEach(item => {
+              this.board.docs.forEach(item => {
                   try {
                       var task = item.taskRef
                       task.commentsCount = 0;
@@ -478,7 +493,10 @@ class Migroot {
                     }
                 });
           } else if (type === 'create-board') {
-              // this.renderUserFields();
+              await this.fetchCountryList();
+              this.renderCountryInputs();
+          } else if (type === 'hub') {
+              this.renderUserFields();
           } else {
                 this.log.info('page is not a dashboard: ', type);
                 return;
@@ -507,118 +525,6 @@ class Migroot {
         await this.init_dashboard({boardId: boardId, callback: callback, type: page_type})
     }
 
-    //
-    // async init_docs({ boardId = null, callback = null } = {}) {
-    //     try {
-    //         this.log.info('Step 1: Clearing containers');
-    //         this.#clearContainers();
-    //
-    //         this.log.info('Step 2: Fetching user and board');
-    //         await this.fetchUserData();
-    //         let finalBoardId = boardId;
-    //
-    //         if (!finalBoardId) {
-    //             const urlParams = new URLSearchParams(window.location.search);
-    //             finalBoardId = urlParams.get('boardId');
-    //         }
-    //         await this.fetchDocs(finalBoardId);
-    //         this.board.tasks = []
-    //         this.docs.forEach(item => {
-    //             try {
-    //                 var task = item.taskRef
-    //                 task.fileName = item.fileName;
-    //                 task.viewLink = item.viewLink;
-    //                 task.fileStatus = item.status
-    //                 this.board.tasks.push(task);
-    //             } catch (err) {
-    //                 this.log.error('createDocCard failed for item:', item);
-    //                 this.log.error(err.message, err.stack);
-    //                 throw err;
-    //             }
-    //         });
-    //         this.log.info('Step 3: Creating tasks');
-    //         this.board.tasks.forEach(item => {
-    //             try {
-    //                 this.createCard(item);
-    //             } catch (err) {
-    //                 this.log.error('createCard failed for item:', item);
-    //                 this.log.error(err.message, err.stack);
-    //                 throw err;
-    //             }
-    //         });
-    //         this.renderUserFields();
-    //         this.log.info('Dashboard initialized successfully');
-    //
-    //         if (typeof callback === 'function') {
-    //           this.log.info('callback called');
-    //           callback({ taskCount: this.board.tasks.length }); // можно передавать аргументы
-    //         }
-    //
-    //       } catch (error) {
-    //         this.log.error(`Error during init dashboard: ${error.message}`);
-    //         this.log.error('Stack trace:', error.stack);
-    //         throw error;
-    //   }
-    //     // try {
-    //   //   this.log.info('Step 1: Clearing  Docs containers');
-    //   //   this.#clearDocsContainers();
-    //   //   let finalBoardId = boardId;
-    //   //
-    //   //   if (!finalBoardId) {
-    //   //       const urlParams = new URLSearchParams(window.location.search);
-    //   //       finalBoardId = urlParams.get('boardId');
-    //   //   }
-    //   //   this.log.info('Step 2: Fetching user and docs');
-    //   //   await this.fetchUserData();
-    //   //   await this.fetchDocs(finalBoardId);
-    //   //   this.log.info('Step 3: Creating docs');
-    //   //   this.docs.forEach(item => {
-    //   //       try {
-    //   //           item.taskName = item.taskRef.name;
-    //   //           item.points = item.taskRef.points;
-    //   //           this.board = []
-    //   //           this.board.push(item.taskRef);
-    //   //           this.createDocCard(item);
-    //   //       } catch (err) {
-    //   //           this.log.error('createDocCard failed for item:', item);
-    //   //           this.log.error(err.message, err.stack);
-    //   //           throw err;
-    //   //       }
-    //   //   });
-    //   //   this.renderUserFields();
-    //   //   this.log.info('Dashboard initialized successfully');
-    //   //   if (typeof callback === 'function') {
-    //   //     this.log.info('callback called');
-    //   //     callback({ docsCount: this.docs.length }); // можно передавать аргументы
-    //   //   }
-    //   //
-    //   // } catch (error) {
-    //   //   this.log.error(`Error during init dashboard: ${error.message}`);
-    //   //   this.log.error('Stack trace:', error.stack);
-    //   //   throw error;
-    //   // }
-    // }
-
-    async init_hub({ boardId = null, callback = null } = {}) {
-      try {
-        this.log.info('Step 1: Fetching user and board');
-        await this.fetchUserData();
-        await this.fetchBoard(boardId);
-
-        this.renderUserFields();
-        this.log.info('Hub initialized successfully');
-
-        if (typeof callback === 'function') {
-          this.log.info('callback called');
-          callback({ taskCount: this.board.tasks.length }); // можно передавать аргументы
-        }
-
-      } catch (error) {
-        this.log.error(`Error during init dashboard: ${error.message}`);
-        this.log.error('Stack trace:', error.stack);
-        throw error;
-      }
-    }
     /*───────────────────────────  Dashboard/Docs/HUB END ──────────────────────────*/
 
     /*───────────────────────────  Dashboard helpers START ────────────────────────────*/
@@ -629,6 +535,36 @@ class Migroot {
         // render url
         // todo rendrer country flag
         // ect
+    }
+
+    renderCountryInputs() {
+        if (!this.config?.form?.countryIds) {
+            this.log.warning('config.form.countryIds is not defined');
+            return;
+        }
+
+        if (!Array.isArray(this.countries) || this.countries.length === 0) {
+            this.log.warning('No countries to render in inputs');
+            return;
+        }
+
+        this.config.form.countryIds.forEach(id => {
+            const selectEl = document.getElementById(id);
+            if (!selectEl) {
+                this.log.warning(`No input found with id: ${id}`);
+                return;
+            }
+
+            selectEl.innerHTML = '';
+            this.countries.forEach(country => {
+                const option = document.createElement('option');
+                option.value = country;
+                option.textContent = country;
+                selectEl.appendChild(option);
+            });
+
+            // selectEl.dispatchEvent(new Event('change', { bubbles: true }));
+        });
     }
 
     renderUserPoints() {
