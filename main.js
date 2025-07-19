@@ -218,6 +218,15 @@ class Migroot {
                 console.warn('Board data is missing or malformed');
                 return;
             }
+            if (board.createdDate) {
+                const isoDate = board.createdDate;
+                const date = new Date(isoDate);
+                var readableDate = date.toLocaleString('en-GB', {
+                                          day: 'numeric',
+                                          month: 'short',
+                                          year: 'numeric',
+                                        });
+            }
 
             const goalTasks = board.tasks.filter(task => task.documentRequired).length;
             const doneTasks = board.tasks.filter(
@@ -228,6 +237,7 @@ class Migroot {
             localStorage.setItem('defaultBoardId', board.boardId || '');
             localStorage.setItem('defaultBoardGoalTasks', String(goalTasks));
             localStorage.setItem('defaultBoardDoneTasks', String(doneTasks));
+            localStorage.setItem('defaultBoardDate', readableDate || '')
         }
 
         try {
@@ -613,13 +623,18 @@ class Migroot {
     }
 
     renderProgressBar() {
+        const createdDate = localStorage.getItem('defaultBoardDate');
         const goal = parseInt(localStorage.getItem('defaultBoardGoalTasks'), 10) || 0;
         const done = parseInt(localStorage.getItem('defaultBoardDoneTasks'), 10) || 0;
         const percent = goal > 0 ? Math.round((done / goal) * 100) : 0;
-
+        const dateEl = document.getElementById('created-date')
         const countEl = document.getElementById('progress-bar-count');
         const fillEl = document.getElementById('progress-bar-fill');
 
+        if (dateEl) {
+            dateEl.textContent = `Since ${createdDate}`;
+
+        }
         if (countEl) {
             countEl.textContent = `Your progress: ${done}/${goal}`;
         }
