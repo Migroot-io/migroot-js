@@ -213,6 +213,25 @@ class Migroot {
     }
 
     async fetchBoard(boardId = null) {
+        function updateLocalStorage() {
+            const { board } = this;
+
+            if (!board || !Array.isArray(board.tasks)) {
+                console.warn('Board data is missing or malformed');
+                return;
+            }
+
+            const goalTasks = board.tasks.filter(task => task.documentRequired).length;
+            const doneTasks = board.tasks.filter(
+                task => task.status === 'READY' && task.documentRequired
+            ).length;
+
+            localStorage.setItem('defaultCountry', board.country || '');
+            localStorage.setItem('defaultBoardId', board.boardId || '');
+            localStorage.setItem('defaultBoardGoalTasks', String(goalTasks));
+            localStorage.setItem('defaultBoardDoneTasks', String(doneTasks));
+        }
+
         try {
             let finalBoardId = boardId;
 
@@ -221,12 +240,17 @@ class Migroot {
                 finalBoardId = urlParams.get('boardId');
             }
 
+            if (!finalBoardId) {
+                finalBoardId = localStorage.getItem('defaultBoardId');
+            }
+
             if (finalBoardId) {
                 await this.loadBoardById(finalBoardId);
             } else {
                 await this.loadUserBoard()
                 // await this.loadDummyUserBoard();
             }
+            updateLocalStorage();
         } catch (error) {
             this.log.error('Board initialization failed:', error);
             throw error;
@@ -240,6 +264,10 @@ class Migroot {
             if (!finalBoardId) {
                 const urlParams = new URLSearchParams(window.location.search);
                 finalBoardId = urlParams.get('boardId');
+            }
+
+            if (!finalBoardId) {
+                finalBoardId = localStorage.getItem('defaultBoardId');
             }
 
             if (finalBoardId) {
@@ -496,7 +524,7 @@ class Migroot {
               await this.fetchCountryList();
               this.renderCountryInputs();
           } else if (type === 'hub') {
-              this.renderUserFields();
+              // this.renderUserFields();
           } else {
                 this.log.info('page is not a dashboard: ', type);
                 return;
@@ -532,8 +560,8 @@ class Migroot {
 
     renderUserFields() {
         this.renderUserPoints();
-        // render url
-        // todo rendrer country flag
+        this.renderNavCountry();
+        this.renderProgressBar();
         // ect
     }
 
@@ -565,6 +593,43 @@ class Migroot {
 
             // selectEl.dispatchEvent(new Event('change', { bubbles: true }));
         });
+    }
+
+    renderNavCountry() {
+        const country = localStorage.getItem('defaultCountry')
+        const countryElement = document.getElementById('nav-country');
+
+        if (countryElement) {
+          const items = countryElement.querySelectorAll('[data-country]');
+
+          items.forEach(item => {
+            // Всегда убираем active у всех
+            item.classList.remove('active');
+
+            // Если country существует и совпадает, ставим active
+            if (country && item.getAttribute('data-country') === country) {
+              item.classList.add('active');
+            }
+          });
+        }
+    }
+
+    renderProgressBar() {
+        const goal = parseInt(localStorage.getItem('defaultBoardGoalTasks'), 10) || 0;
+        const done = parseInt(localStorage.getItem('defaultBoardDoneTasks'), 10) || 0;
+
+        const percent = goal > 0 ? Math.round((done / goal) * 100) : 0;
+
+        const countEl = document.getElementById('progress-bar-count');
+        const fillEl = document.getElementById('progress-bar-fill');
+
+        if (countEl) {
+            countEl.textContent = `Your progress: ${done}/${goal}`;
+        }
+
+        if (fillEl) {
+            fillEl.style.width = `${percent}%`;
+        }
     }
 
     renderUserPoints() {
