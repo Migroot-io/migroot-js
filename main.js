@@ -1553,10 +1553,16 @@ class Migroot {
       text.style.marginBottom = '20px';
       text.style.fontSize = '32px';
       text.style.textAlign = 'center';
+      clone.style.display = 'flex';
+      clone.style.flexDirection = 'column';
+      clone.style.alignItems = 'center';
+      clone.style.justifyContent = 'center';
+      clone.style.gap = '20px'; // расстояние между текстом и кнопкой
+      clone.style.height = '100vh'; // чтобы всё было по центру
 
       // Добавить кнопку
       const button = document.createElement('a');
-      button.textContent = 'Lets go';
+      button.textContent = 'Let`s gooooowowowow';
       button.href = '/app/create-board';
       button.style.display = 'inline-block';
       button.style.padding = '12px 24px';
