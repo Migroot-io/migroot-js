@@ -26,7 +26,7 @@
 <script src="https://cdn.outseta.com/outseta.min.js" data-options="o_options"></script>
 <script>
   function redirectNotAuth() {
-    const restrictedPages = ['app', 'todo', 'docs', 'guides', 'gems', 'admin', 'demo'];
+    const restrictedPages = ['app']; // all pages started from app should redirect to main page
     const currentPath = window.location.pathname.split('/').filter(Boolean)[0];
     if (restrictedPages.includes(currentPath)) {
       window.location.assign("/");
@@ -35,14 +35,18 @@
 
   function redirectAuth() {
     const currentPath = window.location.pathname.split('/').filter(Boolean)[0];
-    if (window.location.pathname == '/' || currentPath == 'launch') {
-      window.location.assign("/app/todo");
+    if (window.location.pathname === '/') {
+    //   do nothing
+    } else if ( currentPath === 'launch' ) {
+      window.location.assign("/app/todo");  // old one?
+    } else if ( currentPath === 'login' ) {
+      window.location.assign("/")
     }
   }
 
   function redirectUser() {
     var user = null;
-
+    // похо же что этот скрипт просто редиректит хаб и гайды и больше не нужен
     // Fetch user asynchronously
     async function fetchUser() {
       try {
@@ -59,16 +63,16 @@
       }
       return {
         uid: user?.Account?.Uid,
-        country: user?.Account?.Country
+        country: user?.Account?.Country // country deleted from outseta
       };
     }
 
     // Check User Data and URL and redirect accordingly
     async function handleRedirect() {
-      const { uid, country } = await getUserData(); // Получаем данные пользователя
+      const { uid, country } = await getUserData();
       if (!uid) return;
 
-      const countrySlug = country.toLowerCase();
+      // const countrySlug = country.toLowerCase();
       const userSuffixes = {
         "79OVAg7Q": "79ovag7q", //Kate
         "yW1LLN59": "e9ljxw5m",
@@ -76,43 +80,43 @@
         "E9Ljxw5m": "e9ljxw5m", // Alika
       };
 
-      const suffix = userSuffixes[uid] || countrySlug;
-      if (!suffix) return; // Если нет ни UID в списке, ни страны, ничего не делаем
+      const suffix = userSuffixes[uid];
+      if (!suffix) return; // Если нет ни UID в списке, ничего не делаем
 
-      // Обновление ссылок на "hub"
-      document.querySelectorAll('[data-user="hub"]').forEach(link => {
-        let currentHref = link.getAttribute('href');
-        if (currentHref && !currentHref.includes(`-${suffix}`)) {
-          link.setAttribute('href', `${currentHref}-${suffix}`);
-        }
-      });
-
-      // Обновление ссылок на "guides" — теперь для всех
-      document.querySelectorAll('[data-user="guides"]').forEach(link => {
-        if (uid === "79OVAg7Q") {
-          const currentHref = link.getAttribute('href');
-          link.setAttribute('href', `${currentHref}-${uid}`);
-        } else {
-          link.setAttribute('href', `https://www.migroot.io/blog/${countrySlug}-digital-nomad-visa`);
-        }
-      });
+      // // Обновление ссылок на "hub"
+      // document.querySelectorAll('[data-user="hub"]').forEach(link => {
+      //   let currentHref = link.getAttribute('href');
+      //   if (currentHref && !currentHref.includes(`-${suffix}`)) {
+      //     link.setAttribute('href', `${currentHref}-${suffix}`);
+      //   }
+      // });
+      //
+      // // Обновление ссылок на "guides" — теперь для всех
+      // document.querySelectorAll('[data-user="guides"]').forEach(link => {
+      //   if (uid === "79OVAg7Q") {
+      //     const currentHref = link.getAttribute('href');
+      //     link.setAttribute('href', `${currentHref}-${uid}`);
+      //   } else {
+      //     link.setAttribute('href', `https://www.migroot.io/blog/${countrySlug}-digital-nomad-visa`);
+      //   }
+      // });
 
       const url = window.location.pathname;
-      // Редирект, если URL оканчивается на "hub" и ещё не содержит нужный суффикс
-      if (url.endsWith("hub") && !url.includes(`-${suffix}`)) {
-        window.location.href = `${url}-${suffix}`;
-      }
+      // // Редирект, если URL оканчивается на "hub" и ещё не содержит нужный суффикс
+      // if (url.endsWith("hub") && !url.includes(`-${suffix}`)) {
+      //   window.location.href = `${url}-${suffix}`;
+      // }
 
       // Редирект для "guides" только если uid есть в userSuffixes
-      if (url.endsWith("guides") && uid in userSuffixes && !url.includes(`-${suffix}`)) {
-        window.location.href = `${url}-${suffix}`;
-      }
+      // if (url.endsWith("guides") && uid in userSuffixes && !url.includes(`-${suffix}`)) {
+      //   window.location.href = `${url}-${suffix}`;
+      // }
     }
 
     handleRedirect();
   }
 
-  function authUsers() {
+  function renderAuthUsersEls() {
     const banners = document.querySelectorAll('.banner[data-auth="true"]');
     if (banners){
       banners.forEach(banner => {
@@ -132,10 +136,9 @@
       // Redirect unauthenticated user to login page
       redirectNotAuth();
     } else {
-      redirectUser()
-      // redirectAuth();
-      authUsers();
-      // console.log('User authenticated 1');
+      // redirectUser()
+      redirectAuth();
+      renderAuthUsersEls(); // rename
     }
     // here we should show dashboard
     Outseta.on("accessToken.set", (decodedToken) => {
