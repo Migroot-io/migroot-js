@@ -42,6 +42,12 @@
 
 async function initDashboard() {
   try {
+    const allowedPages = ['app']; // all pages started from app
+    const currentPath = window.location.pathname.split('/').filter(Boolean)[0];
+    if (!allowedPages.includes(currentPath)) {
+      return;
+    }
+
     if (typeof preloaderStart === 'function') {
     	preloaderStart();
     }
