@@ -1337,8 +1337,20 @@ class Migroot {
         const formData = new FormData(formEl);
 
         const features = [];
+        const allowedFeatureTypes = new Set([
+            'COUNTRY_OF_CITIZENSHIP',
+            'COUNTRY_OF_VISA_APPLICATION',
+            'COUNTRY_OF_DESTINATION',
+            'COUNTRY_OF_RECENT_STAY',
+            'COUNTRY_OF_LABOR_CONTRACT',
+            'COUNTRY_OF_ENTREPRENEURSHIP',
+            'MOVE_WITH_SPOUSE',
+            'MOVE_WITH_CHILDREN',
+            'MOVE_WITH_PARENTS',
+            'MOVE_WITH_PETS'
+        ]);
         for (const [key, value] of formData.entries()) {
-            if (value && value.trim() !== "") {
+            if (value && value.trim() !== "" && allowedFeatureTypes.has(key)) {
                 features.push({
                     type: key,
                     value: value.trim()
@@ -1562,7 +1574,7 @@ class Migroot {
 
       // Добавить кнопку
       const button = document.createElement('a');
-      button.textContent = 'Let`s gooooowowowow';
+      button.textContent = 'DO IT';
       button.href = '/app/create-board';
       button.style.display = 'inline-block';
       button.style.padding = '12px 24px';
