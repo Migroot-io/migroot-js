@@ -1,0 +1,201 @@
+<!-- COOKIES -->
+<script src="https://cdn.jsdelivr.net/gh/Flowappz/cookie-consent-cdn@v1.1.15/cookie-consent.js"></script>
+<!-- END COOKIES -->
+
+<script>
+  !function () {var reb2b = window.reb2b = window.reb2b || [];
+                if (reb2b.invoked) return;reb2b.invoked = true;reb2b.methods = ["identify", "collect"];
+                reb2b.factory = function (method) {return function () {var args = Array.prototype.slice.call(arguments);
+                                                                       args.unshift(method);reb2b.push(args);return reb2b;};};
+                for (var i = 0; i < reb2b.methods.length; i++) {var key = reb2b.methods[i];reb2b[key] = reb2b.factory(key);}
+                reb2b.load = function (key) {var script = document.createElement("script");script.type = "text/javascript";script.async = true;
+                                             script.src = "https://s3-us-west-2.amazonaws.com/b2bjsstore/b/" + key + "/1N5W0H0EYWO5.js.gz";
+                                             var first = document.getElementsByTagName("script")[0];
+                                             first.parentNode.insertBefore(script, first);};
+                reb2b.SNIPPET_VERSION = "1.0.1";reb2b.load("1N5W0H0EYWO5");}();
+</script>
+
+<!-- OUTSETA -->
+<script>
+  var o_options = {
+    domain: 'migrootio.outseta.com',
+    load: 'auth,profile,nocode,support',
+    tokenStorage: 'local'
+  };
+</script>
+<script src="https://cdn.outseta.com/outseta.min.js" data-options="o_options"></script>
+<script>
+  function redirectNotAuth() {
+    const restrictedPages = ['app', 'todo', 'docs', 'guides', 'gems', 'admin', 'demo'];
+    const currentPath = window.location.pathname.split('/').filter(Boolean)[0];
+    if (restrictedPages.includes(currentPath)) {
+      window.location.assign("/");
+    }
+  }
+
+  function redirectAuth() {
+    const currentPath = window.location.pathname.split('/').filter(Boolean)[0];
+    if (window.location.pathname == '/' || currentPath == 'launch') {
+      window.location.assign("/app/todo");
+    }
+  }
+
+  function redirectUser() {
+    var user = null;
+
+    // Fetch user asynchronously
+    async function fetchUser() {
+      try {
+        user = await Outseta.getUser();
+      } catch (error) {
+        console.error(error);
+      }
+      return user;
+    };
+
+    async function getUserData() {
+      if (!user) {
+        await fetchUser();
+      }
+      return {
+        uid: user?.Account?.Uid,
+        country: user?.Account?.Country
+      };
+    }
+
+    // Check User Data and URL and redirect accordingly
+    async function handleRedirect() {
+      const { uid, country } = await getUserData(); // Получаем данные пользователя
+      if (!uid) return;
+
+      const countrySlug = country.toLowerCase();
+      const userSuffixes = {
+        "79OVAg7Q": "79ovag7q", //Kate
+        "yW1LLN59": "e9ljxw5m",
+        "DQ2LrRnW": "dq2lrrnw", // Sergei
+        "E9Ljxw5m": "e9ljxw5m", // Alika
+      };
+
+      const suffix = userSuffixes[uid] || countrySlug;
+      if (!suffix) return; // Если нет ни UID в списке, ни страны, ничего не делаем
+
+      // Обновление ссылок на "hub"
+      document.querySelectorAll('[data-user="hub"]').forEach(link => {
+        let currentHref = link.getAttribute('href');
+        if (currentHref && !currentHref.includes(`-${suffix}`)) {
+          link.setAttribute('href', `${currentHref}-${suffix}`);
+        }
+      });
+
+      // Обновление ссылок на "guides" — теперь для всех
+      document.querySelectorAll('[data-user="guides"]').forEach(link => {
+        if (uid === "79OVAg7Q") {
+          const currentHref = link.getAttribute('href');
+          link.setAttribute('href', `${currentHref}-${uid}`);
+        } else {
+          link.setAttribute('href', `https://www.migroot.io/blog/${countrySlug}-digital-nomad-visa`);
+        }
+      });
+
+      const url = window.location.pathname;
+      // Редирект, если URL оканчивается на "hub" и ещё не содержит нужный суффикс
+      if (url.endsWith("hub") && !url.includes(`-${suffix}`)) {
+        window.location.href = `${url}-${suffix}`;
+      }
+
+      // Редирект для "guides" только если uid есть в userSuffixes
+      if (url.endsWith("guides") && uid in userSuffixes && !url.includes(`-${suffix}`)) {
+        window.location.href = `${url}-${suffix}`;
+      }
+    }
+
+    handleRedirect();
+  }
+
+  function authUsers() {
+    const banners = document.querySelectorAll('.banner[data-auth="true"]');
+    if (banners){
+      banners.forEach(banner => {
+        banner.style.display = 'none';
+      });
+    }
+
+    const profile = document.querySelector('.b-profile[data-auth="true"]');
+    if (profile) profile.style.display = 'inline-flex';
+  }
+
+  // Wait until Outseta is initialized
+  Outseta.on("nocode.initialized", async () => {
+    // Check if access token exists
+    if (!Outseta.getAccessToken()) {
+      // console.log('No access token found');
+      // Redirect unauthenticated user to login page
+      redirectNotAuth();
+    } else {
+      redirectUser()
+      // redirectAuth();
+      authUsers();
+      // console.log('User authenticated 1');
+    }
+    // here we should show dashboard
+    Outseta.on("accessToken.set", (decodedToken) => {
+      // Add your custom logic here for auth users
+      // console.log('User authenticated 2');
+    });
+  });
+</script>
+<!-- END OUTSETA -->
+<!-- INTERCOM -->
+<script>
+  window.intercomSettings = {
+    api_base: "https://api-iam.intercom.io",
+    app_id: "tr7hfmsy",
+  };
+</script>
+<script>
+  // We pre-filled your app ID in the widget URL: 'https://widget.intercom.io/widget/tr7hfmsy'
+  (function(){var w=window;var ic=w.Intercom;if(typeof ic==="function"){ic('reattach_activator');ic('update',w.intercomSettings);}else{var d=document;var i=function(){i.c(arguments);};i.q=[];i.c=function(args){i.q.push(args);};w.Intercom=i;var l=function(){var s=d.createElement('script');s.type='text/javascript';s.async=true;s.src='https://widget.intercom.io/widget/tr7hfmsy';var x=d.getElementsByTagName('script')[0];x.parentNode.insertBefore(s,x);};if(document.readyState==='complete'){l();}else if(w.attachEvent){w.attachEvent('onload',l);}else{w.addEventListener('load',l,false);}}})();
+</script>
+<!-- END INTERCOM -->
+<!-- INTERCOM CUSTOMIZATION -->
+<script>
+  // Open Intercom onClick with attr data-intercom="show"
+  function openIntercom() {
+    const intercomTriggers = document.querySelectorAll('[data-intercom="show"]');
+    if (intercomTriggers.length) {
+      intercomTriggers.forEach((trigger) => {
+        trigger.addEventListener('click', (event) => {
+          event.preventDefault();
+          window.Intercom('showNewMessage', trigger.dataset.message);
+        });
+      });
+    }
+  }
+</script>
+<!-- END INTERCOM CUSTOMIZATION -->
+<!-- Google Tag Manager -->
+<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+                                                      new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+      j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+        'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+                            })(window,document,'script','dataLayer','GTM-NV4KXL5V');</script>
+<!-- End Google Tag Manager -->
+
+<link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.css"
+      />
+<style>
+  .ac-profile .ac-profile__avatar-wrap .ac-profile__avatar[src=""],
+  .b-profile .b-profile__avatar-wrap .b-profile__avatar[src=""] {
+    display: none;
+  }
+
+  .fancybox__content.b-modal{
+    border-radius: 40px;
+  }
+
+  .ac-page[data-guide="on"], .ac-page[data-hub="on"]{
+    color: var(--_account---main--black);
+  }
+</style>
