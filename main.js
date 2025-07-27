@@ -688,7 +688,7 @@ class Migroot {
         }
     }
     renderBuddyInfo() {
-        if (this.currentUser.type === 'BUDDY') {
+        if (['BUDDY', 'SUPERVISOR', 'ADMIN'].includes(this.currentUser.type)) {
             const boardEmail = localStorage.getItem('defaultBoardEmail');
             if (boardEmail) {
                 const buddyEl = document.getElementById('buddy-info')
