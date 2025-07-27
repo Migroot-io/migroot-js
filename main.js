@@ -1205,10 +1205,22 @@ class Migroot {
             container.innerHTML = '<div class="drw-empty">No comments yet</div>';
         } else {
             container.innerHTML = arr.map(c => {
-                const isUser = c.author.id === this.currentUser.id;
-                const positionClass = isUser ? 'cmt-left' : 'cmt-right';
-                const initials = `${(c.author?.firstName || '')[0] || 'M'}${(c.author?.lastName || '')[0] || (c.author?.firstName || ' ')[1] || ''}`.toUpperCase();
-                const name = `${c.author?.firstName || 'Migroot'} ${c.author?.lastName || ''}`.trim();
+                let positionClass, initials, name;
+
+                if (c.author == null) {
+                    positionClass = 'cmt-right';
+                    initials = 'M';
+                    name = 'Migroot';
+                } else {
+                    const isUser = c.author.id === this.currentUser.id;
+                    positionClass = isUser ? 'cmt-left' : 'cmt-right';
+
+                    const first = c.author?.firstName || '';
+                    const last = c.author?.lastName || '';
+                    initials = ((first[0] || '') + (last[0] || first[1] || '')).toUpperCase();
+                    name = `${first} ${last}`.trim();
+                }
+
                 const date = this.#formatDate(c.createdDate);
                 return `
                   <div class="cmt-item ${positionClass}">
@@ -1532,6 +1544,9 @@ class Migroot {
     }
 
     #formatDate(isoString) {
+        if (isoString === 'TBD') {
+            return isoString;
+        }
         const date = new Date(isoString);
         return date.toLocaleDateString('en-GB', {
             day: 'numeric',
