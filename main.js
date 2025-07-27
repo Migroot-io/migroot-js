@@ -930,8 +930,12 @@ class Migroot {
                     container.remove(); // not working in drawer
                     return;
                 }
-            } else if (!value) {
-                this.log.warning(`Null value="${value}" for key="${key}" in ${fieldSelector} skipping`);
+            } else if (
+                value === null ||
+                value === undefined ||
+                (typeof value === 'string' && value.trim() === '')
+            ) {
+           this.log.warning(`Null value="${value}" for key="${key}" in ${fieldSelector} skipping`);
                 // return;
             }
             // Arrays → their length
