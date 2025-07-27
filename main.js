@@ -11,6 +11,7 @@ class Logger {
     _log(message, vars = null, type = 'info') {
         const styles = {
             info: 'color: white; font-weight: 500;',
+            debug: 'color: #aaa; font-family: monospace;',
             warning: 'color: orange; font-weight: bold;',
             error: 'color: red; font-weight: bold;'
         };
@@ -26,13 +27,19 @@ class Logger {
     }
 
     info(message, vars) {
+        this._log(message, vars, 'info');
+    }
+    
+    debug(message, vars) {
         if (this.debug) {
-            this._log(message, vars, 'info');
+            this._log(message, vars, 'debug');
         }
     }
 
     warning(message, vars) {
-        this._log(message, vars, 'warning');
+        if (this.debug) {
+            this._log(message, vars, 'warning');
+        }
     }
 
     error(message, vars) {
@@ -195,7 +202,7 @@ class Migroot {
         try {
             this.token = await this.getAccessToken();
             this.currentUser = await this.api.currentUser();
-            this.log.info('Current user set from API:', this.currentUser);
+            this.log.debug('Current user set from API:', this.currentUser);
         } catch (error) {
             this.log.error('User initialization failed:', error);
             throw error;
@@ -205,7 +212,7 @@ class Migroot {
     async fetchCountryList() {
         try {
             this.countries = await this.api.getCountryList();
-            this.log.info('fetch country list done:', this.countries);
+            this.log.debug('fetch country list done:', this.countries);
         } catch (error) {
             this.log.error('fetch countries failed:', error);
             throw error;
@@ -215,7 +222,7 @@ class Migroot {
     async fetchBoard(boardId = null) {
         function updateLocalStorage(board) {
             if (!board || !Array.isArray(board.tasks)) {
-                console.warn('Board data is missing or malformed');
+                this.log.error('Board data is missing or malformed');
                 return;
             }
             if (board.createdDate) {
@@ -300,8 +307,8 @@ class Migroot {
         this.boardId = this.board.boardId;
         this.boardUser = this.board.owner;
 
-        console.log('Board loaded by ID:', this.board);
-        console.log('User initialized from board owner:', this.boardUser);
+       this.log.debug('Board loaded by ID:', this.board);
+       this.log.debug('User initialized from board owner:', this.boardUser);
 
         if (!this.boardUser?.id || !this.boardUser?.type) {
             throw new Error('Owner of the board is missing id or type.');
@@ -312,7 +319,7 @@ class Migroot {
         try {
             const res = await this.api.filesView({}, { boardId });
             this.board.docs = res.files;
-            this.log.info(`Docs loaded for board ID ${boardId}:`, res);
+            this.log.debug(`Docs loaded for board ID ${boardId}:`, res);
         } catch (error) {
             this.log.error(`Failed to load docs for board ID ${boardId}:`, error);
             throw new Error('Fetch docs error');
@@ -327,14 +334,14 @@ class Migroot {
             throw new Error('User init error');
         }
 
-        this.log.info(' user initialized:', this.boardUser);
+        this.log.debug(' user initialized:', this.boardUser);
 
         const boards = await this.api.searchBoard({
             userType: this.boardUser.type,
             userId: this.boardUser.id
         });
 
-        this.log.info('Boards found for user:', boards);
+        this.log.debug('Boards found for user:', boards);
 
         if (!Array.isArray(boards) || boards.length === 0) {
             this.log.warning('No boards found for user:', this.boardUser)
@@ -345,7 +352,7 @@ class Migroot {
         this.board = boards[0];
         this.boardId = this.board.boardId;
 
-        this.log.info('First board initialized for user:', this.board);
+        this.log.debug('First board initialized for user:', this.board);
     }
 
     async loadUserBoardDocs(boardUser = null) {
@@ -382,7 +389,7 @@ class Migroot {
         try {
             this.token = await this.getAccessToken();
             this.currentUser = await this.api.currentUser();
-            this.log.info('Current user set from API:', this.currentUser);
+            this.log.debug('Current user set from API:', this.currentUser);
 
             if (!this.currentUser?.id || !this.currentUser?.type) {
                 throw new Error('User init error');
@@ -396,7 +403,7 @@ class Migroot {
                 features: features
             });
 
-            this.log.info('board created:', createdBoard);
+            this.log.debug('board created:', createdBoard);
             return createdBoard;
         } catch (error) {
             this.log.error('Board creation failed:', error);
@@ -477,7 +484,7 @@ class Migroot {
       try {
 
 
-          this.log.info('Step 2: Fetching user and board');
+          this.log.debug('Step 1: Fetching user and board');
           await this.fetchUserData();
           let finalBoardId = boardId;
 
@@ -486,10 +493,10 @@ class Migroot {
               finalBoardId = urlParams.get('boardId');
           }
           if (type === 'todo') {
-              this.log.info('Step 1: Clearing containers');
+              this.log.debug('Step 2: Clearing containers');
               this.#clearContainers();
               await this.fetchBoard(finalBoardId);
-              this.log.info('Step 3: Creating cards based on tasks');
+              this.log.debug('Step 3: Creating cards based on tasks');
               this.board.tasks.forEach(item => {
                     try {
                         this.createCard(item, { card_type: type });
@@ -500,7 +507,7 @@ class Migroot {
                     }
                 });
           } else if (type === 'docs') {
-              this.log.info('Step 1: Clearing containers');
+              this.log.debug('Step 2: Clearing containers');
               this.#clearContainers();
               await this.fetchDocs(finalBoardId);
               this.board.tasks = []
@@ -520,7 +527,7 @@ class Migroot {
                       throw err;
                   }
               });
-              this.log.info('Step 3: Creating cards based on tasks');
+              this.log.debug('Step 3: Creating cards based on tasks');
               this.board.tasks.forEach(item => {
                     try {
                         this.createCard(item, { card_type: type });
@@ -536,16 +543,16 @@ class Migroot {
           } else if (type === 'hub') {
               this.renderHubFields();
           } else {
-                this.log.info('page is not a dashboard: ', type);
+                this.log.debug('page is not a dashboard: ', type);
                 return;
         }
 
 
         this.renderUserFields();
-        this.log.info('Dashboard initialized successfully');
+        this.log.debug('Dashboard initialized successfully');
 
         if (typeof callback === 'function') {
-          this.log.info('callback called');
+          this.log.debug('callback called');
           callback({ taskCount: this.board.tasks.length }); // можно передавать аргументы
         }
 
@@ -736,13 +743,13 @@ class Migroot {
         }
 
         if (!this.currentUser || typeof this.currentUser.points !== 'number') {
-            this.log.warning('boardUser or points not set');
+            this.log.warning('currentUser or points not set');
         } else {
             points = mg.currentUser.points || 0
         }
 
         el.textContent = points;
-        this.log.info(`User points rendered into #${this.config.user.pointsContainerId}: ${points}`);
+        this.log.debug(`User points rendered into #${this.config.user.pointsContainerId}: ${points}`);
     }
 
     smartMerge(target, source) {
@@ -781,7 +788,7 @@ class Migroot {
     createCard(item, options = {}) {
         const { skip_drawer = false , card_type = 'todo'} = options;
 
-        this.log.info(`Step 5: Creating card for ${card_type} item: ${item}`);
+        this.log.debug(`Creating card for ${card_type} item: ${item}`);
 
         var card = null;
         if (card_type === 'todo') {
@@ -798,31 +805,11 @@ class Migroot {
         }
 
         if (!skip_drawer) {
-            this.log.info(`Step 5a: Creating drawer for ${card_type} item: ${item}`);
+            this.log.debug(`Creating drawer for ${card_type} item: ${item}`);
             // drawer logic
             const drawer = this.config.drawer?.cloneNode(true);
             if (drawer) {
                 this.#insertDrawer(drawer, item);
-            }
-        }
-    }
-
-    createDocCard(item, options = {}) {
-        const { skip_drawer = false } = options;
-        this.log.info(`Step 5: Creating Doc card for item: ${item}`);
-
-        const doc_card = this.config.docTemplate?.cloneNode(true);
-        if (doc_card) {
-            this.#insertDocCard(doc_card, item);
-        }
-        if (!skip_drawer) {
-            // drawer logic
-            this.log.info(`Step 5: Creating drawer for Doc card for item: ${item}`);
-            const drawer = this.config.drawer?.cloneNode(true);
-            if (drawer) {
-                this.#insertDrawer(drawer, item.taskRef);
-            } else {
-                this.log.error('cant find drawer template node');
             }
         }
     }
@@ -919,12 +906,12 @@ class Migroot {
 
         allFields.forEach(container => {
             const key = container.getAttribute(attrName);
-            this.log.info(`Found key="${key}" in ${fieldSelector}`);
+            this.log.debug(`Found key="${key}" in ${fieldSelector}`);
             // for example data-task='status' => key is status
             if (!key) return;
 
             let value = item[key];
-            this.log.info(`Found value="${value}" for key="${key}" in ${fieldSelector}`);
+            this.log.debug(`Found value="${value}" for key="${key}" in ${fieldSelector}`);
             const isValueEmpty =
                 value === undefined ||
                 value === null ||
@@ -933,13 +920,13 @@ class Migroot {
 
             if (this.#optionalFields.has(key) && isValueEmpty) {
                 if (key === 'location') {
-                    this.log.info(`Missing location; setting default to "online"`);
+                    this.log.debug(`Missing location; setting default to "online"`);
                     value = 'online';
                 } else if (key === 'deadline') {
-                    this.log.info(`Missing deadline; setting default to "TBD"`);
+                    this.log.debug(`Missing deadline; setting default to "TBD"`);
                     value = 'TBD';
                 } else {
-                    this.log.info(`Optional value="${value}" for key="${key}" in ${fieldSelector} removing`);
+                    this.log.debug(`Optional value="${value}" for key="${key}" in ${fieldSelector} removing`);
                     container.remove(); // not working in drawer
                     return;
                 }
@@ -956,10 +943,10 @@ class Migroot {
             // Find label element or fall back to the container itself
             const labelEl = container.querySelector(labelSelector) || container;
             try {
-                this.log.info(`Rendering key="${key}" into element:`, labelEl);
-                this.log.info('Value to render:', value);
+                this.log.debug(`Rendering key="${key}" into element:`, labelEl);
+                this.log.debug('Value to render:', value);
                 const which = renderers[key] ? 'custom' : 'default';
-                this.log.info(`Using ${which} renderer for key="${key}"`);
+                this.log.debug(`Using ${which} renderer for key="${key}"`);
                 (renderers[key] || this.#defaultRenderer)(labelEl, value);
             } catch (err) {
                 this.log.error(
@@ -987,34 +974,34 @@ class Migroot {
         card.dataset.required = item.documentRequired ? 'true' : 'false';
         card.dataset.difficulty = item.difficulty || '';
         card.dataset.status = item.status || '';
-        this.log.info(`Step 6: Setting card content for card ID: ${card.id}`);
+        this.log.debug(`Setting card content for card ID: ${card.id}`);
         card.onclick = () => {
             // Log card click
-            this.log.info(`Card clicked: ${item.clientTaskId}`);
+            this.log.debug(`Card clicked: ${item.clientTaskId}`);
             const drawerEl = document.getElementById(`drawer-${item.clientTaskId}`);
             if (drawerEl) {
                 drawerEl.style.display = 'flex';
-                this.log.info(`Drawer opened for card ID: ${item.clientTaskId}`);
+                this.log.debug(`Drawer opened for card ID: ${item.clientTaskId}`);
 
                 // --- Enrich with full task data if not fetched yet ---
                 const task = this.board?.tasks?.find(t => String(t.clientTaskId) === item.clientTaskId);
-                this.log.info('Checking task: ', task);
+                this.log.debug('Checking task: ', task);
 
                 // Logging before checking enrichment
-                this.log.info('Checking if task needs enrichment', { hasTask: !!task, alreadyFetched: task?._detailsFetched });
+                this.log.debug('Checking if task needs enrichment', { hasTask: !!task, alreadyFetched: task?._detailsFetched });
                 if (task && !task._detailsFetched) {
                     // Log before enrichment
-                    this.log.info(`Enriching task ${item.clientTaskId} with full details`);
+                    this.log.debug(`Enriching task ${item.clientTaskId} with full details`);
                     this.api.getClientTask({}, { taskId: item.clientTaskId }).then(fullTask => {
                     this.smartMerge(task, fullTask);
                     task._detailsFetched = true;
-                        this.log.info(`Task ${task.clientTaskId} enriched with full data`);
+                        this.log.debug(`Task ${task.clientTaskId} enriched with full data`);
                         this.#onTaskEnriched(task);
                     }).catch(err => {
                         this.log.error('Failed to enrich task data:', err);
                     });
                 } else {
-                    this.log.info(`Task ${item.clientTaskId} already enriched or not found`);
+                    this.log.debug(`Task ${item.clientTaskId} already enriched or not found`);
                 }
                 // --- End enrichment ---
 
@@ -1025,12 +1012,12 @@ class Migroot {
 
                 this._drawerOutsideHandler = (event) => {
                     if (drawerEl && !drawerEl.contains(event.target)) {
-                        this.log.info(`Click outside reopened drawer-${item.clientTaskId}, closing`);
+                        this.log.debug(`Click outside reopened drawer-${item.clientTaskId}, closing`);
                         drawerEl.style.display = 'none';
                         document.removeEventListener('pointerdown', this._drawerOutsideHandler);
                         this._drawerOutsideHandler = null;
                     } else {
-                        this.log.info(`Click inside reopened drawer-${item.clientTaskId}, not closing`);
+                        this.log.debug(`Click inside reopened drawer-${item.clientTaskId}, not closing`);
                     }
                 };
 
@@ -1038,29 +1025,10 @@ class Migroot {
                 // drawer closing logic end ///
             }
         };
-        this.log.info('Step 11: Replacing existing card if needed');
+        this.log.debug('Replacing existing card if needed');
         this.#replaceExistingCard(card, targetContainer);
     }
 
-    #insertDocCard(card, item) {
-        this.#setContent(card, item, {
-            fieldSelector: '[data-doc]',
-            labelSelector: '.t-mark__label',
-            renderers: {
-                viewLink           : this.#renderFileUrl.bind(this),
-                deadline          : this.#renderDeadline.bind(this),
-                difficulty        : this.#renderDifficulty.bind(this)
-            }
-        });
-        const targetContainer = this.#getStatusContainer(item.taskRef.status);
-
-        card.id = `doc-${item.taskRef.clientTaskId}`;
-        card.dataset.status = item.taskRef.status || '';
-        this.log.info(`Step 6: Setting card content for card ID: ${card.id}`);
-        card.onclick = () => this.handleCardClick(item.taskRef);
-        this.log.info('Step 11: Replacing existing card if needed');
-        this.#replaceExistingCard(card, targetContainer);
-    }
 
     #insertDrawer(drawer, item) {
         // item == board task object
@@ -1072,7 +1040,7 @@ class Migroot {
         drawer.dataset.required = item.documentRequired ? 'true' : 'false';
         drawer.dataset.difficulty = item.difficulty || '';
         drawer.dataset.status = item.status || '';
-        this.log.info(`Step 7: Setting drawer content for card ID: ${item.clientTaskId}`);
+        this.log.debug(`Setting drawer content for card ID: ${item.clientTaskId}`);
         // CREATE CLOSE BUTTON
         const closeButton = drawer.querySelector('.drw-close');
         if (closeButton) {
@@ -1091,31 +1059,31 @@ class Migroot {
     }
 
     handleCardClick(item) {
-        this.log.info(`Card clicked: ${item.clientTaskId}`);
+        this.log.debug(`Card clicked: ${item.clientTaskId}`);
         const drawerEl = document.getElementById(`drawer-${item.clientTaskId}`);
         if (drawerEl) {
             drawerEl.style.display = 'flex';
-            this.log.info(`Drawer opened for card ID: ${item.clientTaskId}`);
+            this.log.debug(`Drawer opened for card ID: ${item.clientTaskId}`);
 
             // --- Enrich with full task data if not fetched yet ---
             const task = this.board?.tasks?.find(t => String(t.clientTaskId) === item.clientTaskId);
-            this.log.info('Checking task: ', task);
+            this.log.debug('Checking task: ', task);
 
-            this.log.info('Checking if task needs enrichment', { hasTask: !!task, alreadyFetched: task?._detailsFetched });
+            this.log.debug('Checking if task needs enrichment', { hasTask: !!task, alreadyFetched: task?._detailsFetched });
             if (task && !task._detailsFetched) {
-                this.log.info(`Enriching task ${item.clientTaskId} with full details`);
+                this.log.debug(`Enriching task ${item.clientTaskId} with full details`);
                 this.api.getClientTask({}, { taskId: item.clientTaskId })
                     .then(fullTask => {
                         this.smartMerge(task, fullTask);
                         task._detailsFetched = true;
-                        this.log.info(`Task ${task.clientTaskId} enriched with full data`);
+                        this.log.debug(`Task ${task.clientTaskId} enriched with full data`);
                         this.#onTaskEnriched(task);
                     })
                     .catch(err => {
                         this.log.error('Failed to enrich task data:', err);
                     });
             } else {
-                this.log.info(`Task ${item.clientTaskId} already enriched or not found`);
+                this.log.debug(`Task ${item.clientTaskId} already enriched or not found`);
             }
             // --- End enrichment ---
 
@@ -1126,12 +1094,12 @@ class Migroot {
 
             this._drawerOutsideHandler = (event) => {
                 if (drawerEl && !drawerEl.contains(event.target)) {
-                    this.log.info(`Click outside reopened drawer-${item.clientTaskId}, closing`);
+                    this.log.debug(`Click outside reopened drawer-${item.clientTaskId}, closing`);
                     drawerEl.style.display = 'none';
                     document.removeEventListener('pointerdown', this._drawerOutsideHandler);
                     this._drawerOutsideHandler = null;
                 } else {
-                    this.log.info(`Click inside reopened drawer-${item.clientTaskId}, not closing`);
+                    this.log.debug(`Click inside reopened drawer-${item.clientTaskId}, not closing`);
                 }
             };
 
@@ -1320,7 +1288,7 @@ class Migroot {
     }
 
     #handleStatusChange(item, status) {
-        this.log.info('Set new status for task', item.clientTaskId);
+        this.log.debug('Set new status for task', item.clientTaskId);
 
         const previousStatus = item.status;
         item.status = status;                 // optimistic
@@ -1387,7 +1355,7 @@ class Migroot {
 
         this.createBoard(features).then(async (createdBoard) => {
             if (createdBoard && createdBoard.boardId) {
-                this.log.info('Board successfully created', createdBoard);
+                this.log.debug('Board successfully created', createdBoard);
                 await new Promise(resolve => setTimeout(resolve, 2000));
                 window.location.href = `/app/todo?boardId=${createdBoard.boardId}`;
             } else {
