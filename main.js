@@ -928,7 +928,7 @@ class Migroot {
                         this.smartMerge(task, fullTask);
                         task._detailsFetched = true;
                         this.log.debug(`Task ${task.clientTaskId} enriched with full data`);
-                        this.#onTaskEnriched(task);
+                        this.#updateDrawerContent(task);
                     })
                     .catch(err => {
                         this.log.error('Failed to enrich task data:', err);
@@ -1085,7 +1085,7 @@ class Migroot {
         el.setAttribute('href', val);
     }
 
-    #onTaskEnriched(task) {
+    #updateDrawerContent(task) {
         // # find the drawer linked and upd comments and files
         const drawer = document.getElementById(`drawer-${task.clientTaskId}`);
         if (!drawer) return;
@@ -1147,7 +1147,7 @@ class Migroot {
                 this.createCard(this.board.tasks[taskIndex], {
                     skip_drawer: true, card_type: this.board.tasks[taskIndex].card_type
                 });
-                this.#onTaskEnriched(this.board.tasks[taskIndex]);
+                this.#updateDrawerContent(this.board.tasks[taskIndex]);
 
             }
         }).catch(err => {
@@ -1272,7 +1272,7 @@ class Migroot {
                 this.createCard(this.board.tasks[taskIndex], {
                     skip_drawer: true, card_type: this.board.tasks[taskIndex].card_type
                 });
-                this.#onTaskEnriched(this.board.tasks[taskIndex]);
+                this.#updateDrawerContent(this.board.tasks[taskIndex]);
             } else {
                 this.log.warning(`Task with ID ${taskId} not found in board`);
             }
@@ -1308,7 +1308,7 @@ class Migroot {
                 this.createCard(this.board.tasks[taskIndex], {
                     skip_drawer: true, card_type: this.board.tasks[taskIndex].card_type
                 });
-                this.#onTaskEnriched(this.board.tasks[taskIndex]);
+                this.#updateDrawerContent(this.board.tasks[taskIndex]);
             } else {
                 this.log.warning(`Task with ID ${taskId} not found in board`);
             }
