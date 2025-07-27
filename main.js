@@ -93,7 +93,7 @@ class Migroot {
         this.backend_url = config.backend_url || 'https://migroot-447015.oa.r.appspot.com/v1'; // taking from config
         this.endpoints = ENDPOINTS;
         this.log = new Logger(this.config.debug);
-        this.boardUser = null; // for what ??? for dummy user?
+        this.boardUser = null;
         this.currentUser = null;
         this.boardId = null;
         this.board = {};
@@ -113,7 +113,6 @@ class Migroot {
     }
 
     initHandlers() {
-        // window.handleFileUpload   = el => this.#handleUploadFromButton(el);
         window.handleUpdateStatus = el => this.#handleStartFromButton(el);
         window.handleFileUploadSubmit = el => this.#handleFileUploadSubmit(el);
         window.handleCommentSubmit = el => this.#handleCommentSubmit(el);
@@ -379,13 +378,11 @@ class Migroot {
 
         try {
             const isFormData = body instanceof FormData;
-
             const headers = {
                 'Authorization': `Bearer ${accessToken}`, ...(isFormData ? {} : {'Content-Type': 'application/json'})
             };
 
             const payload = method !== 'GET' ? (isFormData ? body : JSON.stringify(body)) : undefined;
-
             const response = await fetch(url, {
                 method: method, headers: headers, body: payload
             });
@@ -516,7 +513,6 @@ class Migroot {
         this.renderNavCountry();
         this.renderProgressBar();
         this.renderBuddyInfo();
-        // ect
     }
 
     renderHubFields() {
@@ -607,8 +603,6 @@ class Migroot {
                 option.textContent = country;
                 selectEl.appendChild(option);
             });
-
-            // selectEl.dispatchEvent(new Event('change', { bubbles: true }));
         });
     }
 
@@ -618,12 +612,8 @@ class Migroot {
 
         if (countryElement) {
             const items = countryElement.querySelectorAll('[data-country]');
-
             items.forEach(item => {
-                // Всегда убираем active у всех
                 item.classList.remove('active');
-
-                // Если country существует и совпадает, ставим active
                 if (country && item.getAttribute('data-country') === country) {
                     item.classList.add('active');
                 }
@@ -695,7 +685,6 @@ class Migroot {
             const tgtVal = target[key];
 
             if (Array.isArray(srcVal)) {
-                // Если пустой массив и в target уже что-то есть — пропускаем
                 if (srcVal.length === 0 && Array.isArray(tgtVal) && tgtVal.length > 0) {
                     continue;
                 }
@@ -706,7 +695,6 @@ class Migroot {
                 }
                 this.smartMerge(target[key], srcVal);
             } else if (srcVal === null && tgtVal !== null) {
-                // Если новое значение null, а старое не null — пропускаем
                 continue;
             } else if (srcVal !== undefined) {
                 target[key] = srcVal;
@@ -789,7 +777,7 @@ class Migroot {
     }
 
     /** @type {Set<string>} */
-        // delete assign from that set after it has been added to backaend //
+    // delete assign from that set after it has been added to backend //
     #optionalFields = new Set(['location', 'deadline', 'assign']);
 
     /**
@@ -970,7 +958,6 @@ class Migroot {
                 deadline: this.#renderDeadline.bind(this),
                 difficulty: this.#renderDifficulty.bind(this),
                 longDescription: this.#renderLongDescription.bind(this), // upload_button     : this.#renderUploadButton.bind(this),
-                // start_button      : this.#renderStartButton.bind(this),
                 comments: this.#renderComments.bind(this),
                 files: this.#renderFiles.bind(this),
             }
@@ -1061,7 +1048,6 @@ class Migroot {
         }
 
         if (!arr.length) {
-            // const container = el.querySelector('.drw-uploaded');
             container.innerHTML = '<div class="drw-empty">Nothing yet...</div>';
             return;
         }
@@ -1267,7 +1253,6 @@ class Migroot {
             const taskIndex = this.board.tasks.findIndex(t => String(t.clientTaskId) === taskId);
             if (taskIndex !== -1) {
                 this.smartMerge(this.board.tasks[taskIndex], updatedTask);
-                // Object.assign(this.board.tasks[taskIndex], updatedTask);
                 this.board.tasks[taskIndex]._detailsFetched = true;
                 this.createCard(this.board.tasks[taskIndex], {
                     skip_drawer: true, card_type: this.board.tasks[taskIndex].card_type
