@@ -430,6 +430,7 @@ class Migroot {
                 this.#clearContainers();
                 await this.fetchBoard(finalBoardId);
                 this.log.debug('Step 3: Creating cards based on tasks');
+                this.#observeContainersWithCount();
                 this.board.tasks.forEach(item => {
                     try {
                         this.createCard(item, {card_type: type});
@@ -480,8 +481,8 @@ class Migroot {
                 return;
             }
 
-
             this.renderUserFields();
+
             this.log.debug('Dashboard initialized successfully');
 
             if (typeof callback === 'function') {
@@ -1312,6 +1313,33 @@ class Migroot {
 
     #clearContainers() {
         Object.values(this.config.containers).forEach(container => container.innerHTML = '');
+    }
+
+    #observeContainersWithCount() {
+        const observerConfig = { childList: true, subtree: false };
+
+        Object.entries(this.config.containers).forEach(([key, container]) => {
+            if (!container || !container.id) {
+                this.log.warning(`Container ${key} is missing or has no id`);
+                return;
+            }
+
+            const countEl = document.getElementById(`${container.id}-count`);
+            if (!countEl) {
+                this.log.warning(`Count element not found for container ${container.id}`);
+                return;
+            }
+
+            const updateCount = () => {
+                countEl.textContent = container.children.length;
+            };
+
+            updateCount();
+            const observer = new MutationObserver(updateCount);
+            observer.observe(container, observerConfig);
+
+            this.log.debug(`MutationObserver attached to #${container.id}`);
+        });
     }
 
     #formatDate(isoString) {
