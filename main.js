@@ -48,34 +48,6 @@ class Logger {
 }
 
 
-/* Example CONFIG – adjust and pass to new Migroot(CONFIG)
-const CONFIG = {
-    // templates
-    template : document.getElementById('doc-template'),
-    drawer   : document.getElementById('drawer-template'),
-
-    // buttons (HTML taken from hidden <template> tags)
-    buttons : {
-        startButton : document.getElementById('start_button').innerHTML,
-        uploadButton: document.getElementById('upload_button').innerHTML,
-    },
-
-    // kanban columns
-    containers : {
-        ready      : document.getElementById('ready'),
-        inProgress : document.getElementById('in-progress'),
-        notStarted : document.getElementById('not-started'),
-        asap       : document.getElementById('asap'),
-        edit       : document.getElementById('edit'),
-    },
-
-    // backend & misc
-    backend_url : 'https://api.example.com/v1',
-    debug       : true,
-    timeZone    : Intl.DateTimeFormat().resolvedOptions().timeZone,
-};
-*/
-
 const STATUS_FLOW = {
     NOT_STARTED: {next: 'ASAP', prev: null},
     ASAP: {next: 'IN_PROGRESS', prev: 'NOT_STARTED'},
@@ -816,22 +788,6 @@ class Migroot {
         }
     }
 
-    #getDocStatusContainer(status) {
-        switch (status) {
-            case 'REVIEW':
-                return this.config.docsContainers.review;
-            case 'APPROVED':
-                return this.config.docsContainers.approved;
-            case 'REJECTED':
-                return this.config.docsContainers.rejected;
-            case 'NOT_UPLOADED':
-                return this.config.docsContainers.notUploaded;
-            default:
-                this.log.error(`Unknown status: ${status}`);
-                return this.config.docsContainers.notUploaded;
-        }
-    }
-
     /** @type {Set<string>} */
         // delete assign from that set after it has been added to backaend //
     #optionalFields = new Set(['location', 'deadline', 'assign']);
@@ -893,10 +849,8 @@ class Migroot {
             // Find label element or fall back to the container itself
             const labelEl = container.querySelector(labelSelector) || container;
             try {
-                this.log.debug(`Rendering key="${key}" into element:`, labelEl);
-                this.log.debug('Value to render:', value);
                 const which = renderers[key] ? 'custom' : 'default';
-                this.log.debug(`Using ${which} renderer for key="${key}"`);
+                this.log.debug(`Rendering using ${which} renderer => key="${key}" with value="${value}" into element:`, labelEl);
                 (renderers[key] || this.#defaultRenderer)(labelEl, value);
             } catch (err) {
                 this.log.error(`Renderer failed for key="${key}" value=`, value);
@@ -910,7 +864,8 @@ class Migroot {
         this.#setContent(card, item, {
             fieldSelector: '[data-task]', labelSelector: '.t-mark__label', renderers: {
                 viewLink: this.#renderFileUrl.bind(this),  // for doc-board
-                deadline: this.#renderDeadline.bind(this), difficulty: this.#renderDifficulty.bind(this)
+                deadline: this.#renderDeadline.bind(this),
+                difficulty: this.#renderDifficulty.bind(this)
             }
         });
         const targetContainer = this.#getStatusContainer(item.status);
@@ -920,58 +875,7 @@ class Migroot {
         card.dataset.difficulty = item.difficulty || '';
         card.dataset.status = item.status || '';
         this.log.debug(`Setting card content for card ID: ${card.id}`);
-        card.onclick = () => {
-            // Log card click
-            this.log.debug(`Card clicked: ${item.clientTaskId}`);
-            const drawerEl = document.getElementById(`drawer-${item.clientTaskId}`);
-            if (drawerEl) {
-                drawerEl.style.display = 'flex';
-                this.log.debug(`Drawer opened for card ID: ${item.clientTaskId}`);
-
-                // --- Enrich with full task data if not fetched yet ---
-                const task = this.board?.tasks?.find(t => String(t.clientTaskId) === item.clientTaskId);
-                this.log.debug('Checking task: ', task);
-
-                // Logging before checking enrichment
-                this.log.debug('Checking if task needs enrichment', {
-                    hasTask: !!task, alreadyFetched: task?._detailsFetched
-                });
-                if (task && !task._detailsFetched) {
-                    // Log before enrichment
-                    this.log.debug(`Enriching task ${item.clientTaskId} with full details`);
-                    this.api.getClientTask({}, {taskId: item.clientTaskId}).then(fullTask => {
-                        this.smartMerge(task, fullTask);
-                        task._detailsFetched = true;
-                        this.log.debug(`Task ${task.clientTaskId} enriched with full data`);
-                        this.#onTaskEnriched(task);
-                    }).catch(err => {
-                        this.log.error('Failed to enrich task data:', err);
-                    });
-                } else {
-                    this.log.debug(`Task ${item.clientTaskId} already enriched or not found`);
-                }
-                // --- End enrichment ---
-
-                // drawer closing logic start ///
-                if (this._drawerOutsideHandler) {
-                    document.removeEventListener('pointerdown', this._drawerOutsideHandler);
-                }
-
-                this._drawerOutsideHandler = (event) => {
-                    if (drawerEl && !drawerEl.contains(event.target)) {
-                        this.log.debug(`Click outside reopened drawer-${item.clientTaskId}, closing`);
-                        drawerEl.style.display = 'none';
-                        document.removeEventListener('pointerdown', this._drawerOutsideHandler);
-                        this._drawerOutsideHandler = null;
-                    } else {
-                        this.log.debug(`Click inside reopened drawer-${item.clientTaskId}, not closing`);
-                    }
-                };
-
-                document.addEventListener('pointerdown', this._drawerOutsideHandler);
-                // drawer closing logic end ///
-            }
-        };
+        card.onclick = () => this.#handleCardClick(item);
         this.log.debug('Replacing existing card if needed');
         this.#replaceExistingCard(card, targetContainer);
     }
@@ -1003,7 +907,7 @@ class Migroot {
         }
     }
 
-    handleCardClick(item) {
+    #handleCardClick(item) {
         this.log.debug(`Card clicked: ${item.clientTaskId}`);
         const drawerEl = document.getElementById(`drawer-${item.clientTaskId}`);
         if (drawerEl) {
@@ -1194,7 +1098,6 @@ class Migroot {
         const filesPane = drawer.querySelector('.tb-pane[data-w-tab="Tab 3"]');
         if (filesPane) this.#renderFiles(filesPane, task.files);
 
-        // todo upd status and numbers
         this.#setContent(drawer, task, this.#drawerOpts());
         drawer.dataset.status = task.status || '';
 
@@ -1250,25 +1153,19 @@ class Migroot {
         }).catch(err => {
             // rollback on failure
             this.log.error('Failed to update task status:', err);
-            // alert('Server error: Could not change status the task. Try again.');
-            // restore status and position
             item.status = previousStatus;
             this.createCard(item, {card_type: item.card_type})
-            // let drawerEl = document.getElementById(`drawer-${item.clientTaskId}`);
-            // if (drawerEl) drawerEl.style.display = 'flex';
         });
-        // TODO if success - update mg.board.tasks by id
     }
 
     #handleCreateBoard(formEl) {
-        // Prevent default behavior (если вызывается напрямую из onsubmit)
+        // Prevent default behavior
         if (formEl?.preventDefault) {
             formEl.preventDefault();
-            formEl = formEl.target; // formEl теперь — сама форма
+            formEl = formEl.target;
         }
 
         const formData = new FormData(formEl);
-
         const features = [];
         const allowedFeatureTypes = new Set(['COUNTRY_OF_CITIZENSHIP', 'COUNTRY_OF_VISA_APPLICATION', 'COUNTRY_OF_DESTINATION', 'COUNTRY_OF_RECENT_STAY', 'COUNTRY_OF_LABOR_CONTRACT', 'COUNTRY_OF_ENTREPRENEURSHIP', 'MOVE_WITH_SPOUSE', 'MOVE_WITH_CHILDREN', 'MOVE_WITH_PARENTS', 'MOVE_WITH_PETS']);
         for (const [key, value] of formData.entries()) {
@@ -1407,7 +1304,6 @@ class Migroot {
             const taskIndex = this.board.tasks.findIndex(t => String(t.clientTaskId) === taskId);
             if (taskIndex !== -1) {
                 this.smartMerge(this.board.tasks[taskIndex], updatedTask);
-                // Object.assign(this.board.tasks[taskIndex], updatedTask);
                 this.board.tasks[taskIndex]._detailsFetched = true;
                 this.createCard(this.board.tasks[taskIndex], {
                     skip_drawer: true, card_type: this.board.tasks[taskIndex].card_type
@@ -1431,10 +1327,6 @@ class Migroot {
 
     #clearContainers() {
         Object.values(this.config.containers).forEach(container => container.innerHTML = '');
-    }
-
-    #clearDocsContainers() {
-        Object.values(this.config.docsContainers).forEach(container => container.innerHTML = '');
     }
 
     #formatDate(isoString) {
@@ -1491,10 +1383,9 @@ class Migroot {
         clone.style.flexDirection = 'column';
         clone.style.alignItems = 'center';
         clone.style.justifyContent = 'center';
-        clone.style.gap = '20px'; // расстояние между текстом и кнопкой
-        clone.style.height = '100vh'; // чтобы всё было по центру
+        clone.style.gap = '20px';
+        clone.style.height = '100vh';
 
-        // Добавить кнопку
         const button = document.createElement('a');
         button.textContent = 'DO IT';
         button.href = '/app/create-board';
@@ -1506,11 +1397,9 @@ class Migroot {
         button.style.fontSize = '18px';
         button.style.borderRadius = '8px';
 
-        // Вставляем новый контент
         clone.appendChild(text);
         clone.appendChild(button);
 
-        // Вставить клон сразу после оригинала
         original.parentNode.insertBefore(clone, original.nextSibling);
     }
 
