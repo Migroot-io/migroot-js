@@ -238,6 +238,8 @@ class Migroot {
             localStorage.setItem('defaultBoardGoalTasks', String(goalTasks));
             localStorage.setItem('defaultBoardDoneTasks', String(doneTasks));
             localStorage.setItem('defaultBoardDate', readableDate || '')
+            localStorage.setItem('defaultBoardEmail', board.owner.email || '')
+
         }
 
         try {
@@ -570,6 +572,7 @@ class Migroot {
         this.renderUserPoints();
         this.renderNavCountry();
         this.renderProgressBar();
+        this.renderBuddyInfo();
         // ect
     }
 
@@ -682,6 +685,18 @@ class Migroot {
               item.classList.add('active');
             }
           });
+        }
+    }
+    renderBuddyInfo() {
+        if (this.currentUser.type === 'BUDDY') {
+            const boardEmail = localStorage.getItem('defaultBoardEmail');
+            if (boardEmail) {
+                const buddyEl = document.getElementById('buddy-info')
+                if (buddyEl) {
+                    buddyEl.style.display = 'block';
+                    buddyEl.innerHTML = `<strong>Board owner email:</strong> ${boardEmail}`;
+                }
+            }
         }
     }
 
@@ -1192,8 +1207,8 @@ class Migroot {
             container.innerHTML = arr.map(c => {
                 const isUser = c.author.id === this.currentUser.id;
                 const positionClass = isUser ? 'cmt-left' : 'cmt-right';
-                const initials = `${(c.author?.firstName || '')[0] || ''}${(c.author?.lastName || '')[0] || (c.author?.firstName || ' ')[1] || ''}`.toUpperCase();
-                const name = `${c.author?.firstName || ''} ${c.author?.lastName || ''}`.trim();
+                const initials = `${(c.author?.firstName || '')[0] || 'M'}${(c.author?.lastName || '')[0] || (c.author?.firstName || ' ')[1] || ''}`.toUpperCase();
+                const name = `${c.author?.firstName || 'Migroot'} ${c.author?.lastName || ''}`.trim();
                 const date = this.#formatDate(c.createdDate);
                 return `
                   <div class="cmt-item ${positionClass}">
