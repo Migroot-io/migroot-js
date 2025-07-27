@@ -1,0 +1,79 @@
+
+
+<!-- COOKIES [M] -->
+<script src="https://cdn.jsdelivr.net/gh/Flowappz/cookie-consent-cdn@v1.1.15/cookie-consent.js"></script>
+<!-- END COOKIES [M] -->
+
+<!-- OUTSETA  [D] -->
+<script>
+  var o_options = {
+    domain: 'migrootio.outseta.com',
+    load: 'auth,profile,nocode,support',
+    tokenStorage: 'local'
+  };
+</script>
+<script src="https://cdn.outseta.com/outseta.min.js" data-options="o_options"></script>
+<!-- END OUTSETA  [D] -->
+
+<!-- MIGROOT  [D] -->
+<script>
+// js deliver header.js
+</script>
+<!-- MIGROOT  [D] -->
+
+<!-- INTERCOM [K] -->
+<script>
+  window.intercomSettings = {
+    api_base: "https://api-iam.intercom.io",
+    app_id: "tr7hfmsy",
+  };
+</script>
+<script>
+  // We pre-filled your app ID in the widget URL: 'https://widget.intercom.io/widget/tr7hfmsy'
+  (function(){var w=window;var ic=w.Intercom;if(typeof ic==="function"){ic('reattach_activator');ic('update',w.intercomSettings);}else{var d=document;var i=function(){i.c(arguments);};i.q=[];i.c=function(args){i.q.push(args);};w.Intercom=i;var l=function(){var s=d.createElement('script');s.type='text/javascript';s.async=true;s.src='https://widget.intercom.io/widget/tr7hfmsy';var x=d.getElementsByTagName('script')[0];x.parentNode.insertBefore(s,x);};if(document.readyState==='complete'){l();}else if(w.attachEvent){w.attachEvent('onload',l);}else{w.addEventListener('load',l,false);}}})();
+</script>
+<!-- END INTERCOM [K] -->
+<!-- INTERCOM CUSTOMIZATION [K] -->
+<script>
+  // Open Intercom onClick with attr data-intercom="show"
+  function openIntercom() {
+    const intercomTriggers = document.querySelectorAll('[data-intercom="show"]');
+    if (intercomTriggers.length) {
+      intercomTriggers.forEach((trigger) => {
+        trigger.addEventListener('click', (event) => {
+          event.preventDefault();
+          window.Intercom('showNewMessage', trigger.dataset.message);
+        });
+      });
+    }
+  }
+</script>
+<!-- END INTERCOM CUSTOMIZATION [K] -->
+<!-- Google Tag Manager  [K] -->
+<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+                                                      new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+      j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+        'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+                            })(window,document,'script','dataLayer','GTM-NV4KXL5V');</script>
+<!-- End Google Tag Manager [K] -->
+
+<!-- END FANCYBOX CUSTOMIZATION [M] -->
+<link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.css"
+      />
+<style>
+  .ac-profile .ac-profile__avatar-wrap .ac-profile__avatar[src=""],
+  .b-profile .b-profile__avatar-wrap .b-profile__avatar[src=""] {
+    display: none;
+  }
+
+  .fancybox__content.b-modal{
+    border-radius: 40px;
+  }
+
+  .ac-page[data-guide="on"], .ac-page[data-hub="on"]{
+    color: var(--_account---main--black);
+  }
+</style>
+<!-- END INTERCOM CUSTOMIZATION [M] -->

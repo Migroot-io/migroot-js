@@ -1,0 +1,41 @@
+<!-- INIT FANCYBOX [M] -->
+<script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.umd.js"></script>
+<!-- INIT INTERCOM END [M]-->
+
+<!-- INIT MIGROOT [D]-->
+<!--<scrip> js deliver footer js from that repo</scrip>-->
+<!-- INIT MIGROOT END [D] -->
+
+<!-- GTM & FANCYBOX CUSTOMIZATION [K,M] -->
+<script>
+  var noscriptTag = document.createElement("noscript");
+  noscriptTag.innerHTML = '<iframe src="https://www.googletagmanager.com/ns.html?id=GTM-NV4KXL5V" height="0" width="0" style="display:none;visibility:hidden"></iframe>';
+
+  document.body.insertBefore(noscriptTag, document.body.firstChild);
+
+  Fancybox.bind("[data-fancybox]", {
+    // Your custom options
+  });
+<!-- GTM & FANCYBOX CUSTOMIZATION END [K,M] -->
+
+
+  <!-- INISIALISATION INTERCOM [K] -->
+  document.addEventListener('DOMContentLoaded', function() {
+    openIntercom();
+  });
+  <!-- END INISIALISATION INTERCOM [K] -->
+
+  <!-- ADD OG:URL [M]-->
+  document.addEventListener("DOMContentLoaded", function () {
+    let ogUrlMeta = document.querySelector('meta[property="og:url"]');
+
+    if (!ogUrlMeta) {
+      ogUrlMeta = document.createElement('meta');
+      ogUrlMeta.setAttribute('property', 'og:url');
+      document.head.appendChild(ogUrlMeta);
+    }
+
+    ogUrlMeta.setAttribute('content', window.location.href);
+  });
+  <!-- END ADD OG:URL [M] -->
+</script>
