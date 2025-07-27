@@ -29,7 +29,7 @@ class Logger {
     info(message, vars) {
         this._log(message, vars, 'info');
     }
-    
+
     debug(message, vars) {
         if (this.debug) {
             this._log(message, vars, 'debug');
@@ -77,65 +77,40 @@ const CONFIG = {
 */
 
 const STATUS_FLOW = {
-  NOT_STARTED: { next: 'ASAP', prev: null },
-  ASAP: { next: 'IN_PROGRESS', prev: 'NOT_STARTED' },
-  IN_PROGRESS: { next: 'REQUIRES_CHANGES', prev: 'ASAP' },
-  REQUIRES_CHANGES: { next: 'READY', prev: 'IN_PROGRESS' },
-  READY: { next: null, prev: 'REQUIRES_CHANGES' },
+    NOT_STARTED: {next: 'ASAP', prev: null},
+    ASAP: {next: 'IN_PROGRESS', prev: 'NOT_STARTED'},
+    IN_PROGRESS: {next: 'REQUIRES_CHANGES', prev: 'ASAP'},
+    REQUIRES_CHANGES: {next: 'READY', prev: 'IN_PROGRESS'},
+    READY: {next: null, prev: 'REQUIRES_CHANGES'},
 };
 
 const ENDPOINTS = {
     createBoard: {
-        path: 'board',
-        method: 'POST'
-    },
-    searchBoard: {
-        path: 'board/search',
-        method: 'POST'
-    },
-    getBoard: {
-        path: 'board/{boardId}',
-        method: 'GET'
-    },
-    currentUser: {
-        path: 'currentUser',
-        method: 'GET'
-    },
-    getUser: {
-        path: 'user/{userId}',
-        method: 'GET'
-    },
-    getCountryList: {
-        path: 'countries',
-        method: 'GET'
-    },
-    searchUsers: {
-        path: 'user/search',
-        method: 'POST'
-    },
-    addClientTask: {
-        path: 'board/{boardId}',
-        method: 'POST'
-    },
-    getClientTask: {
-        path: 'board/task/{taskId}',
-        method: 'GET'
-    },
-    updateClientTask: {
-        path: 'board/task/{taskId}',
-        method: 'PUT'
-    },
-    uploadFile: {
-        path: 'board/task/{taskId}/uploadFile',
-        method: 'POST'
-    },
-    filesView: {
-        path: 'board/{boardId}/files/view',
-        method: 'GET'
-    },
-    commentClientTask: {
-        path: 'board/task/{taskId}/comment',
-        method: 'POST'
+        path: 'board', method: 'POST'
+    }, searchBoard: {
+        path: 'board/search', method: 'POST'
+    }, getBoard: {
+        path: 'board/{boardId}', method: 'GET'
+    }, currentUser: {
+        path: 'currentUser', method: 'GET'
+    }, getUser: {
+        path: 'user/{userId}', method: 'GET'
+    }, getCountryList: {
+        path: 'countries', method: 'GET'
+    }, searchUsers: {
+        path: 'user/search', method: 'POST'
+    }, addClientTask: {
+        path: 'board/{boardId}', method: 'POST'
+    }, getClientTask: {
+        path: 'board/task/{taskId}', method: 'GET'
+    }, updateClientTask: {
+        path: 'board/task/{taskId}', method: 'PUT'
+    }, uploadFile: {
+        path: 'board/task/{taskId}/uploadFile', method: 'POST'
+    }, filesView: {
+        path: 'board/{boardId}/files/view', method: 'GET'
+    }, commentClientTask: {
+        path: 'board/task/{taskId}/comment', method: 'POST'
     }
 };
 
@@ -179,6 +154,7 @@ class Migroot {
     }
 
     /*───────────────────────────  API helpers START ────────────────────────*/
+
     // main fetchers start
     async getAccessToken() {
         // First, try to get token from config -- for dev only
@@ -229,16 +205,12 @@ class Migroot {
                 const isoDate = board.createdDate;
                 const date = new Date(isoDate);
                 var readableDate = date.toLocaleString('en-GB', {
-                                          day: 'numeric',
-                                          month: 'short',
-                                          year: 'numeric',
-                                        });
+                    day: 'numeric', month: 'short', year: 'numeric',
+                });
             }
 
             const goalTasks = board.tasks.filter(task => task.documentRequired).length;
-            const doneTasks = board.tasks.filter(
-                task => task.status === 'READY' && task.documentRequired
-            ).length;
+            const doneTasks = board.tasks.filter(task => task.status === 'READY' && task.documentRequired).length;
 
             localStorage.setItem('defaultCountry', board.country || '');
             localStorage.setItem('defaultBoardId', board.boardId || '');
@@ -297,6 +269,7 @@ class Migroot {
             throw error;
         }
     }
+
     // main fetchers end
 
 
@@ -307,8 +280,8 @@ class Migroot {
         this.boardId = this.board.boardId;
         this.boardUser = this.board.owner;
 
-       this.log.debug('Board loaded by ID:', this.board);
-       this.log.debug('User initialized from board owner:', this.boardUser);
+        this.log.debug('Board loaded by ID:', this.board);
+        this.log.debug('User initialized from board owner:', this.boardUser);
 
         if (!this.boardUser?.id || !this.boardUser?.type) {
             throw new Error('Owner of the board is missing id or type.');
@@ -317,7 +290,7 @@ class Migroot {
 
     async loadBoardDocsById(boardId) {
         try {
-            const res = await this.api.filesView({}, { boardId });
+            const res = await this.api.filesView({}, {boardId});
             this.board.docs = res.files;
             this.log.debug(`Docs loaded for board ID ${boardId}:`, res);
         } catch (error) {
@@ -337,8 +310,7 @@ class Migroot {
         this.log.debug(' user initialized:', this.boardUser);
 
         const boards = await this.api.searchBoard({
-            userType: this.boardUser.type,
-            userId: this.boardUser.id
+            userType: this.boardUser.type, userId: this.boardUser.id
         });
 
         this.log.debug('Boards found for user:', boards);
@@ -397,10 +369,8 @@ class Migroot {
 
             const createdBoard = await this.api.createBoard({
                 owner: {
-                    id: this.currentUser?.id,
-                    type: this.currentUser?.type
-                },
-                features: features
+                    id: this.currentUser?.id, type: this.currentUser?.type
+                }, features: features
             });
 
             this.log.debug('board created:', createdBoard);
@@ -439,18 +409,13 @@ class Migroot {
             const isFormData = body instanceof FormData;
 
             const headers = {
-                'Authorization': `Bearer ${accessToken}`,
-                ...(isFormData ? {} : { 'Content-Type': 'application/json' })
+                'Authorization': `Bearer ${accessToken}`, ...(isFormData ? {} : {'Content-Type': 'application/json'})
             };
 
-            const payload = method !== 'GET'
-                ? (isFormData ? body : JSON.stringify(body))
-                : undefined;
+            const payload = method !== 'GET' ? (isFormData ? body : JSON.stringify(body)) : undefined;
 
             const response = await fetch(url, {
-                method: method,
-                headers: headers,
-                body: payload
+                method: method, headers: headers, body: payload
             });
 
             if (!response.ok) {
@@ -479,91 +444,90 @@ class Migroot {
     /*───────────────────────────  Dashboard/Docs/HUB START ──────────────────────────*/
 
 
+    async init_dashboard({boardId = null, callback = null, type = 'todo'} = {}) {
+        try {
 
-    async init_dashboard({ boardId = null, callback = null, type = 'todo' } = {}) {
-      try {
 
+            this.log.debug('Step 1: Fetching user and board');
+            await this.fetchUserData();
+            let finalBoardId = boardId;
 
-          this.log.debug('Step 1: Fetching user and board');
-          await this.fetchUserData();
-          let finalBoardId = boardId;
-
-          if (!finalBoardId) {
-              const urlParams = new URLSearchParams(window.location.search);
-              finalBoardId = urlParams.get('boardId');
-          }
-          if (type === 'todo') {
-              this.log.debug('Step 2: Clearing containers');
-              this.#clearContainers();
-              await this.fetchBoard(finalBoardId);
-              this.log.debug('Step 3: Creating cards based on tasks');
-              this.board.tasks.forEach(item => {
+            if (!finalBoardId) {
+                const urlParams = new URLSearchParams(window.location.search);
+                finalBoardId = urlParams.get('boardId');
+            }
+            if (type === 'todo') {
+                this.log.debug('Step 2: Clearing containers');
+                this.#clearContainers();
+                await this.fetchBoard(finalBoardId);
+                this.log.debug('Step 3: Creating cards based on tasks');
+                this.board.tasks.forEach(item => {
                     try {
-                        this.createCard(item, { card_type: type });
+                        this.createCard(item, {card_type: type});
                     } catch (err) {
                         this.log.error('createCard failed for item:', item);
                         this.log.error(err.message, err.stack);
                         throw err;
                     }
                 });
-          } else if (type === 'docs') {
-              this.log.debug('Step 2: Clearing containers');
-              this.#clearContainers();
-              await this.fetchDocs(finalBoardId);
-              this.board.tasks = []
-              this.board.docs.forEach(item => {
-                  try {
-                      var task = item.taskRef
-                      task.commentsCount = 0;
-                      task.filesCount = 0;
-                      task.fileName = item.fileName;
-                      task.viewLink = item.viewLink;
-                      task.fileStatus = item.status;
-                      task.card_type = type;
-                      this.board.tasks.push(task);
-                  } catch (err) {
-                      this.log.error('createDocCard failed for item:', item);
-                      this.log.error(err.message, err.stack);
-                      throw err;
-                  }
-              });
-              this.log.debug('Step 3: Creating cards based on tasks');
-              this.board.tasks.forEach(item => {
+            } else if (type === 'docs') {
+                this.log.debug('Step 2: Clearing containers');
+                this.#clearContainers();
+                await this.fetchDocs(finalBoardId);
+                this.board.tasks = []
+                this.board.docs.forEach(item => {
                     try {
-                        this.createCard(item, { card_type: type });
+                        var task = item.taskRef
+                        task.commentsCount = 0;
+                        task.filesCount = 0;
+                        task.fileName = item.fileName;
+                        task.viewLink = item.viewLink;
+                        task.fileStatus = item.status;
+                        task.card_type = type;
+                        this.board.tasks.push(task);
+                    } catch (err) {
+                        this.log.error('createDocCard failed for item:', item);
+                        this.log.error(err.message, err.stack);
+                        throw err;
+                    }
+                });
+                this.log.debug('Step 3: Creating cards based on tasks');
+                this.board.tasks.forEach(item => {
+                    try {
+                        this.createCard(item, {card_type: type});
                     } catch (err) {
                         this.log.error('createCard failed for item:', item);
                         this.log.error(err.message, err.stack);
                         throw err;
                     }
                 });
-          } else if (type === 'create-board') {
-              await this.fetchCountryList();
-              this.renderCountryInputs();
-          } else if (type === 'hub') {
-              this.renderHubFields();
-          } else {
+            } else if (type === 'create-board') {
+                await this.fetchCountryList();
+                this.renderCountryInputs();
+            } else if (type === 'hub') {
+                this.renderHubFields();
+            } else {
                 this.log.debug('page is not a dashboard: ', type);
                 return;
+            }
+
+
+            this.renderUserFields();
+            this.log.debug('Dashboard initialized successfully');
+
+            if (typeof callback === 'function') {
+                this.log.debug('callback called');
+                callback({taskCount: this.board.tasks.length}); // можно передавать аргументы
+            }
+
+        } catch (error) {
+            this.log.error(`Error during init dashboard: ${error.message}`);
+            this.log.error('Stack trace:', error.stack);
+            throw error;
         }
-
-
-        this.renderUserFields();
-        this.log.debug('Dashboard initialized successfully');
-
-        if (typeof callback === 'function') {
-          this.log.debug('callback called');
-          callback({ taskCount: this.board.tasks.length }); // можно передавать аргументы
-        }
-
-      } catch (error) {
-        this.log.error(`Error during init dashboard: ${error.message}`);
-        this.log.error('Stack trace:', error.stack);
-        throw error;
-      }
     }
 
-    async init_mg({ boardId = null, callback = null} = {}) {
+    async init_mg({boardId = null, callback = null} = {}) {
         const path = window.location.pathname;
         const segments = path.split('/').filter(Boolean);
         const page_type = segments[segments.length - 1];
@@ -681,19 +645,20 @@ class Migroot {
         const countryElement = document.getElementById('nav-country');
 
         if (countryElement) {
-          const items = countryElement.querySelectorAll('[data-country]');
+            const items = countryElement.querySelectorAll('[data-country]');
 
-          items.forEach(item => {
-            // Всегда убираем active у всех
-            item.classList.remove('active');
+            items.forEach(item => {
+                // Всегда убираем active у всех
+                item.classList.remove('active');
 
-            // Если country существует и совпадает, ставим active
-            if (country && item.getAttribute('data-country') === country) {
-              item.classList.add('active');
-            }
-          });
+                // Если country существует и совпадает, ставим active
+                if (country && item.getAttribute('data-country') === country) {
+                    item.classList.add('active');
+                }
+            });
         }
     }
+
     renderBuddyInfo() {
         if (['BUDDY', 'SUPERVISOR', 'ADMIN'].includes(this.currentUser.type)) {
             const boardEmail = localStorage.getItem('defaultBoardEmail');
@@ -778,15 +743,15 @@ class Migroot {
     }
 
     getNextStatus(current) {
-            return STATUS_FLOW[current]?.next ?? null;
-        }
+        return STATUS_FLOW[current]?.next ?? null;
+    }
 
     getPrevStatus(current) {
-            return STATUS_FLOW[current]?.prev ?? null;
-        }
+        return STATUS_FLOW[current]?.prev ?? null;
+    }
 
     createCard(item, options = {}) {
-        const { skip_drawer = false , card_type = 'todo'} = options;
+        const {skip_drawer = false, card_type = 'todo'} = options;
 
         this.log.debug(`Creating card for ${card_type} item: ${item}`);
 
@@ -799,9 +764,7 @@ class Migroot {
         if (card) {
             this.#insertCard(card, item);
         } else {
-            throw new Error(
-                `unknown card type "${card_type}". `
-            );
+            throw new Error(`unknown card type "${card_type}". `);
         }
 
         if (!skip_drawer) {
@@ -870,7 +833,7 @@ class Migroot {
     }
 
     /** @type {Set<string>} */
-    // delete assign from that set after it has been added to backaend //
+        // delete assign from that set after it has been added to backaend //
     #optionalFields = new Set(['location', 'deadline', 'assign']);
 
     /**
@@ -884,23 +847,14 @@ class Migroot {
      * @param {Object}      [opts.renderers]                     – per‑field rendering functions (receive (el, value)).
      */
 
-    #setContent(
-        clone,
-        item,
-        {
-            fieldSelector = '[data-task]',
-            labelSelector = '.t-mark__label',
-            renderers     = {}
-        } = {}
-    ) {
+    #setContent(clone, item, {
+        fieldSelector = '[data-task]', labelSelector = '.t-mark__label', renderers = {}
+    } = {}) {
         const allFields = clone.querySelectorAll(fieldSelector);
         // Derive the attribute name from selector, e.g. '[data-task]' → 'data-task'
         const attrMatch = fieldSelector.match(/\[([^\]=]+)(?:=[^\]]+)?\]/);
         if (!attrMatch) {
-            throw new Error(
-                `Migroot#setContent: cannot derive attribute name from selector "${fieldSelector}". ` +
-                'Provide a selector that contains an attribute filter like "[data-foo]".'
-            );
+            throw new Error(`Migroot#setContent: cannot derive attribute name from selector "${fieldSelector}". ` + 'Provide a selector that contains an attribute filter like "[data-foo]".');
         }
         const attrName = attrMatch[1];
 
@@ -912,11 +866,7 @@ class Migroot {
 
             let value = item[key];
             this.log.debug(`Found value="${value}" for key="${key}" in ${fieldSelector}`);
-            const isValueEmpty =
-                value === undefined ||
-                value === null ||
-                value === '' ||
-                (typeof value === 'number' && Number.isNaN(value));
+            const isValueEmpty = value === undefined || value === null || value === '' || (typeof value === 'number' && Number.isNaN(value));
 
             if (this.#optionalFields.has(key) && isValueEmpty) {
                 if (key === 'location') {
@@ -930,12 +880,8 @@ class Migroot {
                     container.remove(); // not working in drawer
                     return;
                 }
-            } else if (
-                value === null ||
-                value === undefined ||
-                (typeof value === 'string' && value.trim() === '')
-            ) {
-           this.log.warning(`Null value="${value}" for key="${key}" in ${fieldSelector} skipping`);
+            } else if (value === null || value === undefined || (typeof value === 'string' && value.trim() === '')) {
+                this.log.warning(`Null value="${value}" for key="${key}" in ${fieldSelector} skipping`);
                 // return;
             }
             // Arrays → their length
@@ -953,9 +899,7 @@ class Migroot {
                 this.log.debug(`Using ${which} renderer for key="${key}"`);
                 (renderers[key] || this.#defaultRenderer)(labelEl, value);
             } catch (err) {
-                this.log.error(
-                    `Renderer failed for key="${key}" value=`, value
-                );
+                this.log.error(`Renderer failed for key="${key}" value=`, value);
                 this.log.error(err.message, err.stack);
                 throw err; // bubble up
             }
@@ -964,12 +908,9 @@ class Migroot {
 
     #insertCard(card, item) {
         this.#setContent(card, item, {
-            fieldSelector: '[data-task]',
-            labelSelector: '.t-mark__label',
-            renderers: {
-                viewLink           : this.#renderFileUrl.bind(this),  // for doc-board
-                deadline          : this.#renderDeadline.bind(this),
-                difficulty        : this.#renderDifficulty.bind(this)
+            fieldSelector: '[data-task]', labelSelector: '.t-mark__label', renderers: {
+                viewLink: this.#renderFileUrl.bind(this),  // for doc-board
+                deadline: this.#renderDeadline.bind(this), difficulty: this.#renderDifficulty.bind(this)
             }
         });
         const targetContainer = this.#getStatusContainer(item.status);
@@ -992,13 +933,15 @@ class Migroot {
                 this.log.debug('Checking task: ', task);
 
                 // Logging before checking enrichment
-                this.log.debug('Checking if task needs enrichment', { hasTask: !!task, alreadyFetched: task?._detailsFetched });
+                this.log.debug('Checking if task needs enrichment', {
+                    hasTask: !!task, alreadyFetched: task?._detailsFetched
+                });
                 if (task && !task._detailsFetched) {
                     // Log before enrichment
                     this.log.debug(`Enriching task ${item.clientTaskId} with full details`);
-                    this.api.getClientTask({}, { taskId: item.clientTaskId }).then(fullTask => {
-                    this.smartMerge(task, fullTask);
-                    task._detailsFetched = true;
+                    this.api.getClientTask({}, {taskId: item.clientTaskId}).then(fullTask => {
+                        this.smartMerge(task, fullTask);
+                        task._detailsFetched = true;
                         this.log.debug(`Task ${task.clientTaskId} enriched with full data`);
                         this.#onTaskEnriched(task);
                     }).catch(err => {
@@ -1036,9 +979,7 @@ class Migroot {
 
     #insertDrawer(drawer, item) {
         // item == board task object
-        this.#setContent(drawer, item,
-            this.#drawerOpts()
-        );
+        this.#setContent(drawer, item, this.#drawerOpts());
 
         drawer.id = `drawer-${item.clientTaskId}`;
         drawer.dataset.required = item.documentRequired ? 'true' : 'false';
@@ -1073,10 +1014,12 @@ class Migroot {
             const task = this.board?.tasks?.find(t => String(t.clientTaskId) === item.clientTaskId);
             this.log.debug('Checking task: ', task);
 
-            this.log.debug('Checking if task needs enrichment', { hasTask: !!task, alreadyFetched: task?._detailsFetched });
+            this.log.debug('Checking if task needs enrichment', {
+                hasTask: !!task, alreadyFetched: task?._detailsFetched
+            });
             if (task && !task._detailsFetched) {
                 this.log.debug(`Enriching task ${item.clientTaskId} with full details`);
-                this.api.getClientTask({}, { taskId: item.clientTaskId })
+                this.api.getClientTask({}, {taskId: item.clientTaskId})
                     .then(fullTask => {
                         this.smartMerge(task, fullTask);
                         task._detailsFetched = true;
@@ -1119,16 +1062,13 @@ class Migroot {
 
     #drawerOpts() {
         return {
-            fieldSelector: '[data-drawer]',
-            labelSelector: '.t-label',
-            renderers: {
-                deadline          : this.#renderDeadline.bind(this),
-                difficulty        : this.#renderDifficulty.bind(this),
-                longDescription   : this.#renderLongDescription.bind(this),
-                // upload_button     : this.#renderUploadButton.bind(this),
+            fieldSelector: '[data-drawer]', labelSelector: '.t-label', renderers: {
+                deadline: this.#renderDeadline.bind(this),
+                difficulty: this.#renderDifficulty.bind(this),
+                longDescription: this.#renderLongDescription.bind(this), // upload_button     : this.#renderUploadButton.bind(this),
                 // start_button      : this.#renderStartButton.bind(this),
-                comments          : this.#renderComments.bind(this),
-                files             : this.#renderFiles.bind(this),
+                comments: this.#renderComments.bind(this),
+                files: this.#renderFiles.bind(this),
             }
         };
     }
@@ -1143,27 +1083,24 @@ class Migroot {
         return drawer ? drawer.id.replace('drawer-', '') : null;
     }
 
-     #defaultRenderer = (el, val) => {
-      if (val === undefined || val === null || val === '') {
-        el.remove();          // ничего нет – убираем блок
-      } else {
-        el.textContent = val; // иначе пишем текст
-      }
+    #defaultRenderer = (el, val) => {
+        if (val === undefined || val === null || val === '') {
+            el.remove();          // ничего нет – убираем блок
+        } else {
+            el.textContent = val; // иначе пишем текст
+        }
     };
 
     #renderLongDescription(el, val) {
-        if (val) el.innerHTML = val;
-        else el.remove();
+        if (val) el.innerHTML = val; else el.remove();
     }
 
     #renderDeadline(el, val) {
-        if (val) el.textContent = this.#formatDate(val);
-        else el.remove();
+        if (val) el.textContent = this.#formatDate(val); else el.remove();
     }
 
     #renderDifficulty(el, val) {
-        if (val) el.textContent = this.#formatDifficulty(val);
-        else el.remove();
+        if (val) el.textContent = this.#formatDifficulty(val); else el.remove();
     }
 
     #renderComments(el, val) {
@@ -1258,9 +1195,7 @@ class Migroot {
         if (filesPane) this.#renderFiles(filesPane, task.files);
 
         // todo upd status and numbers
-        this.#setContent(drawer, task,
-            this.#drawerOpts()
-        );
+        this.#setContent(drawer, task, this.#drawerOpts());
         drawer.dataset.status = task.status || '';
 
     }
@@ -1274,14 +1209,14 @@ class Migroot {
     #handleNextButton(btn) {
         const id = this.#taskIdFromDrawer(btn);
         const item = this.board?.tasks?.find(t => String(t.clientTaskId) === id);
-        const next_status = this.getNextStatus( item.status );
+        const next_status = this.getNextStatus(item.status);
         if (item) this.#handleStatusChange(item, next_status);
     }
 
     #handlePrevButton(btn) {
         const id = this.#taskIdFromDrawer(btn);
         const item = this.board?.tasks?.find(t => String(t.clientTaskId) === id);
-        const prev_status = this.getPrevStatus( item.status );
+        const prev_status = this.getPrevStatus(item.status);
         if (item) this.#handleStatusChange(item, prev_status);
     }
 
@@ -1297,19 +1232,18 @@ class Migroot {
         const previousStatus = item.status;
         item.status = status;                 // optimistic
         // // Move card immediately
-        this.createCard(item, { skip_drawer: true, card_type: item.card_type });
+        this.createCard(item, {skip_drawer: true, card_type: item.card_type});
 
         // Persist to backend
-        this.api.updateClientTask(
-            { status: status },
-            { taskId: item.clientTaskId }
-        ).then(updatedTask => {
+        this.api.updateClientTask({status: status}, {taskId: item.clientTaskId}).then(updatedTask => {
             const taskIndex = this.board.tasks.findIndex(t => String(t.clientTaskId) === item.clientTaskId);
             if (taskIndex !== -1) {
                 this.smartMerge(this.board.tasks[taskIndex], updatedTask);
                 // Object.assign(this.board.tasks[taskIndex], updatedTask);
                 this.board.tasks[taskIndex]._detailsFetched = true;
-                this.createCard(this.board.tasks[taskIndex], { skip_drawer: true , card_type: this.board.tasks[taskIndex].card_type});
+                this.createCard(this.board.tasks[taskIndex], {
+                    skip_drawer: true, card_type: this.board.tasks[taskIndex].card_type
+                });
                 this.#onTaskEnriched(this.board.tasks[taskIndex]);
 
             }
@@ -1319,7 +1253,7 @@ class Migroot {
             // alert('Server error: Could not change status the task. Try again.');
             // restore status and position
             item.status = previousStatus;
-            this.createCard(item, { card_type: item.card_type })
+            this.createCard(item, {card_type: item.card_type})
             // let drawerEl = document.getElementById(`drawer-${item.clientTaskId}`);
             // if (drawerEl) drawerEl.style.display = 'flex';
         });
@@ -1336,23 +1270,11 @@ class Migroot {
         const formData = new FormData(formEl);
 
         const features = [];
-        const allowedFeatureTypes = new Set([
-            'COUNTRY_OF_CITIZENSHIP',
-            'COUNTRY_OF_VISA_APPLICATION',
-            'COUNTRY_OF_DESTINATION',
-            'COUNTRY_OF_RECENT_STAY',
-            'COUNTRY_OF_LABOR_CONTRACT',
-            'COUNTRY_OF_ENTREPRENEURSHIP',
-            'MOVE_WITH_SPOUSE',
-            'MOVE_WITH_CHILDREN',
-            'MOVE_WITH_PARENTS',
-            'MOVE_WITH_PETS'
-        ]);
+        const allowedFeatureTypes = new Set(['COUNTRY_OF_CITIZENSHIP', 'COUNTRY_OF_VISA_APPLICATION', 'COUNTRY_OF_DESTINATION', 'COUNTRY_OF_RECENT_STAY', 'COUNTRY_OF_LABOR_CONTRACT', 'COUNTRY_OF_ENTREPRENEURSHIP', 'MOVE_WITH_SPOUSE', 'MOVE_WITH_CHILDREN', 'MOVE_WITH_PARENTS', 'MOVE_WITH_PETS']);
         for (const [key, value] of formData.entries()) {
             if (value && value.trim() !== "" && allowedFeatureTypes.has(key)) {
                 features.push({
-                    type: key,
-                    value: value.trim()
+                    type: key, value: value.trim()
                 });
             }
         }
@@ -1374,34 +1296,34 @@ class Migroot {
     }
 
     #handleChooseFile(input) {
-      const labelText = input.closest('.frm-upload__label').querySelector('.frm-upload__text');
-      const errorEl = input.closest('.frm-upload__card').querySelector('.frm-upload__error');
+        const labelText = input.closest('.frm-upload__label').querySelector('.frm-upload__text');
+        const errorEl = input.closest('.frm-upload__card').querySelector('.frm-upload__error');
 
-      errorEl.textContent = ""; // сбросить ошибку
+        errorEl.textContent = ""; // сбросить ошибку
 
-      if (input.files && input.files.length > 0) {
-        const file = input.files[0];
+        if (input.files && input.files.length > 0) {
+            const file = input.files[0];
 
-        if (file.size > 25 * 1024 * 1024) {
-          errorEl.textContent = "File is too large! Max 25 MB.";
-          input.value = "";
-          labelText.textContent = 'Add file';
-          return;
+            if (file.size > 25 * 1024 * 1024) {
+                errorEl.textContent = "File is too large! Max 25 MB.";
+                input.value = "";
+                labelText.textContent = 'Add file';
+                return;
+            }
+
+            const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png'];
+            if (!allowedTypes.includes(file.type)) {
+                errorEl.textContent = "Invalid file type. Allowed: PDF, JPG, PNG.";
+                input.value = "";
+                labelText.textContent = 'Add file';
+                return;
+            }
+
+            // Всё ок — показываем имя
+            labelText.textContent = file.name;
+        } else {
+            labelText.textContent = 'Add file';
         }
-
-        const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png'];
-        if (!allowedTypes.includes(file.type)) {
-          errorEl.textContent = "Invalid file type. Allowed: PDF, JPG, PNG.";
-          input.value = "";
-          labelText.textContent = 'Add file';
-          return;
-        }
-
-        // Всё ок — показываем имя
-        labelText.textContent = file.name;
-      } else {
-        labelText.textContent = 'Add file';
-      }
     }
 
     // File upload submit handler (overwritten)
@@ -1444,13 +1366,15 @@ class Migroot {
         if (fileLabel) fileLabel.textContent = 'Loading';
         if (submitBtn) submitBtn.disabled = true;
 
-        this.api.uploadFile(formData, { taskId }).then(updatedTask => {
+        this.api.uploadFile(formData, {taskId}).then(updatedTask => {
             const taskIndex = this.board.tasks.findIndex(t => String(t.clientTaskId) === taskId);
             if (taskIndex !== -1) {
                 this.smartMerge(this.board.tasks[taskIndex], updatedTask);
                 // Object.assign(this.board.tasks[taskIndex], updatedTask);
                 this.board.tasks[taskIndex]._detailsFetched = true;
-                this.createCard(this.board.tasks[taskIndex], { skip_drawer: true, card_type: this.board.tasks[taskIndex].card_type });
+                this.createCard(this.board.tasks[taskIndex], {
+                    skip_drawer: true, card_type: this.board.tasks[taskIndex].card_type
+                });
                 this.#onTaskEnriched(this.board.tasks[taskIndex]);
             } else {
                 this.log.warning(`Task with ID ${taskId} not found in board`);
@@ -1477,18 +1401,16 @@ class Migroot {
         }
         const authorId = this.currentUser?.id;
         const body = {
-            author: authorId,
-            message: message
+            author: authorId, message: message
         };
-        this.api.commentClientTask(body, { taskId }).then(updatedTask => {
+        this.api.commentClientTask(body, {taskId}).then(updatedTask => {
             const taskIndex = this.board.tasks.findIndex(t => String(t.clientTaskId) === taskId);
             if (taskIndex !== -1) {
                 this.smartMerge(this.board.tasks[taskIndex], updatedTask);
                 // Object.assign(this.board.tasks[taskIndex], updatedTask);
                 this.board.tasks[taskIndex]._detailsFetched = true;
                 this.createCard(this.board.tasks[taskIndex], {
-                    skip_drawer: true,
-                    card_type: this.board.tasks[taskIndex].card_type
+                    skip_drawer: true, card_type: this.board.tasks[taskIndex].card_type
                 });
                 this.#onTaskEnriched(this.board.tasks[taskIndex]);
             } else {
@@ -1521,14 +1443,12 @@ class Migroot {
         }
         const date = new Date(isoString);
         return date.toLocaleDateString('en-GB', {
-            day: 'numeric',
-            month: 'short',
-            timeZone: this.config.timeZone
+            day: 'numeric', month: 'short', timeZone: this.config.timeZone
         });
     }
 
     #formatDifficulty(value) {
-      return value?.toLowerCase?.() || value;
+        return value?.toLowerCase?.() || value;
     }
 
     #getRandom(arr) {
@@ -1550,51 +1470,52 @@ class Migroot {
     }
 
     #showCreateButton() {
-      const original = document.getElementById('screen-preloader');
+        const original = document.getElementById('screen-preloader');
 
-      if (!original) {
-        this.log.warning('no preloader to render');
-        return;
-      }
+        if (!original) {
+            this.log.warning('no preloader to render');
+            return;
+        }
 
-      const clone = original.cloneNode(true);
+        const clone = original.cloneNode(true);
 
-      clone.innerHTML = '';
+        clone.innerHTML = '';
 
-      const text = document.createElement('h1');
-      text.textContent = 'You need to pass short quiz to generate your journey';
-      text.style.color = '#333';
-      text.style.marginBottom = '20px';
-      text.style.fontSize = '32px';
-      text.style.textAlign = 'center';
-      clone.style.display = 'flex';
-      clone.style.flexDirection = 'column';
-      clone.style.alignItems = 'center';
-      clone.style.justifyContent = 'center';
-      clone.style.gap = '20px'; // расстояние между текстом и кнопкой
-      clone.style.height = '100vh'; // чтобы всё было по центру
+        const text = document.createElement('h1');
+        text.textContent = 'You need to pass short quiz to generate your journey';
+        text.style.color = '#333';
+        text.style.marginBottom = '20px';
+        text.style.fontSize = '32px';
+        text.style.textAlign = 'center';
+        clone.style.display = 'flex';
+        clone.style.flexDirection = 'column';
+        clone.style.alignItems = 'center';
+        clone.style.justifyContent = 'center';
+        clone.style.gap = '20px'; // расстояние между текстом и кнопкой
+        clone.style.height = '100vh'; // чтобы всё было по центру
 
-      // Добавить кнопку
-      const button = document.createElement('a');
-      button.textContent = 'DO IT';
-      button.href = '/app/create-board';
-      button.style.display = 'inline-block';
-      button.style.padding = '12px 24px';
-      button.style.backgroundColor = '#ff9900';
-      button.style.color = '#fff';
-      button.style.textDecoration = 'none';
-      button.style.fontSize = '18px';
-      button.style.borderRadius = '8px';
+        // Добавить кнопку
+        const button = document.createElement('a');
+        button.textContent = 'DO IT';
+        button.href = '/app/create-board';
+        button.style.display = 'inline-block';
+        button.style.padding = '12px 24px';
+        button.style.backgroundColor = '#ff9900';
+        button.style.color = '#fff';
+        button.style.textDecoration = 'none';
+        button.style.fontSize = '18px';
+        button.style.borderRadius = '8px';
 
-      // Вставляем новый контент
-      clone.appendChild(text);
-      clone.appendChild(button);
+        // Вставляем новый контент
+        clone.appendChild(text);
+        clone.appendChild(button);
 
-      // Вставить клон сразу после оригинала
-      original.parentNode.insertBefore(clone, original.nextSibling);
+        // Вставить клон сразу после оригинала
+        original.parentNode.insertBefore(clone, original.nextSibling);
     }
 
 
     /*───────────────────────────  Utility & Formatting END ─────────────────*/
 }
+
 window.Migroot = Migroot;
