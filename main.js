@@ -81,6 +81,10 @@ const ENDPOINTS = {
         path: 'board/task/{taskId}/uploadFile', method: 'POST'
     }, filesView: {
         path: 'board/{boardId}/files/view', method: 'GET'
+    }, approveFile: {
+        path: '/board/file/{fileId}/approve', method: 'POST'
+    }, rejectFile: {
+        path: '/board/file/{fileId}/reject', method: 'POST'
     }, commentClientTask: {
         path: 'board/task/{taskId}/comment', method: 'POST'
     }
@@ -117,11 +121,14 @@ class Migroot {
         window.handleFileUploadSubmit = el => this.#handleFileUploadSubmit(el);
         window.handleCommentSubmit = el => this.#handleCommentSubmit(el);
         window.handleChooseFile = el => this.#handleChooseFile(el);
+        window.handleApproveFile = el => this.#handleApproveFile(el);
+        window.handleRejectFile = el => this.#handleRejectFile(el);
+
         window.handleNextButton = el => this.#handleNextButton(el);
         window.handlePrevButton = el => this.#handlePrevButton(el);
         window.handleReadyButton = el => this.#handleReadyButton(el);
-        window.handleChooseFile = el => this.#handleChooseFile(el);
         window.handleCreateBoard = el => this.#handleCreateBoard(el);
+
     }
 
     /*───────────────────────────  API helpers START ────────────────────────*/
@@ -673,7 +680,7 @@ class Migroot {
         if (!this.currentUser || typeof this.currentUser.points !== 'number') {
             this.log.warning('currentUser or points not set');
         } else {
-            points = mg.currentUser.points || 0
+            points = this.currentUser.points || 0
         }
 
         el.textContent = points;
@@ -1041,6 +1048,7 @@ class Migroot {
     }
 
     #renderFiles(el, val) {
+        const isBuddy = ['BUDDY', 'SUPERVISOR', 'ADMIN'].includes(this.currentUser.type)
         const arr = Array.isArray(val) ? val : [];
         const container = el.querySelector('.drw-uploaded .f-wrap');
         if (!container) {
@@ -1053,16 +1061,67 @@ class Migroot {
             return;
         }
 
-        container.innerHTML = arr.map(file => `
-            <a class="f-item" href="${file.downloadLink}" target="_blank">
-                <div class="f-item__header">
-                    <img src="https://cdn.prod.website-files.com/679bc8f10611c9a0d94a0caa/683476cbb9aeb76905819fc7_document-color.svg" alt="" class="f-item__icon">
-                    <div class="f-item__name">${file.fileName}</div>
-                    <div class="f-item__status ${file.status}">${file.status}</div>
+        container.innerHTML = arr.map(file => {
+            return `
+                <div class="file-wrapper">
+                  <div class="file-info">
+                    <a class="f-item" href="${file.downloadLink}" target="_blank">
+                        <div class="f-item__header">
+                            <img src="https://cdn.prod.website-files.com/679bc8f10611c9a0d94a0caa/683476cbb9aeb76905819fc7_document-color.svg" alt="" class="f-item__icon">
+                            <div class="f-item__name">${file.fileName}</div>
+                            <div class="f-item__status ${file.status}">${file.status}</div>
+                        </div>
+                        <div class="f-item__date">${this.#formatDate(file.createdDate)}</div>
+                    </a>
+                  </div>
+                  ${
+                isBuddy === true
+                    ? `<div class="file-actions">
+                        <button data-file-id="${file.id}" onclick="handleApproveFile(this)">Approve</button>
+                        <button data-file-id="${file.id}" onclick="handleRejectFile(this)">Reject</button>
+                      </div>`
+                    : ''
+            }
                 </div>
-                <div class="f-item__date">${this.#formatDate(file.createdDate)}</div>
-            </a>
-        `).join('');
+            `;
+        }).join('');
+    }
+
+    #handleApproveFile(el) {
+        const fileId = el?.dataset?.fileId;
+        this.api.approveFile({}, { fileId }).then(() => {
+            this.log.info(`File ${fileId} approved`);
+            // Find parent .file-wrapper and update status
+            const wrapper = el.closest('.file-wrapper');
+            if (wrapper) {
+                const statusEl = wrapper.querySelector('.f-item__status');
+                if (statusEl) {
+                    statusEl.textContent = 'APPROVED';
+                    statusEl.className = 'f-item__status APPROVED';
+                }
+            }
+        }).catch(err => {
+            this.log.error(`Failed to approve file ${fileId}:`, err);
+        });
+    }
+
+    #handleRejectFile(el) {
+        const fileId = el?.dataset?.fileId;
+        this.log.debug(`Rejecting file ID: ${fileId}`);
+        this.api.rejectFile({}, { fileId }).then(() => {
+            this.log.info(`File ${fileId} rejected`);
+            // Find parent .file-wrapper and update status
+            const wrapper = el.closest('.file-wrapper');
+            if (wrapper) {
+                const statusEl = wrapper.querySelector('.f-item__status');
+                if (statusEl) {
+                    statusEl.textContent = 'REJECTED';
+                    statusEl.className = 'f-item__status REJECTED';
+                }
+            }
+        }).catch(err => {
+            this.log.error(`Failed to reject file ${fileId}:`, err);
+        });
     }
 
     #renderFileUrl(el, val) {
