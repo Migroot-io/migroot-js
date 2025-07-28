@@ -1077,8 +1077,8 @@ class Migroot {
                   ${
                 isBuddy === true
                     ? `<div class="file-actions">
-                        <button data-file-id="${file.id}" onclick="handleApproveFile(this)">Approve</button>
-                        <button data-file-id="${file.id}" onclick="handleRejectFile(this)">Reject</button>
+                        <button data-file-id="${file.fileId}" onclick="handleApproveFile(this)">Approve</button>
+                        <button data-file-id="${file.fileId}" onclick="handleRejectFile(this)">Reject</button>
                       </div>`
                     : ''
             }
