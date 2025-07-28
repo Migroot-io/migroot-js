@@ -1090,14 +1090,16 @@ class Migroot {
     #handleApproveFile(el) {
         const fileId = el?.dataset?.fileId;
         const actionsContainer = el.parentElement;
+        const wrapper = el.closest('.file-wrapper');
         const originalHTML = actionsContainer.innerHTML;
         actionsContainer.innerHTML = '<div class="loading-placeholder">Grooting... </div>';
         this.api.approveFile({}, { fileId }).then((updatedFile) => {
             this.log.info(`File ${fileId} approved`);
-            const wrapper = el.closest('.file-wrapper');
-            const statusEl = wrapper.querySelector('.f-item__status');
-            if (statusEl) statusEl.textContent = updatedFile.status;
-            if (statusEl) statusEl.className = `f-item__status ${updatedFile.status}`;
+            if (wrapper) {
+                const statusEl = wrapper.querySelector('.f-item__status');
+                if (statusEl) statusEl.textContent = updatedFile.status;
+                if (statusEl) statusEl.className = `f-item__status ${updatedFile.status}`;
+            }
             actionsContainer.innerHTML = originalHTML;
         }).catch(err => {
             this.log.error(`Failed to approve file ${fileId}:`, err);
@@ -1108,14 +1110,16 @@ class Migroot {
     #handleRejectFile(el) {
         const fileId = el?.dataset?.fileId;
         const actionsContainer = el.parentElement;
+        const wrapper = el.closest('.file-wrapper');
         const originalHTML = actionsContainer.innerHTML;
         actionsContainer.innerHTML = '<div class="loading-placeholder">Grooting...</div>';
         this.api.rejectFile({}, { fileId }).then((updatedFile) => {
             this.log.info(`File ${fileId} rejected`);
-            const wrapper = el.closest('.file-wrapper');
-            const statusEl = wrapper.querySelector('.f-item__status');
-            if (statusEl) statusEl.textContent = updatedFile.status;
-            if (statusEl) statusEl.className = `f-item__status ${updatedFile.status}`;
+            if (wrapper) {
+                const statusEl = wrapper.querySelector('.f-item__status');
+                if (statusEl) statusEl.textContent = updatedFile.status;
+                if (statusEl) statusEl.className = `f-item__status ${updatedFile.status}`;
+            }
             actionsContainer.innerHTML = originalHTML;
         }).catch(err => {
             this.log.error(`Failed to reject file ${fileId}:`, err);
