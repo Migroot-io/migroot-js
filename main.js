@@ -1,6 +1,6 @@
 class Logger {
     constructor(debug = false) {
-        this.debug = debug;
+        this.isDebug = debug;
     }
 
     _getCurrentTime() {
@@ -31,13 +31,13 @@ class Logger {
     }
 
     debug(message, vars) {
-        if (this.debug) {
+        if (this.isDebug) {
             this._log(message, vars, 'debug');
         }
     }
 
     warning(message, vars) {
-        if (this.debug) {
+        if (this.isDebug) {
             this._log(message, vars, 'warning');
         }
     }
