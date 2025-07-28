@@ -82,9 +82,9 @@ const ENDPOINTS = {
     }, filesView: {
         path: 'board/{boardId}/files/view', method: 'GET'
     }, approveFile: {
-        path: '/board/file/{fileId}/approve', method: 'POST'
+        path: 'board/file/{fileId}/approve', method: 'POST'
     }, rejectFile: {
-        path: '/board/file/{fileId}/reject', method: 'POST'
+        path: 'board/file/{fileId}/reject', method: 'POST'
     }, commentClientTask: {
         path: 'board/task/{taskId}/comment', method: 'POST'
     }
