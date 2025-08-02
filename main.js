@@ -630,7 +630,7 @@ class Migroot {
     }
 
     renderBuddyInfo() {
-        if (['BUDDY', 'SUPERVISOR', 'ADMIN'].includes(this.currentUser.type)) {
+        if (this.isBuddyUser()) {
             const boardEmail = localStorage.getItem('defaultBoardEmail');
             if (boardEmail) {
                 const buddyEl = document.getElementById('buddy-info')
@@ -641,6 +641,7 @@ class Migroot {
             }
         }
     }
+
 
     renderProgressBar() {
         const createdDate = localStorage.getItem('defaultBoardDate');
@@ -1016,7 +1017,7 @@ class Migroot {
                 let positionClass, initials, name;
 
                 if (c.author == null) {
-                    positionClass = 'cmt-right';
+                    positionClass = 'cmt-right cmt-migroot';
                     initials = 'M';
                     name = 'Migroot';
                 } else {
@@ -1047,8 +1048,13 @@ class Migroot {
         }
     }
 
+    isBuddyUser() {
+        return ['BUDDY', 'SUPERVISOR', 'ADMIN'].includes(this.currentUser?.type) &&
+               this.currentUser?.email !== 'kornieiev89.o@gmail.com';
+    }
+
     #renderFiles(el, val) {
-        const isBuddy = ['BUDDY', 'SUPERVISOR', 'ADMIN'].includes(this.currentUser.type)
+        const isBuddy = this.isBuddyUser();
         const arr = Array.isArray(val) ? val : [];
         const container = el.querySelector('.drw-uploaded .f-wrap');
         if (!container) {
@@ -1292,10 +1298,19 @@ class Migroot {
             return;
         }
 
+        // Additional validation: check if file is empty
+        if (uploadedFile.size === 0) {
+            this.log.error('Uploaded file is empty');
+            if (fileError) fileError.textContent = 'File is empty or file size is 0.';
+            // alert('File is empty or filesize is 0. Please add the correct file. Allowed: PDF, JPG, PNG.');
+            return;
+        }
+
         const maxSize = 25 * 1024 * 1024;
         if (uploadedFile.size > maxSize) {
             this.log.error('File is too large. Maximum size is 25MB.');
             if (fileError) fileError.textContent = 'File is too large. Maximum size is 25MB.';
+            alert('File is too large. Maximum size is 25MB.');
             return;
         }
 
@@ -1303,6 +1318,7 @@ class Migroot {
         const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png'];
         if (!allowedTypes.includes(uploadedFile.type)) {
             this.log.error(`Invalid file type: ${uploadedFile.type}`);
+            fileError.textContent = 'Invalid file type. Allowed: PDF, JPG, PNG.';
             alert('Invalid file type. Allowed: PDF, JPG, PNG.');
             return;
         }
