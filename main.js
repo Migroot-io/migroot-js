@@ -331,10 +331,14 @@ class Migroot {
      *
      * @param {Array<Feature>} features - Array of feature objects. Must include at least:
      *   COUNTRY_OF_CITIZENSHIP and COUNTRY_OF_VISA_APPLICATION.
+     * @param questionnaire
      */
-    async createBoard(features) {
+    async createBoard(features, questionnaire) {
         if (!Array.isArray(features)) {
             throw new Error('features must be an array of Feature objects');
+        }
+        if (typeof questionnaire !== 'object' || questionnaire === null || Array.isArray(questionnaire)) {
+            throw new Error('questionnaire must be an object');
         }
         try {
             this.token = await this.getAccessToken();
@@ -348,7 +352,8 @@ class Migroot {
             const createdBoard = await this.api.createBoard({
                 owner: {
                     id: this.currentUser?.id, type: this.currentUser?.type
-                }, features: features
+                }, features: features,
+                   questionnaire: questionnaire
             });
 
             this.log.debug('board created:', createdBoard);
@@ -1222,8 +1227,10 @@ class Migroot {
 
         const formData = new FormData(formEl);
         const features = [];
+        const questionnaire = {};
         const allowedFeatureTypes = new Set(['COUNTRY_OF_CITIZENSHIP', 'COUNTRY_OF_VISA_APPLICATION', 'COUNTRY_OF_DESTINATION', 'COUNTRY_OF_RECENT_STAY', 'COUNTRY_OF_LABOR_CONTRACT', 'COUNTRY_OF_ENTREPRENEURSHIP', 'MOVE_WITH_SPOUSE', 'MOVE_WITH_CHILDREN', 'MOVE_WITH_PARENTS', 'MOVE_WITH_PETS']);
         for (const [key, value] of formData.entries()) {
+            questionnaire[key] = value.trim();
             if (value && value.trim() !== "" && allowedFeatureTypes.has(key)) {
                 features.push({
                     type: key, value: value.trim()
@@ -1231,7 +1238,8 @@ class Migroot {
             }
         }
 
-        this.createBoard(features).then(async (createdBoard) => {
+
+        this.createBoard(features, questionnaire).then(async (createdBoard) => {
             if (createdBoard && createdBoard.boardId) {
                 this.log.debug('Board successfully created', createdBoard);
                 await new Promise(resolve => setTimeout(resolve, 2000));
