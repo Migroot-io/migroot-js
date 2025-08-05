@@ -1240,18 +1240,38 @@ class Migroot {
             }
         }
 
+        // Show preloader overlay before calling createBoard
+        const overlay = document.createElement('div');
+        overlay.id = 'board-create-loader';
+        overlay.style.position = 'fixed';
+        overlay.style.top = '0';
+        overlay.style.left = '0';
+        overlay.style.width = '100%';
+        overlay.style.height = '100%';
+        overlay.style.backgroundColor = 'rgba(0, 0, 0, 0.6)';
+        overlay.style.color = 'white';
+        overlay.style.fontSize = '24px';
+        overlay.style.display = 'flex';
+        overlay.style.alignItems = 'center';
+        overlay.style.justifyContent = 'center';
+        overlay.style.zIndex = '9999';
+        overlay.innerText = 'Board Creating In Process...';
+        document.body.appendChild(overlay);
 
         this.createBoard(features, questionnaire).then(async (createdBoard) => {
             if (createdBoard && createdBoard.boardId) {
                 this.log.debug('Board successfully created', createdBoard);
                 await new Promise(resolve => setTimeout(resolve, 2000));
+                // The overlay remains until redirect.
                 window.location.href = `/app/todo?boardId=${createdBoard.boardId}`;
             } else {
                 this.log.error('Invalid response: boardId or status missing', createdBoard);
             }
         }).catch(err => {
             this.log.error('Failed to create board:', err);
-            alert('Failed to create board. Please try again.');
+            const existing = document.getElementById('board-create-loader');
+            if (existing) existing.remove();
+            alert('Failed to create board. Please try again later.');
         });
 
         return false;
