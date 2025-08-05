@@ -442,6 +442,7 @@ class Migroot {
                 this.#clearContainers();
                 await this.fetchBoard(finalBoardId);
                 this.log.debug('Step 3: Creating cards based on tasks');
+                this.board.tasks.sort((a, b) => b.priority - a.priority);
                 this.#observeContainersWithCount();
                 this.board.tasks.forEach(item => {
                     try {
@@ -474,6 +475,7 @@ class Migroot {
                     }
                 });
                 this.log.debug('Step 3: Creating cards based on tasks');
+                this.board.tasks.sort((a, b) => b.priority - a.priority);
                 this.board.tasks.forEach(item => {
                     try {
                         this.createCard(item, {card_type: type});
