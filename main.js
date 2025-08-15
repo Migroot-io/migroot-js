@@ -48,13 +48,31 @@ class Logger {
 }
 
 
-const STATUS_FLOW = {
+const STATUS_FLOW = Object.freeze({
     NOT_STARTED: {next: 'ASAP', prev: null},
     ASAP: {next: 'IN_PROGRESS', prev: 'NOT_STARTED'},
     IN_PROGRESS: {next: 'REQUIRES_CHANGES', prev: 'ASAP'},
     REQUIRES_CHANGES: {next: 'READY', prev: 'IN_PROGRESS'},
     READY: {next: null, prev: 'REQUIRES_CHANGES'},
-};
+});
+
+
+const LOCALSTORAGE = Object.freeze({
+    COUNTRY: 'defaultCountry',
+    BOARD_ID: 'defaultBoardId',
+    GOAL: 'defaultBoardGoalTasks',
+    DONE: 'defaultBoardDoneTasks',
+    DATE: 'defaultBoardDate',
+    EMAIL: 'defaultBoardEmail'
+});
+
+
+const PAGE_TYPES = Object.freeze({
+    TODO: 'todo',
+    DOCS: 'docs',
+    HUB: 'hub',
+    CREATE_BOARD: 'create-board'
+});
 
 const ENDPOINTS = {
     createBoard: {
@@ -190,12 +208,12 @@ class Migroot {
             const goalTasks = board.tasks.filter(task => task.documentRequired).length;
             const doneTasks = board.tasks.filter(task => task.status === 'READY' && task.documentRequired).length;
 
-            localStorage.setItem('defaultCountry', board.country || '');
-            localStorage.setItem('defaultBoardId', board.boardId || '');
-            localStorage.setItem('defaultBoardGoalTasks', String(goalTasks));
-            localStorage.setItem('defaultBoardDoneTasks', String(doneTasks));
-            localStorage.setItem('defaultBoardDate', readableDate || '')
-            localStorage.setItem('defaultBoardEmail', board.owner.email || '')
+            localStorage.setItem(LOCALSTORAGE.COUNTRY, board.country || '');
+            localStorage.setItem(LOCALSTORAGE.BOARD_ID, board.boardId || '');
+            localStorage.setItem(LOCALSTORAGE.GOAL, String(goalTasks));
+            localStorage.setItem(LOCALSTORAGE.DONE, String(doneTasks));
+            localStorage.setItem(LOCALSTORAGE.DATE, readableDate || '')
+            localStorage.setItem(LOCALSTORAGE.EMAIL, board.owner.email || '')
 
         }
 
@@ -208,7 +226,7 @@ class Migroot {
             }
 
             if (!finalBoardId) {
-                finalBoardId = localStorage.getItem('defaultBoardId');
+                finalBoardId = localStorage.getItem(LOCALSTORAGE.BOARD_ID);
             }
 
             if (finalBoardId) {
@@ -234,7 +252,7 @@ class Migroot {
             }
 
             if (!finalBoardId) {
-                finalBoardId = localStorage.getItem('defaultBoardId');
+                finalBoardId = localStorage.getItem(LOCALSTORAGE.BOARD_ID);
             }
 
             if (finalBoardId) {
@@ -425,90 +443,109 @@ class Migroot {
     /*───────────────────────────  Dashboard/Docs/HUB START ──────────────────────────*/
 
 
-    async init_dashboard({boardId = null, callback = null, type = 'todo'} = {}) {
+    async init_dashboard({boardId = null, callback = null, type = PAGE_TYPES.TODO} = {}) {
         try {
-
-
             this.log.debug('Step 1: Fetching user and board');
             await this.fetchUserData();
-            let finalBoardId = boardId;
+            const finalBoardId = this.#resolveBoardId(boardId);
 
-            if (!finalBoardId) {
-                const urlParams = new URLSearchParams(window.location.search);
-                finalBoardId = urlParams.get('boardId');
-            }
-            if (type === 'todo') {
-                this.log.debug('Step 2: Clearing containers');
-                this.#clearContainers();
-                await this.fetchBoard(finalBoardId);
-                this.log.debug('Step 3: Creating cards based on tasks');
-                this.board.tasks.sort((a, b) => a.priority - b.priority);
-                this.#observeContainersWithCount();
-                this.board.tasks.forEach(item => {
-                    try {
-                        this.createCard(item, {card_type: type});
-                    } catch (err) {
-                        this.log.error('createCard failed for item:', item);
-                        this.log.error(err.message, err.stack);
-                        throw err;
-                    }
-                });
-            } else if (type === 'docs') {
-                this.log.debug('Step 2: Clearing containers');
-                this.#clearContainers();
-                await this.fetchDocs(finalBoardId);
-                this.board.tasks = []
-                this.board.docs.forEach(item => {
-                    try {
-                        var task = item.taskRef
-                        task.commentsCount = 0;
-                        task.filesCount = 0;
-                        task.fileName = item.fileName;
-                        task.viewLink = item.viewLink;
-                        task.fileStatus = item.status;
-                        task.card_type = type;
-                        this.board.tasks.push(task);
-                    } catch (err) {
-                        this.log.error('createDocCard failed for item:', item);
-                        this.log.error(err.message, err.stack);
-                        throw err;
-                    }
-                });
-                this.log.debug('Step 3: Creating cards based on tasks');
-                this.board.tasks.sort((a, b) => a.priority - b.priority);
-                this.board.tasks.forEach(item => {
-                    try {
-                        this.createCard(item, {card_type: type});
-                    } catch (err) {
-                        this.log.error('createCard failed for item:', item);
-                        this.log.error(err.message, err.stack);
-                        throw err;
-                    }
-                });
-            } else if (type === 'create-board') {
-                await this.fetchCountryList();
-                this.renderCountryInputs();
-            } else if (type === 'hub') {
-                this.renderHubFields();
-            } else {
-                this.log.debug('page is not a dashboard: ', type);
-                return;
+            switch (type) {
+                case PAGE_TYPES.TODO:
+                    this.#clearContainers();
+                    await this.#prepareTodo(finalBoardId);
+                    break;
+                case PAGE_TYPES.DOCS:
+                    this.#clearContainers();
+                    await this.#prepareDocs(finalBoardId);
+                    break;
+                case PAGE_TYPES.CREATE_BOARD:
+                    await this.fetchCountryList();
+                    this.renderCountryInputs();
+                    break;
+                case PAGE_TYPES.HUB:
+                    this.renderHubFields();
+                    break;
+                default:
+                    this.log.debug('page is not a dashboard: ', type);
+                    return;
             }
 
             this.renderUserFields();
-
             this.log.debug('Dashboard initialized successfully');
 
             if (typeof callback === 'function') {
                 this.log.debug('callback called');
-                callback({taskCount: this.board.tasks.length}); // можно передавать аргументы
+                try {
+                    callback({ taskCount: this.board.tasks.length });
+                } catch (cbErr) {
+                    this.log.error('Callback failed:', cbErr);
+                }
             }
-
         } catch (error) {
             this.log.error(`Error during init dashboard: ${error.message}`);
             this.log.error('Stack trace:', error.stack);
             throw error;
         }
+    }
+
+    #resolveBoardId(boardId) {
+        let finalBoardId = boardId;
+        if (!finalBoardId) {
+            const urlParams = new URLSearchParams(window.location.search);
+            finalBoardId = urlParams.get('boardId');
+        }
+        if (!finalBoardId) {
+            finalBoardId = localStorage.getItem(LOCALSTORAGE.BOARD_ID);
+        }
+        return finalBoardId;
+    }
+
+    async #prepareTodo(finalBoardId) {
+        await this.fetchBoard(finalBoardId);
+        this.#observeContainersWithCount();
+        this.#createCardsFromTasks(PAGE_TYPES.TODO);
+    }
+
+    async #prepareDocs(finalBoardId) {
+        await this.fetchDocs(finalBoardId);
+        this.board.tasks = [];
+        this.board.docs.forEach(item => {
+            try {
+                this.board.tasks.push(this.#docItemToTask(item));
+            } catch (err) {
+                this.log.error('createDocCard failed for item:', item);
+                this.log.error(err.message, err.stack);
+                throw err;
+            }
+        });
+        this.#createCardsFromTasks(PAGE_TYPES.DOCS);
+    }
+
+    #docItemToTask(item) {
+        const base = item?.taskRef ? { ...item.taskRef } : {};
+        return {
+            ...base,
+            commentsCount: 0,
+            filesCount: 0,
+            fileName: item.fileName,
+            viewLink: item.viewLink,
+            fileStatus: item.status,
+            card_type: PAGE_TYPES.DOCS
+        };
+    }
+
+    #createCardsFromTasks(cardType) {
+        this.log.debug(`Step 3: Creating cards based on ${cardType} tasks`);
+        this.board.tasks.sort((a, b) => a.priority - b.priority);
+        this.board.tasks.forEach(item => {
+            try {
+                this.createCard(item, { card_type: cardType });
+            } catch (err) {
+                this.log.error(`createCard failed for ${cardType} item:`, item);
+                this.log.error(err.message, err.stack);
+                throw err;
+            }
+        });
     }
 
     async init_mg({boardId = null, callback = null} = {}) {
@@ -531,7 +568,7 @@ class Migroot {
     }
 
     renderHubFields() {
-        const countryKey = localStorage.getItem('defaultCountry');
+        const countryKey = localStorage.getItem(LOCALSTORAGE.COUNTRY);
         if (!countryKey) {
             this.log.warning('No country selected in localStorage');
             return;
@@ -622,7 +659,7 @@ class Migroot {
     }
 
     renderNavCountry() {
-        const country = localStorage.getItem('defaultCountry')
+        const country = localStorage.getItem(LOCALSTORAGE.COUNTRY)
         const countryElement = document.getElementById('nav-country');
 
         if (countryElement) {
@@ -638,7 +675,7 @@ class Migroot {
 
     renderBuddyInfo() {
         if (this.isBuddyUser()) {
-            const boardEmail = localStorage.getItem('defaultBoardEmail');
+            const boardEmail = localStorage.getItem(LOCALSTORAGE.EMAIL);
             if (boardEmail) {
                 const buddyEl = document.getElementById('buddy-info')
                 if (buddyEl) {
@@ -651,9 +688,9 @@ class Migroot {
 
 
     renderProgressBar() {
-        const createdDate = localStorage.getItem('defaultBoardDate');
-        const goal = parseInt(localStorage.getItem('defaultBoardGoalTasks'), 10) || 0;
-        const done = parseInt(localStorage.getItem('defaultBoardDoneTasks'), 10) || 0;
+        const createdDate = localStorage.getItem(LOCALSTORAGE.DATE);
+        const goal = parseInt(localStorage.getItem(LOCALSTORAGE.GOAL), 10) || 0;
+        const done = parseInt(localStorage.getItem(LOCALSTORAGE.DONE), 10) || 0;
         const percent = goal > 0 ? Math.round((done / goal) * 100) : 0;
         const dateEl = document.getElementById('created-date')
         const countEl = document.getElementById('progress-bar-count');
@@ -727,14 +764,14 @@ class Migroot {
     }
 
     createCard(item, options = {}) {
-        const {skip_drawer = false, card_type = 'todo'} = options;
+        const {skip_drawer = false, card_type = PAGE_TYPES.TODO} = options;
 
         this.log.debug(`Creating card for ${card_type} item: ${item}`);
 
         var card = null;
-        if (card_type === 'todo') {
+        if (card_type === PAGE_TYPES.TODO) {
             card = this.config.template?.cloneNode(true);
-        } else if (card_type === 'docs') {
+        } else if (card_type === PAGE_TYPES.DOCS) {
             card = this.config.docTemplate?.cloneNode(true);
         }
         if (card) {
@@ -1420,6 +1457,7 @@ class Migroot {
 
 
     #clearContainers() {
+        this.log.debug('Step 2: Clearing containers');
         Object.values(this.config.containers).forEach(container => container.innerHTML = '');
     }
 
