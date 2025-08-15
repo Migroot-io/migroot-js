@@ -1508,7 +1508,7 @@ class Migroot {
         clone.style.height = '100vh';
 
         const button = document.createElement('a');
-        button.textContent = 'DO IT';
+        button.textContent = 'let\'s go';
         button.href = '/app/create-board';
         button.style.display = 'inline-block';
         button.style.padding = '12px 24px';
