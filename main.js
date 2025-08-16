@@ -71,6 +71,7 @@ const PAGE_TYPES = Object.freeze({
     TODO: 'todo',
     DOCS: 'docs',
     HUB: 'hub',
+    ADMIN: 'admin',
     CREATE_BOARD: 'create-board'
 });
 
@@ -119,7 +120,7 @@ class Migroot {
         this.currentUser = null;
         this.boardId = null;
         this.board = {};
-        this.board.tasks = [];
+        this.cards = []
         this.board.docs = null;
         this.countries = null;
         this.token = null;
@@ -232,7 +233,7 @@ class Migroot {
             if (finalBoardId) {
                 await this.loadBoardById(finalBoardId);
             } else {
-                await this.loadUserBoard()
+                await this.loadUserBoards()
                 // await this.loadDummyUserBoard();
             }
             updateLocalStorage(this.board);
@@ -275,7 +276,7 @@ class Migroot {
         });
         this.boardId = this.board.boardId;
         this.boardUser = this.board.owner;
-
+        this.cards = this.board.tasks;
         this.log.debug('Board loaded by ID:', this.board);
         this.log.debug('User initialized from board owner:', this.boardUser);
 
@@ -295,7 +296,7 @@ class Migroot {
         }
     }
 
-    async loadUserBoard(boardUser = null) {
+    async loadUserBoards(boardUser = null) {
         this.boardUser = boardUser || this.currentUser
 
         if (!this.boardUser?.id || !this.boardUser?.type) {
@@ -318,13 +319,14 @@ class Migroot {
         }
 
         this.board = boards[0];
+        this.cards = this.board.tasks;
         this.boardId = this.board.boardId;
 
         this.log.debug('First board initialized for user:', this.board);
     }
 
     async loadUserBoardDocs(boardUser = null) {
-        await this.loadUserBoard(boardUser);
+        await this.loadUserBoards(boardUser);
         if (!this.boardId) {
             this.log.error('No docs and boards found for user:', this.boardUser)
             throw new Error('Fetch docs error: cant get board for user');
@@ -465,6 +467,10 @@ class Migroot {
                 case PAGE_TYPES.HUB:
                     this.renderHubFields();
                     break;
+                case PAGE_TYPES.ADMIN:
+                    // clear local storage
+                    await this.#prepareAdminCards();
+                    break;
                 default:
                     this.log.debug('page is not a dashboard: ', type);
                     return;
@@ -502,26 +508,52 @@ class Migroot {
 
     async #prepareTodo(finalBoardId) {
         await this.fetchBoard(finalBoardId);
+        this.cards = [];
+        this.cards = this.board.tasks;
         this.#observeContainersWithCount();
-        this.#createCardsFromTasks(PAGE_TYPES.TODO);
+        this.#renderCards(PAGE_TYPES.TODO);
     }
 
     async #prepareDocs(finalBoardId) {
         await this.fetchDocs(finalBoardId);
-        this.board.tasks = [];
+        this.cards = [];
         this.board.docs.forEach(item => {
             try {
-                this.board.tasks.push(this.#docItemToTask(item));
+                this.cards.push(this.#docItemToCard(item));
             } catch (err) {
                 this.log.error('createDocCard failed for item:', item);
                 this.log.error(err.message, err.stack);
                 throw err;
             }
         });
-        this.#createCardsFromTasks(PAGE_TYPES.DOCS);
+        this.#renderCards(PAGE_TYPES.DOCS);
     }
 
-    #docItemToTask(item) {
+    async #prepareAdminCards() {
+        this.cards = [];
+        await this.loadUserBoards();
+                this.boards.forEach(item => {
+            try {
+                this.cards.push(this.#boardItemToCard(item));
+            } catch (err) {
+                this.log.error('createBoardCard failed for item:', item);
+                this.log.error(err.message, err.stack);
+                throw err;
+            }
+        });
+        this.#renderCards(PAGE_TYPES.ADMIN);
+    };
+
+    #boardItemToCard(item) {
+        return {
+            email: item.owner.email,
+            fullName: `${item.owner.firstName} ${item.owner.lastName}`,
+            boardNam: `${item.country} ${item.boardType}`,
+            link: `/app/todo?boardId=${item.boardId}`
+        }
+    }
+
+    #docItemToCard(item) {
         const base = item?.taskRef ? { ...item.taskRef } : {};
         return {
             ...base,
@@ -534,12 +566,16 @@ class Migroot {
         };
     }
 
-    #createCardsFromTasks(cardType) {
+    #renderCards(cardType) {
         this.log.debug(`Step 3: Creating cards based on ${cardType} tasks`);
-        this.board.tasks.sort((a, b) => a.priority - b.priority);
-        this.board.tasks.forEach(item => {
+        this.cards.sort((a, b) => a.priority - b.priority);
+
+        this.cards.forEach(item => {
             try {
-                this.createCard(item, { card_type: cardType });
+                this.createCard(item, {
+                    card_type: cardType,
+                    skip_drawer: cardType === PAGE_TYPES.ADMIN
+                });
             } catch (err) {
                 this.log.error(`createCard failed for ${cardType} item:`, item);
                 this.log.error(err.message, err.stack);
@@ -773,6 +809,8 @@ class Migroot {
             card = this.config.template?.cloneNode(true);
         } else if (card_type === PAGE_TYPES.DOCS) {
             card = this.config.docTemplate?.cloneNode(true);
+        } else if (card_type === PAGE_TYPES.ADMIN) {
+            card = this.config.adminCardTemplate?.cloneNode(true);
         }
         if (card) {
             this.#insertCard(card, item);
@@ -825,7 +863,7 @@ class Migroot {
                 return this.config.containers.ready;
             default:
                 this.log.error(`Unknown status: ${status}`);
-                return this.config.containers.notStarted;
+                return this.config.containers.main;
         }
     }
 
@@ -1238,15 +1276,14 @@ class Migroot {
 
         // Persist to backend
         this.api.updateClientTask({status: status}, {taskId: item.clientTaskId}).then(updatedTask => {
-            const taskIndex = this.board.tasks.findIndex(t => String(t.clientTaskId) === item.clientTaskId);
+            const taskIndex = this.cards.findIndex(t => String(t.clientTaskId) === item.clientTaskId);
             if (taskIndex !== -1) {
-                this.smartMerge(this.board.tasks[taskIndex], updatedTask);
-                // Object.assign(this.board.tasks[taskIndex], updatedTask);
-                this.board.tasks[taskIndex]._detailsFetched = true;
-                this.createCard(this.board.tasks[taskIndex], {
-                    skip_drawer: true, card_type: this.board.tasks[taskIndex].card_type
+                this.smartMerge(this.cards[taskIndex], updatedTask);
+                this.cards[taskIndex]._detailsFetched = true;
+                this.createCard(this.cards[taskIndex], {
+                    skip_drawer: true, card_type: this.cards[taskIndex].card_type
                 });
-                this.#updateDrawerContent(this.board.tasks[taskIndex]);
+                this.#updateDrawerContent(this.cards[taskIndex]);
 
             }
         }).catch(err => {
@@ -1396,14 +1433,14 @@ class Migroot {
         if (submitBtn) submitBtn.disabled = true;
 
         this.api.uploadFile(formData, {taskId}).then(updatedTask => {
-            const taskIndex = this.board.tasks.findIndex(t => String(t.clientTaskId) === taskId);
+            const taskIndex = this.cards.findIndex(t => String(t.clientTaskId) === taskId);
             if (taskIndex !== -1) {
-                this.smartMerge(this.board.tasks[taskIndex], updatedTask);
-                this.board.tasks[taskIndex]._detailsFetched = true;
-                this.createCard(this.board.tasks[taskIndex], {
-                    skip_drawer: true, card_type: this.board.tasks[taskIndex].card_type
+                this.smartMerge(this.cards[taskIndex], updatedTask);
+                this.cards[taskIndex]._detailsFetched = true;
+                this.createCard(this.cards[taskIndex], {
+                    skip_drawer: true, card_type: this.cards[taskIndex].card_type
                 });
-                this.#updateDrawerContent(this.board.tasks[taskIndex]);
+                this.#updateDrawerContent(this.cards[taskIndex]);
             } else {
                 this.log.warning(`Task with ID ${taskId} not found in board`);
             }
@@ -1432,14 +1469,14 @@ class Migroot {
             author: authorId, message: message
         };
         this.api.commentClientTask(body, {taskId}).then(updatedTask => {
-            const taskIndex = this.board.tasks.findIndex(t => String(t.clientTaskId) === taskId);
+            const taskIndex = this.cards.findIndex(t => String(t.clientTaskId) === taskId);
             if (taskIndex !== -1) {
-                this.smartMerge(this.board.tasks[taskIndex], updatedTask);
-                this.board.tasks[taskIndex]._detailsFetched = true;
-                this.createCard(this.board.tasks[taskIndex], {
-                    skip_drawer: true, card_type: this.board.tasks[taskIndex].card_type
+                this.smartMerge(this.cards[taskIndex], updatedTask);
+                this.cards[taskIndex]._detailsFetched = true;
+                this.createCard(this.cards[taskIndex], {
+                    skip_drawer: true, card_type: this.cards[taskIndex].card_type
                 });
-                this.#updateDrawerContent(this.board.tasks[taskIndex]);
+                this.#updateDrawerContent(this.cards[taskIndex]);
             } else {
                 this.log.warning(`Task with ID ${taskId} not found in board`);
             }
