@@ -61,7 +61,7 @@ const FREE_USER_BLOCKED_STATUSES = ['ASAP', 'REQUIRES_CHANGES'];
 const STATUS_FLOW_NO_SUBSCRIPTION = Object.freeze({
     NOT_STARTED: {next: 'IN_PROGRESS', prev: null},
     ASAP: {next: 'IN_PROGRESS', prev: 'NOT_STARTED'},
-    IN_PROGRESS: {next: 'READY', prev: 'ASAP'},
+    IN_PROGRESS: {next: 'READY', prev: 'NOT_STARTED'},
     REQUIRES_CHANGES: {next: 'READY', prev: 'IN_PROGRESS'},
     READY: {next: null, prev: 'IN_PROGRESS'},
 });
