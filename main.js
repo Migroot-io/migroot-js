@@ -558,7 +558,7 @@ class Migroot {
         return {
             email: item.owner.email,
             fullName: `${item.owner.firstName} ${item.owner.lastName}`,
-            boardNam: `${item.country} ${item.boardType}`,
+            boardName: `${item.country} ${item.boardType}`,
             link: `/app/todo?boardId=${item.boardId}`
         }
     }
