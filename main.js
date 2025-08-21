@@ -560,7 +560,7 @@ class Migroot {
             email: item.owner.email,
             status: 'dummy',
             fullName: `${item.owner.firstName} ${item.owner.lastName}`,
-            boardName: `${item.country} ${item.boardType}`,
+            boardName: `${item.country} ${item.boardType ?? 'Relocation'}`,
             link: `/app/todo?boardId=${item.boardId}`
         }
     }
