@@ -26,24 +26,14 @@
       const checkOutseta = setInterval(() => {
         if (typeof Outseta !== 'undefined') {
           clearInterval(checkOutseta);
-
-          Outseta.on("auth.initialized", () => {
-            const token = Outseta.getAccessToken();
-
-            if (token) {
-              console.log("✅ Outseta: user authenticated");
-              resolve(token);
-            } else {
-              console.warn("❌ Outseta: user unauthenticated");
-              reject(new Error("Outseta: user is unauthenticated"));
-            }
-          });
         }
       }, 100);
 
       setTimeout(() => {
         clearInterval(checkOutseta);
-        reject(new Error('Outseta loading error'));
+          console.warn("❌ Outseta: user authentication timeout error ");
+          window.location.href = window.location.pathname.startsWith('/staging/') ? '/staging/login' : '/login';
+          reject(new Error('Outseta loading error'));
       }, 5000);
     });
   };
