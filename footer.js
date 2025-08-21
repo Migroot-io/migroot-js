@@ -33,8 +33,8 @@
         clearInterval(checkOutseta);
         console.warn("❌ Outseta: user authentication timeout error ");
         const restrictedSections = ['hub', 'todo', 'docs', 'admin'];
-        const firstSegment = window.location.pathname.split('/').filter(Boolean)[0];
-        if (restrictedSections.includes(firstSegment)) {
+        const dashboard = window.location.pathname.split('/').filter(Boolean)[1];
+        if (restrictedSections.includes(dashboard)) {
           window.location.href = window.location.pathname.startsWith('/staging/')
             ? '/staging/login'
             : '/login';

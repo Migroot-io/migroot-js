@@ -56,8 +56,17 @@ const STATUS_FLOW = Object.freeze({
     READY: {next: null, prev: 'REQUIRES_CHANGES'},
 });
 
+const FREE_USER_BLOCKED_STATUSES = ['ASAP', 'REQUIRES_CHANGES'];
 
-const LOCALSTORAGE = Object.freeze({
+const STATUS_FLOW_NO_SUBSCRIPTION = Object.freeze({
+    NOT_STARTED: {next: 'IN_PROGRESS', prev: null},
+    ASAP: {next: 'IN_PROGRESS', prev: 'NOT_STARTED'},
+    IN_PROGRESS: {next: 'READY', prev: 'ASAP'},
+    REQUIRES_CHANGES: {next: 'READY', prev: 'IN_PROGRESS'},
+    READY: {next: null, prev: 'IN_PROGRESS'},
+});
+
+const LOCALSTORAGE_KEYS = Object.freeze({
     COUNTRY: 'defaultCountry',
     BOARD_ID: 'defaultBoardId',
     GOAL: 'defaultBoardGoalTasks',
@@ -209,12 +218,12 @@ class Migroot {
             const goalTasks = board.tasks.filter(task => task.documentRequired).length;
             const doneTasks = board.tasks.filter(task => task.status === 'READY' && task.documentRequired).length;
 
-            localStorage.setItem(LOCALSTORAGE.COUNTRY, board.country || '');
-            localStorage.setItem(LOCALSTORAGE.BOARD_ID, board.boardId || '');
-            localStorage.setItem(LOCALSTORAGE.GOAL, String(goalTasks));
-            localStorage.setItem(LOCALSTORAGE.DONE, String(doneTasks));
-            localStorage.setItem(LOCALSTORAGE.DATE, readableDate || '')
-            localStorage.setItem(LOCALSTORAGE.EMAIL, board.owner.email || '')
+            localStorage.setItem(LOCALSTORAGE_KEYS.COUNTRY, board.country || '');
+            localStorage.setItem(LOCALSTORAGE_KEYS.BOARD_ID, board.boardId || '');
+            localStorage.setItem(LOCALSTORAGE_KEYS.GOAL, String(goalTasks));
+            localStorage.setItem(LOCALSTORAGE_KEYS.DONE, String(doneTasks));
+            localStorage.setItem(LOCALSTORAGE_KEYS.DATE, readableDate || '')
+            localStorage.setItem(LOCALSTORAGE_KEYS.EMAIL, board.owner.email || '')
 
         }
 
@@ -227,7 +236,7 @@ class Migroot {
             }
 
             if (!finalBoardId) {
-                finalBoardId = localStorage.getItem(LOCALSTORAGE.BOARD_ID);
+                finalBoardId = localStorage.getItem(LOCALSTORAGE_KEYS.BOARD_ID);
             }
 
             if (finalBoardId) {
@@ -253,7 +262,7 @@ class Migroot {
             }
 
             if (!finalBoardId) {
-                finalBoardId = localStorage.getItem(LOCALSTORAGE.BOARD_ID);
+                finalBoardId = localStorage.getItem(LOCALSTORAGE_KEYS.BOARD_ID);
             }
 
             if (finalBoardId) {
@@ -454,6 +463,7 @@ class Migroot {
             switch (type) {
                 case PAGE_TYPES.TODO:
                     this.#clearContainers();
+                    this.hideBlockedContainers();
                     await this.#prepareTodo(finalBoardId);
                     break;
                 case PAGE_TYPES.DOCS:
@@ -468,7 +478,7 @@ class Migroot {
                     this.renderHubFields();
                     break;
                 case PAGE_TYPES.ADMIN:
-                    // clear local storage
+                    this.clearBoardLocalCache()
                     await this.#prepareAdminCards();
                     break;
                 default:
@@ -501,7 +511,7 @@ class Migroot {
             finalBoardId = urlParams.get('boardId');
         }
         if (!finalBoardId) {
-            finalBoardId = localStorage.getItem(LOCALSTORAGE.BOARD_ID);
+            finalBoardId = localStorage.getItem(LOCALSTORAGE_KEYS.BOARD_ID);
         }
         return finalBoardId;
     }
@@ -604,7 +614,7 @@ class Migroot {
     }
 
     renderHubFields() {
-        const countryKey = localStorage.getItem(LOCALSTORAGE.COUNTRY);
+        const countryKey = localStorage.getItem(LOCALSTORAGE_KEYS.COUNTRY);
         if (!countryKey) {
             this.log.warning('No country selected in localStorage');
             return;
@@ -695,7 +705,7 @@ class Migroot {
     }
 
     renderNavCountry() {
-        const country = localStorage.getItem(LOCALSTORAGE.COUNTRY)
+        const country = localStorage.getItem(LOCALSTORAGE_KEYS.COUNTRY)
         const countryElement = document.getElementById('nav-country');
 
         if (countryElement) {
@@ -711,7 +721,7 @@ class Migroot {
 
     renderBuddyInfo() {
         if (this.isBuddyUser()) {
-            const boardEmail = localStorage.getItem(LOCALSTORAGE.EMAIL);
+            const boardEmail = localStorage.getItem(LOCALSTORAGE_KEYS.EMAIL);
             if (boardEmail) {
                 const buddyEl = document.getElementById('buddy-info')
                 if (buddyEl) {
@@ -724,9 +734,9 @@ class Migroot {
 
 
     renderProgressBar() {
-        const createdDate = localStorage.getItem(LOCALSTORAGE.DATE);
-        const goal = parseInt(localStorage.getItem(LOCALSTORAGE.GOAL), 10) || 0;
-        const done = parseInt(localStorage.getItem(LOCALSTORAGE.DONE), 10) || 0;
+        const createdDate = localStorage.getItem(LOCALSTORAGE_KEYS.DATE);
+        const goal = parseInt(localStorage.getItem(LOCALSTORAGE_KEYS.GOAL), 10) || 0;
+        const done = parseInt(localStorage.getItem(LOCALSTORAGE_KEYS.DONE), 10) || 0;
         const percent = goal > 0 ? Math.round((done / goal) * 100) : 0;
         const dateEl = document.getElementById('created-date')
         const countEl = document.getElementById('progress-bar-count');
@@ -792,11 +802,51 @@ class Migroot {
     }
 
     getNextStatus(current) {
-        return STATUS_FLOW[current]?.next ?? null;
+        const flow = this.isFreeUser() ? STATUS_FLOW_NO_SUBSCRIPTION : STATUS_FLOW;
+        return flow[current]?.next ?? null;
     }
 
     getPrevStatus(current) {
-        return STATUS_FLOW[current]?.prev ?? null;
+        const flow = this.isFreeUser() ? STATUS_FLOW_NO_SUBSCRIPTION : STATUS_FLOW;
+        return flow[current]?.prev ?? null;
+    }
+
+    hideBlockedContainers() {
+        if (!this.isFreeUser()) return;
+
+        FREE_USER_BLOCKED_STATUSES.forEach(status => {
+            let container = null;
+
+            switch (status) {
+                case 'ASAP':
+                    container = this.config.containers.asap;
+                    break;
+                case 'REQUIRES_CHANGES':
+                    container = this.config.containers.edit;
+                    break;
+            }
+
+            if (container) {
+                const parent = container.closest('.brd-column'); // ищем родителя
+                if (parent) {
+                    parent.remove(); // убираем целый .brd-column
+                    this.log.info(`✨ Free user - removed parent .brd-column for ${status}`);
+                } else {
+                    this.log.warn(`⚠️ No parent .brd-column found for ${status}`);
+                }
+            }
+        });
+    }
+
+    isFreeUser() {
+      return this.boardUser?.subscriptionPlan?.includes('Free') || false;
+    }
+
+    clearBoardLocalCache() {
+      Object.values(LOCALSTORAGE_KEYS).forEach(key => {
+        localStorage.removeItem(key);
+      });
+      this.log.info('✨ Cleared board cache from localStorage');
     }
 
     createCard(item, options = {}) {
@@ -850,6 +900,10 @@ class Migroot {
     /*───────────────────────────  Card & Drawer DOM START ──────────────────*/
 
     #getStatusContainer(status) {
+        if (this.isFreeUser() && FREE_USER_BLOCKED_STATUSES.includes(status)) {
+            this.log.debug(`✨ Free user - remap status ${status}`);
+            status = this.getPrevStatus(status);
+        }
         switch (status) {
             case 'NOT_STARTED':
                 return this.config.containers.notStarted;
