@@ -68,7 +68,7 @@ async function initDashboard() {
     }
     console.warn("Migroot init stopped:", error);
   }
-    if (typeof preloaderError === 'function') {
+    if (typeof preloaderError === 'function' && !window.mg) {
       preloaderError('oops...something happens');
     }
 }
