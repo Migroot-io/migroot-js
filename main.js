@@ -328,7 +328,6 @@ class Migroot {
         }
 
         this.board = boards[0];
-        this.cards = this.board.tasks;
         this.boardId = this.board.boardId;
 
         this.log.debug('First board initialized for user:', this.board);
