@@ -491,7 +491,7 @@ class Migroot {
             if (typeof callback === 'function') {
                 this.log.debug('callback called');
                 try {
-                    callback({ taskCount: this.board.tasks.length });
+                    callback({ cards: this.cards.length });
                 } catch (cbErr) {
                     this.log.error('Callback failed:', cbErr);
                 }
