@@ -463,8 +463,8 @@ class Migroot {
             switch (type) {
                 case PAGE_TYPES.TODO:
                     this.#clearContainers();
-                    this.hideBlockedContainers();
                     await this.#prepareTodo(finalBoardId);
+                    this.hideBlockedContainers();
                     break;
                 case PAGE_TYPES.DOCS:
                     this.#clearContainers();
