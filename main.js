@@ -1013,7 +1013,8 @@ class Migroot {
     #insertCard(card, item) {
         this.#setContent(card, item, {
             fieldSelector: '[data-task]', labelSelector: '.t-mark__label', renderers: {
-                viewLink: this.#renderFileUrl.bind(this),  // for doc-board
+                viewLink: this.#renderUrl.bind(this),  // for doc-board
+                link: this.#renderUrl.bind(this),  // for admin
                 deadline: this.#renderDeadline.bind(this),
                 difficulty: this.#renderDifficulty.bind(this)
             }
@@ -1286,7 +1287,7 @@ class Migroot {
         });
     }
 
-    #renderFileUrl(el, val) {
+    #renderUrl(el, val) {
         if (!val) {
             return;
         }
