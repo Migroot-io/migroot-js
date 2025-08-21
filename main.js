@@ -485,8 +485,8 @@ class Migroot {
                     this.log.debug('page is not a dashboard: ', type);
                     return;
             }
-
             this.renderUserFields();
+            this.renderStagingUrls();
             this.log.debug('Dashboard initialized successfully');
 
             if (typeof callback === 'function') {
@@ -719,8 +719,22 @@ class Migroot {
         }
     }
 
+    renderStagingUrls() {
+      const isStaging = window.location.pathname.startsWith('/staging/');
+      if (!isStaging) return;
+
+      // пробегаем все ссылки
+      document.querySelectorAll('a[href*="/app/"]').forEach(link => {
+        link.href = link.href.replace('/app/', '/staging/');
+      });
+    }
+
     renderBuddyInfo() {
         if (this.isBuddyUser()) {
+            const adminLink = document.getElementById('admin-link')
+            if (adminLink) {
+                adminLink.style.display = 'flex';
+            }
             const boardEmail = localStorage.getItem(LOCALSTORAGE_KEYS.EMAIL);
             if (boardEmail) {
                 const buddyEl = document.getElementById('buddy-info')
@@ -917,7 +931,8 @@ class Migroot {
                 return this.config.containers.ready;
             default:
                 this.log.error(`Unknown status: ${status}`);
-                return this.config.containers.main;
+                // todo allDrawers rename to general space or similar
+                return this.config.allDrawers;
         }
     }
 
