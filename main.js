@@ -518,7 +518,15 @@ class Migroot {
     async #prepareTodo(finalBoardId) {
         await this.fetchBoard(finalBoardId);
         this.cards = [];
-        this.cards = this.board.tasks;
+        this.board.tasks.forEach(item => {
+            try {
+                this.cards.push(this.#taskItemToCard(item));
+            } catch (err) {
+                this.log.error('createTaskCard failed for item:', item);
+                this.log.error(err.message, err.stack);
+                throw err;
+            }
+        });
         this.#observeContainersWithCount();
         this.#renderCards(PAGE_TYPES.TODO);
     }
@@ -565,6 +573,13 @@ class Migroot {
         }
     }
 
+    #taskItemToCard(item) {
+        return {
+            ...item,
+            status: this.#processStatus(item.status),
+        };
+    }
+
     #docItemToCard(item) {
         const base = item?.taskRef ? { ...item.taskRef } : {};
         return {
@@ -573,9 +588,17 @@ class Migroot {
             filesCount: 0,
             fileName: item.fileName,
             viewLink: item.viewLink,
-            fileStatus: item.status,
+            fileStatus: this.#processStatus(item.status),
             card_type: PAGE_TYPES.DOCS
         };
+    }
+
+    #processStatus(status) {
+        if (this.isFreeUser() && FREE_USER_BLOCKED_STATUSES.includes(status)) {
+            this.log.debug(`✨ Free user - remap status ${status}`);
+            status = this.getPrevStatus(status);
+        }
+        return status;
     }
 
     #renderCards(cardType) {
@@ -916,10 +939,6 @@ class Migroot {
     /*───────────────────────────  Card & Drawer DOM START ──────────────────*/
 
     #getStatusContainer(status) {
-        if (this.isFreeUser() && FREE_USER_BLOCKED_STATUSES.includes(status)) {
-            this.log.debug(`✨ Free user - remap status ${status}`);
-            status = this.getPrevStatus(status);
-        }
         switch (status) {
             case 'NOT_STARTED':
                 return this.config.containers.notStarted;
