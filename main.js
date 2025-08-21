@@ -1095,6 +1095,7 @@ class Migroot {
                 this.log.debug(`Enriching task ${item.clientTaskId} with full details`);
                 this.api.getClientTask({}, {taskId: item.clientTaskId})
                     .then(fullTask => {
+                        fullTask = this.#taskItemToCard(fullTask);
                         this.smartMerge(task, fullTask);
                         task._detailsFetched = true;
                         this.log.debug(`Task ${task.clientTaskId} enriched with full data`);
