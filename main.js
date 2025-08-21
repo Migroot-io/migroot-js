@@ -541,12 +541,14 @@ class Migroot {
 
     async #prepareAdminCards() {
         this.cards = [];
+        this.log.debug('start filling cards with admin boards');
         await this.loadUserBoards();
                 this.boards.forEach(item => {
             try {
+                this.log.debug('creating AdminCard  for item:', item);
                 this.cards.push(this.#boardItemToCard(item));
             } catch (err) {
-                this.log.error('createBoardCard failed for item:', item);
+                this.log.error('createAdminCard failed for item:', item);
                 this.log.error(err.message, err.stack);
                 throw err;
             }
@@ -557,6 +559,7 @@ class Migroot {
     #boardItemToCard(item) {
         return {
             email: item.owner.email,
+            status: 'dummy',
             fullName: `${item.owner.firstName} ${item.owner.lastName}`,
             boardName: `${item.country} ${item.boardType}`,
             link: `/app/todo?boardId=${item.boardId}`
