@@ -20,7 +20,7 @@
     window.mg = new Migroot(CONFIG);
   }
 
-  // Wait for Outseta object to load and then fetch data
+
   function waitForOutseta() {
     return new Promise((resolve, reject) => {
       const checkOutseta = setInterval(() => {
@@ -32,14 +32,6 @@
 
       setTimeout(() => {
         clearInterval(checkOutseta);
-        console.warn("❌ Outseta: user authentication timeout error ");
-        const restrictedSections = ['hub', 'todo', 'docs', 'admin'];
-        const dashboard = window.location.pathname.split('/').filter(Boolean)[1];
-        if (restrictedSections.includes(dashboard)) {
-          window.location.href = window.location.pathname.startsWith('/staging/')
-            ? '/staging/login'
-            : '/login';
-        }
         reject(new Error('Outseta loading error'));
       }, 5000);
     });
