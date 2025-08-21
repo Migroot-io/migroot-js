@@ -26,6 +26,7 @@
       const checkOutseta = setInterval(() => {
         if (typeof Outseta !== 'undefined') {
           clearInterval(checkOutseta);
+          resolve();
         }
       }, 100);
 
