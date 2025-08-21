@@ -68,9 +68,9 @@ async function initDashboard() {
     }
     console.warn("Migroot init stopped:", error);
   }
-  if (typeof preloaderFinish === 'function') {
-      preloaderFinish();
-  }
+    if (typeof preloaderError === 'function') {
+      preloaderError('oops...something happens');
+    }
 }
 
 window.onload = async function () {
