@@ -31,9 +31,15 @@
 
       setTimeout(() => {
         clearInterval(checkOutseta);
-          console.warn("❌ Outseta: user authentication timeout error ");
-          window.location.href = window.location.pathname.startsWith('/staging/') ? '/staging/login' : '/login';
-          reject(new Error('Outseta loading error'));
+        console.warn("❌ Outseta: user authentication timeout error ");
+        const restrictedSections = ['hub', 'todo', 'docs', 'admin'];
+        const firstSegment = window.location.pathname.split('/').filter(Boolean)[0];
+        if (restrictedSections.includes(firstSegment)) {
+          window.location.href = window.location.pathname.startsWith('/staging/')
+            ? '/staging/login'
+            : '/login';
+        }
+        reject(new Error('Outseta loading error'));
       }, 5000);
     });
   };
