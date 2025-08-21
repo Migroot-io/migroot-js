@@ -318,7 +318,7 @@ class Migroot {
         const boards = await this.api.searchBoard({
             userType: this.boardUser.type, userId: this.boardUser.id
         });
-
+        this.boards = boards;
         this.log.debug('Boards found for user:', boards);
 
         if (!Array.isArray(boards) || boards.length === 0) {
