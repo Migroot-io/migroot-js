@@ -19,13 +19,25 @@
 
     window.mg = new Migroot(CONFIG);
   }
+
   // Wait for Outseta object to load and then fetch data
   function waitForOutseta() {
     return new Promise((resolve, reject) => {
       const checkOutseta = setInterval(() => {
         if (typeof Outseta !== 'undefined') {
           clearInterval(checkOutseta);
-          resolve();
+
+          Outseta.on("auth.initialized", () => {
+            const token = Outseta.getAccessToken();
+
+            if (token) {
+              console.log("✅ Outseta: user authenticated");
+              resolve(token);
+            } else {
+              console.warn("❌ Outseta: user unauthenticated");
+              reject(new Error("Outseta: user is unauthenticated"));
+            }
+          });
         }
       }, 100);
 
@@ -39,7 +51,7 @@
 
 async function initDashboard() {
   try {
-    const allowedPages = ['app']; // all pages started from app
+    const allowedPages = ['app', 'staging']; // all pages started from app
     const currentPath = window.location.pathname.split('/').filter(Boolean)[0];
     if (!allowedPages.includes(currentPath)) {
       return;
@@ -66,6 +78,9 @@ async function initDashboard() {
       preloaderError(error.message || error);
     }
     console.warn("Migroot init stopped:", error);
+  }
+  if (typeof preloaderFinish === 'function') {
+      preloaderFinish();
   }
 }
 
