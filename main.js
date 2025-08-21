@@ -932,7 +932,7 @@ class Migroot {
             case 'READY':
                 return this.config.containers.ready;
             default:
-                this.log.error(`Unknown status: ${status}`);
+                this.log.warning(`Unknown status: ${status}`);
                 // todo allDrawers rename to general space or similar
                 return this.config.allDrawers;
         }
