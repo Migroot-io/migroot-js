@@ -970,13 +970,13 @@ class Migroot {
      * @param {HTMLElement} clone  – the clone to populate.
      * @param {TaskItem}    item   – task data.
      * @param {Object}      [opts] – optional behaviour overrides.
-     * @param {string}      [opts.fieldSelector='[data-task]']   – selector for all “data holders”.
-     * @param {string}      [opts.labelSelector='.t-mark__label'] – selector for the label inside each holder.
+     * @param {string}      [opts.fieldSelector='[data-card]']   – selector for all “data holders”.
+     * @param {string}      [opts.labelSelector='.js-ingest'] – selector for the label inside each holder.
      * @param {Object}      [opts.renderers]                     – per‑field rendering functions (receive (el, value)).
      */
 
     #setContent(clone, item, {
-        fieldSelector = '[data-task]', labelSelector = '.t-mark__label', renderers = {}
+        fieldSelector = '[data-card]', labelSelector = '.js-ingest', renderers = {}
     } = {}) {
         const allFields = clone.querySelectorAll(fieldSelector);
         // Derive the attribute name from selector, e.g. '[data-task]' → 'data-task'
@@ -1034,7 +1034,7 @@ class Migroot {
 
     #insertCard(card, item) {
         this.#setContent(card, item, {
-            fieldSelector: '[data-task]', labelSelector: '.t-mark__label', renderers: {
+            fieldSelector: '[data-card]', labelSelector: '.js-ingest', renderers: {
                 viewLink: this.#renderUrl.bind(this),  // for doc-board
                 link: this.#renderUrl.bind(this),  // for admin
                 deadline: this.#renderDeadline.bind(this),
@@ -1140,7 +1140,7 @@ class Migroot {
 
     #drawerOpts() {
         return {
-            fieldSelector: '[data-drawer]', labelSelector: '.t-label', renderers: {
+            fieldSelector: '[data-drawer]', labelSelector: '.js-ingest', renderers: {
                 deadline: this.#renderDeadline.bind(this),
                 difficulty: this.#renderDifficulty.bind(this),
                 longDescription: this.#renderLongDescription.bind(this), // upload_button     : this.#renderUploadButton.bind(this),
