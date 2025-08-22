@@ -1433,7 +1433,7 @@ class Migroot {
                 await new Promise(resolve => setTimeout(resolve, 2000));
                 // The overlay remains until redirect.
 
-                window.location.href = `${this.appPrefix()}todo?boardId=${createdBoard.boardId}`;
+                window.location.href = `${this.appPrefix()}/todo?boardId=${createdBoard.boardId}`;
             } else {
                 this.log.error('Invalid response: boardId or status missing', createdBoard);
             }
