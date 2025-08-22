@@ -569,7 +569,7 @@ class Migroot {
             status: 'dummy',
             fullName: `${item.owner.firstName} ${item.owner.lastName}`,
             boardName: `${item.country} ${item.boardType ?? 'Relocation'}`,
-            link: `/app/todo?boardId=${item.boardId}`
+            link: `${this.appPrefix()}/todo?boardId=${item.boardId}`
         }
     }
 
@@ -748,10 +748,13 @@ class Migroot {
       const isStaging = window.location.pathname.startsWith('/staging/');
       if (!isStaging) return;
 
-      // пробегаем все ссылки
       document.querySelectorAll('a[href*="/app/"]').forEach(link => {
         link.href = link.href.replace('/app/', '/staging/');
       });
+    }
+
+    appPrefix() {
+      return window.location.pathname.startsWith('/staging/') ? '/staging' : '/app';
     }
 
     renderBuddyInfo() {
@@ -1429,7 +1432,8 @@ class Migroot {
                 this.log.debug('Board successfully created', createdBoard);
                 await new Promise(resolve => setTimeout(resolve, 2000));
                 // The overlay remains until redirect.
-                window.location.href = `/app/todo?boardId=${createdBoard.boardId}`;
+
+                window.location.href = `${this.appPrefix()}todo?boardId=${createdBoard.boardId}`;
             } else {
                 this.log.error('Invalid response: boardId or status missing', createdBoard);
             }
@@ -1676,7 +1680,7 @@ class Migroot {
 
         const button = document.createElement('a');
         button.textContent = 'let\'s go';
-        button.href = '/app/create-board';
+        button.href = `${this.appPrefix()}/create-board`;
         button.style.display = 'inline-block';
         button.style.padding = '12px 24px';
         button.style.backgroundColor = '#ff9900';
