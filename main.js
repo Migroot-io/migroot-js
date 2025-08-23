@@ -75,6 +75,7 @@ const LOCALSTORAGE_KEYS = Object.freeze({
     EMAIL: 'defaultBoardEmail'
 });
 
+USER_CONTROL_IDS = ['hubLink', 'todoLink', 'docsLink']
 
 const PAGE_TYPES = Object.freeze({
     TODO: 'todo',
@@ -202,31 +203,6 @@ class Migroot {
     }
 
     async fetchBoard(boardId = null) {
-        function updateLocalStorage(board) {
-            if (!board || !Array.isArray(board.tasks)) {
-                this.log.error('Board data is missing or malformed');
-                return;
-            }
-            if (board.createdDate) {
-                const isoDate = board.createdDate;
-                const date = new Date(isoDate);
-                var readableDate = date.toLocaleString('en-GB', {
-                    day: 'numeric', month: 'short', year: 'numeric',
-                });
-            }
-
-            const goalTasks = board.tasks.filter(task => task.documentRequired).length;
-            const doneTasks = board.tasks.filter(task => task.status === 'READY' && task.documentRequired).length;
-
-            localStorage.setItem(LOCALSTORAGE_KEYS.COUNTRY, board.country || '');
-            localStorage.setItem(LOCALSTORAGE_KEYS.BOARD_ID, board.boardId || '');
-            localStorage.setItem(LOCALSTORAGE_KEYS.GOAL, String(goalTasks));
-            localStorage.setItem(LOCALSTORAGE_KEYS.DONE, String(doneTasks));
-            localStorage.setItem(LOCALSTORAGE_KEYS.DATE, readableDate || '')
-            localStorage.setItem(LOCALSTORAGE_KEYS.EMAIL, board.owner.email || '')
-
-        }
-
         try {
             if (boardId) {
                 await this.loadBoardById(boardId);
@@ -234,7 +210,7 @@ class Migroot {
                 await this.loadUserBoards()
                 // await this.loadDummyUserBoard();
             }
-            updateLocalStorage(this.board);
+            // this.updateLocalStorage(this.board);
         } catch (error) {
             this.log.error('Board initialization failed:', error);
             throw error;
@@ -443,10 +419,12 @@ class Migroot {
                     this.#clearContainers();
                     await this.#prepareTodo(finalBoardId);
                     this.hideBlockedContainers();
+                    this.#updateLocalStorage(this.board);
                     break;
                 case PAGE_TYPES.DOCS:
                     this.#clearContainers();
                     await this.#prepareDocs(finalBoardId);
+                    this.#updateLocalStorage(this.board);
                     break;
                 case PAGE_TYPES.CREATE_BOARD:
                     await this.fetchCountryList();
@@ -454,10 +432,12 @@ class Migroot {
                     break;
                 case PAGE_TYPES.HUB:
                     this.renderHubFields();
+                    // this.#updateLocalStorage(this.board);
                     break;
                 case PAGE_TYPES.ADMIN:
                     this.clearBoardLocalCache()
                     await this.#prepareAdminCards();
+                    this.#hideUserControls();
                     break;
                 default:
                     this.log.debug('page is not a dashboard: ', type);
@@ -587,6 +567,31 @@ class Migroot {
         return status;
     }
 
+    #updateLocalStorage(board) {
+            if (!board || !Array.isArray(board.tasks)) {
+                this.log.error('Board data is missing or malformed');
+                return;
+            }
+            if (board.createdDate) {
+                const isoDate = board.createdDate;
+                const date = new Date(isoDate);
+                var readableDate = date.toLocaleString('en-GB', {
+                    day: 'numeric', month: 'short', year: 'numeric',
+                });
+            }
+
+            const goalTasks = board.tasks.filter(task => task.documentRequired).length;
+            const doneTasks = board.tasks.filter(task => task.status === 'READY' && task.documentRequired).length;
+
+            localStorage.setItem(LOCALSTORAGE_KEYS.COUNTRY, board.country || '');
+            localStorage.setItem(LOCALSTORAGE_KEYS.BOARD_ID, board.boardId || '');
+            localStorage.setItem(LOCALSTORAGE_KEYS.GOAL, String(goalTasks));
+            localStorage.setItem(LOCALSTORAGE_KEYS.DONE, String(doneTasks));
+            localStorage.setItem(LOCALSTORAGE_KEYS.DATE, readableDate || '')
+            localStorage.setItem(LOCALSTORAGE_KEYS.EMAIL, board.owner.email || '')
+
+        }
+
     #renderCards(cardType) {
         this.log.debug(`Step 3: Creating cards based on ${cardType} tasks`);
         this.cards.sort((a, b) => a.priority - b.priority);
@@ -623,6 +628,8 @@ class Migroot {
         this.renderProgressBar();
         this.renderBuddyInfo();
     }
+
+
 
     renderHubFields() {
         const countryKey = localStorage.getItem(LOCALSTORAGE_KEYS.COUNTRY);
@@ -758,6 +765,15 @@ class Migroot {
                 }
             }
         }
+    }
+
+    #hideUserControls() {
+        USER_CONTROL_IDS.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
+                el.style.display = "none";
+            }
+        });
     }
 
 
