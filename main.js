@@ -478,10 +478,10 @@ class Migroot {
             const urlParams = new URLSearchParams(window.location.search);
             finalBoardId = urlParams.get('boardId');
         }
-        if (!finalBoardId) {
-            this.log.debug('boardId not found in url: triyng to get from LS')
-            finalBoardId = localStorage.getItem(LOCALSTORAGE_KEYS.BOARD_ID);
-        }
+        // if (!finalBoardId) {
+        //     this.log.debug('boardId not found in url: triyng to get from LS')
+        //     finalBoardId = localStorage.getItem(LOCALSTORAGE_KEYS.BOARD_ID);
+        // }
         this.log.debug(`boardId result: ${finalBoardId}`)
         return finalBoardId;
     }
@@ -785,26 +785,19 @@ class Migroot {
     }
 
     #appendBoardIdToLinks(boardId) {
-        if (!boardId) {
-            console.warn('⚠️ appendBoardIdToLinks: boardId is missing');
-            return;
+      USER_CONTROL_IDS.forEach(id => {
+        const link = document.getElementById(id);
+        if (link && link.href) {
+          try {
+            const url = new URL(link.href);
+            url.searchParams.set('boardId', boardId);
+            link.href = url.toString();
+            this.log.debug(`✨ Updated link [${id}]: ${link.href}`);
+          } catch (e) {
+            this.log.debug(`Invalid URL in link [${id}]:`, link.href);
+          }
         }
-
-        USER_CONTROL_IDS.forEach(id => {
-            const container = document.getElementById(id);
-            if (!container) return;
-
-            const links = container.querySelectorAll('a');
-            links.forEach(link => {
-                try {
-                    const url = new URL(link.href, window.location.origin);
-                    url.searchParams.set('boardId', boardId);
-                    link.href = url.toString();
-                } catch (err) {
-                    console.error(`❌ Failed to update link for ${id}:`, err);
-                }
-            });
-        });
+      });
     }
 
 
