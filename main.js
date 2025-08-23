@@ -228,19 +228,8 @@ class Migroot {
         }
 
         try {
-            let finalBoardId = boardId;
-
-            if (!finalBoardId) {
-                const urlParams = new URLSearchParams(window.location.search);
-                finalBoardId = urlParams.get('boardId');
-            }
-
-            if (!finalBoardId) {
-                finalBoardId = localStorage.getItem(LOCALSTORAGE_KEYS.BOARD_ID);
-            }
-
-            if (finalBoardId) {
-                await this.loadBoardById(finalBoardId);
+            if (boardId) {
+                await this.loadBoardById(boardId);
             } else {
                 await this.loadUserBoards()
                 // await this.loadDummyUserBoard();
@@ -254,19 +243,9 @@ class Migroot {
 
     async fetchDocs(boardId = null) {
         try {
-            let finalBoardId = boardId;
 
-            if (!finalBoardId) {
-                const urlParams = new URLSearchParams(window.location.search);
-                finalBoardId = urlParams.get('boardId');
-            }
-
-            if (!finalBoardId) {
-                finalBoardId = localStorage.getItem(LOCALSTORAGE_KEYS.BOARD_ID);
-            }
-
-            if (finalBoardId) {
-                await this.loadBoardDocsById(finalBoardId);
+            if (boardId) {
+                await this.loadBoardDocsById(boardId);
             } else {
                 await this.loadUserBoardDocs()
             }
