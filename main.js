@@ -1311,11 +1311,24 @@ class Migroot {
                 if (statusEl) statusEl.className = `f-item__status ${updatedFile.status}`;
             }
             actionsContainer.innerHTML = originalHTML;
+            const taskId = updatedFile?.taskRef?.clientTaskId;
+            const taskIndex = this.cards.findIndex(t => String(t.clientTaskId) === taskId);
+            if (taskIndex !== -1) {
+                this.smartMerge(this.cards[taskIndex], updatedTask);
+                this.cards[taskIndex]._detailsFetched = true;
+                this.createCard(this.cards[taskIndex], {
+                    skip_drawer: true, card_type: this.cards[taskIndex].card_type
+                });
+                this.#updateDrawerContent(this.cards[taskIndex]);
+            } else {
+                this.log.warning(`Task with ID ${taskId} not found in board`);
+            }
         }).catch(err => {
             this.log.error(`Failed to approve file ${fileId}:`, err);
             actionsContainer.innerHTML = originalHTML;
         });
     }
+
 
     #handleRejectFile(el) {
         const fileId = el?.dataset?.fileId;
@@ -1331,6 +1344,18 @@ class Migroot {
                 if (statusEl) statusEl.className = `f-item__status ${updatedFile.status}`;
             }
             actionsContainer.innerHTML = originalHTML;
+            const taskId = updatedFile?.taskRef?.clientTaskId;
+            const taskIndex = this.cards.findIndex(t => String(t.clientTaskId) === taskId);
+            if (taskIndex !== -1) {
+                this.smartMerge(this.cards[taskIndex], updatedTask);
+                this.cards[taskIndex]._detailsFetched = true;
+                this.createCard(this.cards[taskIndex], {
+                    skip_drawer: true, card_type: this.cards[taskIndex].card_type
+                });
+                this.#updateDrawerContent(this.cards[taskIndex]);
+            } else {
+                this.log.warning(`Task with ID ${taskId} not found in board`);
+            }
         }).catch(err => {
             this.log.error(`Failed to reject file ${fileId}:`, err);
             actionsContainer.innerHTML = originalHTML;
