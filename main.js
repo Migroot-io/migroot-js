@@ -850,11 +850,15 @@ class Migroot {
         for (const key of Object.keys(source)) {
             const srcVal = source[key];
             const tgtVal = target[key];
+            this.log.debug(`[smartMerge] Processing key="${key}"`)
 
             if (Array.isArray(srcVal)) {
                 if (srcVal.length === 0 && Array.isArray(tgtVal) && tgtVal.length > 0) {
+                    this.log.debug(`[smartMerge] Processing key="${key}" array condition lost `)
+
                     continue;
                 }
+                this.log.debug(`[smartMerge] Processing key="${key}" array condition won `)
                 target[key] = srcVal;
             } else if (srcVal !== null && typeof srcVal === 'object') {
                 if (!tgtVal || typeof tgtVal !== 'object') {
@@ -1383,6 +1387,7 @@ class Migroot {
         // Tab 3: Files
         const filesPane = drawer.querySelector('.tb-pane[data-w-tab="Tab 3"]');
         if (filesPane) this.#renderFiles(filesPane, task.files);
+
 
         this.#setContent(drawer, task, this.#drawerOpts());
         drawer.dataset.status = task.status || '';
