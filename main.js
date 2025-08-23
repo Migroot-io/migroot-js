@@ -1119,7 +1119,7 @@ class Migroot {
             this.log.debug(`Drawer opened for card ID: ${item.clientTaskId}`);
 
             // --- Enrich with full task data if not fetched yet ---
-            const task = this.board?.tasks?.find(t => String(t.clientTaskId) === item.clientTaskId);
+            const task = this.cards?.find(t => String(t.clientTaskId) === item.clientTaskId);
             this.log.debug('Checking task: ', task);
 
             this.log.debug('Checking if task needs enrichment', {
@@ -1396,27 +1396,27 @@ class Migroot {
 
     #handleStartFromButton(btn) {
         const id = this.#taskIdFromDrawer(btn);
-        const item = this.board?.tasks?.find(t => String(t.clientTaskId) === id);
+        const item = this.cards?.find(t => String(t.clientTaskId) === id);
         if (item) this.#handleStatusChange(item, 'IN_PROGRESS');
     }
 
     #handleNextButton(btn) {
         const id = this.#taskIdFromDrawer(btn);
-        const item = this.board?.tasks?.find(t => String(t.clientTaskId) === id);
+        const item = this.cards?.find(t => String(t.clientTaskId) === id);
         const next_status = this.getNextStatus(item.status);
         if (item) this.#handleStatusChange(item, next_status);
     }
 
     #handlePrevButton(btn) {
         const id = this.#taskIdFromDrawer(btn);
-        const item = this.board?.tasks?.find(t => String(t.clientTaskId) === id);
+        const item = this.cards?.find(t => String(t.clientTaskId) === id);
         const prev_status = this.getPrevStatus(item.status);
         if (item) this.#handleStatusChange(item, prev_status);
     }
 
     #handleReadyButton(btn) {
         const id = this.#taskIdFromDrawer(btn);
-        const item = this.board?.tasks?.find(t => String(t.clientTaskId) === id);
+        const item = this.cards?.find(t => String(t.clientTaskId) === id);
         if (item) this.#handleStatusChange(item, 'READY');
     }
 
