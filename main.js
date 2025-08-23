@@ -485,12 +485,15 @@ class Migroot {
     #resolveBoardId(boardId) {
         let finalBoardId = boardId;
         if (!finalBoardId) {
+            this.log.debug('boardId not set: triyng to get from url')
             const urlParams = new URLSearchParams(window.location.search);
             finalBoardId = urlParams.get('boardId');
         }
         if (!finalBoardId) {
+            this.log.debug('boardId not found in url: triyng to get from LS')
             finalBoardId = localStorage.getItem(LOCALSTORAGE_KEYS.BOARD_ID);
         }
+        this.log.debug(`boardId result: ${finalBoardId}`)
         return finalBoardId;
     }
 
