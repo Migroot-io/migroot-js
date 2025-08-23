@@ -421,7 +421,7 @@ class Migroot {
                 case PAGE_TYPES.TODO:
                     this.#clearContainers();
                     await this.fetchBoard(finalBoardId);
-                    this.#appendBoardIdToLinks();
+                    this.#appendBoardIdToLinks(this.boardId);
                     await this.#prepareTodo(this.boardId);
                     this.hideBlockedContainers();
                     break;
