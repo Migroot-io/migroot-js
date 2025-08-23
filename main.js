@@ -565,11 +565,13 @@ class Migroot {
 
     #boardItemToCard(item) {
         return {
+            id: item.boardId,
             email: item.owner.email,
-            status: 'dummy',
+            status: 'dummy', // will be inserted to general container
             fullName: `${item.owner.firstName} ${item.owner.lastName}`,
             boardName: `${item.country} ${item.boardType ?? 'Relocation'}`,
-            link: `${this.appPrefix()}/todo?boardId=${item.boardId}`
+            linkTodo: `${this.appPrefix()}/${PAGE_TYPES.TODO}?boardId=${item.boardId}`,
+            linkDocs: `${this.appPrefix()}/${PAGE_TYPES.DOCS}?boardId=${item.boardId}`
         }
     }
 
@@ -1036,7 +1038,8 @@ class Migroot {
         this.#setContent(card, item, {
             fieldSelector: '[data-card]', labelSelector: '.js-ingest', renderers: {
                 viewLink: this.#renderUrl.bind(this),  // for doc-board
-                link: this.#renderUrl.bind(this),  // for admin
+                linkTodo: this.#renderUrl.bind(this),  // for admin
+                linkDocs: this.#renderUrl.bind(this),  // for admin
                 deadline: this.#renderDeadline.bind(this),
                 difficulty: this.#renderDifficulty.bind(this)
             }
