@@ -632,6 +632,7 @@ class Migroot {
         this.renderNavCountry();
         this.renderProgressBar();
         this.renderBuddyInfo();
+        this.#appendBoardIdToLinks();
     }
 
 
@@ -778,6 +779,29 @@ class Migroot {
             if (el) {
                 el.style.display = "none";
             }
+        });
+    }
+
+    #appendBoardIdToLinks(boardId) {
+        if (!boardId) {
+            console.warn('⚠️ appendBoardIdToLinks: boardId is missing');
+            return;
+        }
+
+        USER_CONTROL_IDS.forEach(id => {
+            const container = document.getElementById(id);
+            if (!container) return;
+
+            const links = container.querySelectorAll('a');
+            links.forEach(link => {
+                try {
+                    const url = new URL(link.href, window.location.origin);
+                    url.searchParams.set('boardId', boardId);
+                    link.href = url.toString();
+                } catch (err) {
+                    console.error(`❌ Failed to update link for ${id}:`, err);
+                }
+            });
         });
     }
 
