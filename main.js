@@ -1311,6 +1311,7 @@ class Migroot {
                 if (statusEl) statusEl.className = `f-item__status ${updatedFile.status}`;
             }
             actionsContainer.innerHTML = originalHTML;
+            const updatedTask = updatedFile?.taskRef
             const taskId = updatedFile?.taskRef?.clientTaskId;
             const taskIndex = this.cards.findIndex(t => String(t.clientTaskId) === taskId);
             if (taskIndex !== -1) {
@@ -1344,6 +1345,7 @@ class Migroot {
                 if (statusEl) statusEl.className = `f-item__status ${updatedFile.status}`;
             }
             actionsContainer.innerHTML = originalHTML;
+            const updatedTask = updatedFile?.taskRef
             const taskId = updatedFile?.taskRef?.clientTaskId;
             const taskIndex = this.cards.findIndex(t => String(t.clientTaskId) === taskId);
             if (taskIndex !== -1) {
