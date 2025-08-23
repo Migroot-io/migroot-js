@@ -982,7 +982,7 @@ class Migroot {
             default:
                 this.log.warning(`Unknown status: ${status}`);
                 // todo allDrawers rename to general space or similar
-                return this.config.allDrawers;
+                return this.config.mainContainer;
         }
     }
 
@@ -1103,7 +1103,7 @@ class Migroot {
         if (existingDrawer) {
             existingDrawer.replaceWith(drawer);
         } else {
-            this.config.allDrawers.appendChild(drawer);
+            this.config.mainContainer.appendChild(drawer);
         }
     }
 
