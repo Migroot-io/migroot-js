@@ -76,6 +76,7 @@ const LOCALSTORAGE_KEYS = Object.freeze({
 });
 
 USER_CONTROL_IDS = ['hubLink', 'todoLink', 'docsLink']
+ADMIN_LINK_ID = 'adminLink'
 
 const PAGE_TYPES = Object.freeze({
     TODO: 'todo',
@@ -752,7 +753,7 @@ class Migroot {
 
     renderBuddyInfo() {
         if (this.isBuddyUser()) {
-            const adminLink = document.getElementById('admin-link')
+            const adminLink = document.getElementById(ADMIN_LINK_ID)
             if (adminLink) {
                 adminLink.style.display = 'flex';
             }
