@@ -416,18 +416,20 @@ class Migroot {
             await this.fetchUserData();
             const finalBoardId = this.#resolveBoardId(boardId);
 
+
             switch (type) {
                 case PAGE_TYPES.TODO:
                     this.#clearContainers();
-                    await this.#prepareTodo(finalBoardId);
+                    await this.fetchBoard(finalBoardId);
+                    this.#appendBoardIdToLinks();
+                    await this.#prepareTodo(this.boardId);
                     this.hideBlockedContainers();
-                    // this.#updateLocalStorage(this.board);
                     break;
                 case PAGE_TYPES.DOCS:
                     this.#clearContainers();
                     await this.fetchBoard(finalBoardId);
-                    await this.#prepareDocs(finalBoardId);
-                    // this.#updateLocalStorage(this.board);
+                    this.#appendBoardIdToLinks(this.boardId);
+                    await this.#prepareDocs(this.boardId);
                     break;
                 case PAGE_TYPES.CREATE_BOARD:
                     await this.fetchCountryList();
@@ -435,6 +437,7 @@ class Migroot {
                     break;
                 case PAGE_TYPES.HUB:
                     await this.fetchBoard(finalBoardId);
+                    this.#appendBoardIdToLinks(this.boardId);
                     this.renderHubFields();
                     break;
                 case PAGE_TYPES.ADMIN:
@@ -484,7 +487,6 @@ class Migroot {
     }
 
     async #prepareTodo(finalBoardId) {
-        await this.fetchBoard(finalBoardId);
         this.cards = [];
         this.board.tasks.forEach(item => {
             try {
@@ -633,7 +635,6 @@ class Migroot {
         this.renderNavCountry();
         this.renderProgressBar();
         this.renderBuddyInfo();
-        this.#appendBoardIdToLinks();
     }
 
 
