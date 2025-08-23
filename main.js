@@ -211,7 +211,7 @@ class Migroot {
                 await this.loadUserBoards()
                 // await this.loadDummyUserBoard();
             }
-            // this.updateLocalStorage(this.board);
+            this.#updateLocalStorage(this.board);
         } catch (error) {
             this.log.error('Board initialization failed:', error);
             throw error;
@@ -226,6 +226,7 @@ class Migroot {
             } else {
                 await this.loadUserBoardDocs()
             }
+            this.#updateLocalStorage(this.board);
         } catch (error) {
             this.log.error('Board initialization failed:', error);
             throw error;
@@ -420,12 +421,12 @@ class Migroot {
                     this.#clearContainers();
                     await this.#prepareTodo(finalBoardId);
                     this.hideBlockedContainers();
-                    this.#updateLocalStorage(this.board);
+                    // this.#updateLocalStorage(this.board);
                     break;
                 case PAGE_TYPES.DOCS:
                     this.#clearContainers();
                     await this.#prepareDocs(finalBoardId);
-                    this.#updateLocalStorage(this.board);
+                    // this.#updateLocalStorage(this.board);
                     break;
                 case PAGE_TYPES.CREATE_BOARD:
                     await this.fetchCountryList();
