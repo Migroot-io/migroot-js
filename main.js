@@ -578,6 +578,7 @@ class Migroot {
     #taskItemToCard(item) {
         return {
             ...item,
+            id: item.clientTaskId,
             status: this.#processStatus(item.status),
         };
     }
@@ -586,6 +587,7 @@ class Migroot {
         const base = item?.taskRef ? { ...item.taskRef } : {};
         return {
             ...base,
+            id: base.clientTaskId,
             commentsCount: 0,
             filesCount: 0,
             fileName: item.fileName,
@@ -1046,7 +1048,7 @@ class Migroot {
         });
         const targetContainer = this.#getStatusContainer(item.status);
 
-        card.id = `task-${item.clientTaskId}`;
+        card.id = `task-${item.id}`;
         card.dataset.required = item.documentRequired ? 'true' : 'false';
         card.dataset.difficulty = item.difficulty || '';
         card.dataset.status = item.status || '';
