@@ -211,7 +211,7 @@ class Migroot {
                 await this.loadUserBoards()
                 // await this.loadDummyUserBoard();
             }
-            this.#updateLocalStorage(this.board);
+            // this.#updateLocalStorage(this.board);
         } catch (error) {
             this.log.error('Board initialization failed:', error);
             throw error;
@@ -226,7 +226,7 @@ class Migroot {
             } else {
                 await this.loadUserBoardDocs()
             }
-            this.#updateLocalStorage(this.board);
+            // this.#updateLocalStorage(this.board);
         } catch (error) {
             this.log.error('Board initialization failed:', error);
             throw error;
@@ -444,6 +444,9 @@ class Migroot {
                 default:
                     this.log.debug('page is not a dashboard: ', type);
                     return;
+            }
+            if (this.board) {
+                this.#updateLocalStorage(this.board)
             }
             this.renderUserFields();
             this.renderStagingUrls();
