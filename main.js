@@ -1241,7 +1241,7 @@ class Migroot {
                     name = `${first} ${last}`.trim();
                 }
 
-                const date = this.#formatDate(c.createdDate);
+                const date = this.#formatDateTime(c.createdDate);
                 return `
                   <div class="cmt-item ${positionClass}">
                     <div class="cmt-item__header">
@@ -1288,7 +1288,7 @@ class Migroot {
                             <div class="f-item__name">${file.fileName}</div>
                             <div class="f-item__status ${file.status}">${file.status}</div>
                         </div>
-                        <div class="f-item__date">${this.#formatDate(file.createdDate)}</div>
+                        <div class="f-item__date">${this.#formatDateTime(file.createdDate)}</div>
                     </a>
                   </div>
                   ${
@@ -1661,6 +1661,22 @@ class Migroot {
         const date = new Date(isoString);
         return date.toLocaleDateString('en-GB', {
             day: 'numeric', month: 'short', timeZone: this.config.timeZone
+        });
+    }
+
+    #formatDateTime(isoString) {
+        if (isoString === 'TBD') {
+            return isoString;
+        }
+
+        const date = new Date(isoString);
+
+        return date.toLocaleString('en-GB', {
+            day: 'numeric',
+            month: 'short',
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: false,
         });
     }
 
