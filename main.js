@@ -1315,19 +1315,7 @@ class Migroot {
                 if (statusEl) statusEl.className = `f-item__status ${updatedFile.status}`;
             }
             actionsContainer.innerHTML = originalHTML;
-            const updatedTask = updatedFile?.taskRef
-            const taskId = updatedFile?.taskRef?.clientTaskId;
-            const taskIndex = this.cards.findIndex(t => String(t.clientTaskId) === taskId);
-            if (taskIndex !== -1) {
-                this.smartMerge(this.cards[taskIndex], updatedTask);
-                this.cards[taskIndex]._detailsFetched = true;
-                this.createCard(this.cards[taskIndex], {
-                    skip_drawer: true, card_type: this.cards[taskIndex].card_type
-                });
-                this.#updateDrawerContent(this.cards[taskIndex]);
-            } else {
-                this.log.warning(`Task with ID ${taskId} not found in board`);
-            }
+            this.#updateTaskAndDrawer(updatedFile);
         }).catch(err => {
             this.log.error(`Failed to approve file ${fileId}:`, err);
             actionsContainer.innerHTML = originalHTML;
@@ -1349,19 +1337,7 @@ class Migroot {
                 if (statusEl) statusEl.className = `f-item__status ${updatedFile.status}`;
             }
             actionsContainer.innerHTML = originalHTML;
-            const updatedTask = updatedFile?.taskRef
-            const taskId = updatedFile?.taskRef?.clientTaskId;
-            const taskIndex = this.cards.findIndex(t => String(t.clientTaskId) === taskId);
-            if (taskIndex !== -1) {
-                this.smartMerge(this.cards[taskIndex], updatedTask);
-                this.cards[taskIndex]._detailsFetched = true;
-                this.createCard(this.cards[taskIndex], {
-                    skip_drawer: true, card_type: this.cards[taskIndex].card_type
-                });
-                this.#updateDrawerContent(this.cards[taskIndex]);
-            } else {
-                this.log.warning(`Task with ID ${taskId} not found in board`);
-            }
+            this.#updateTaskAndDrawer(updatedFile);
         }).catch(err => {
             this.log.error(`Failed to reject file ${fileId}:`, err);
             actionsContainer.innerHTML = originalHTML;
@@ -1430,22 +1406,35 @@ class Migroot {
 
         // Persist to backend
         this.api.updateClientTask({status: status}, {taskId: item.clientTaskId}).then(updatedTask => {
-            const taskIndex = this.cards.findIndex(t => String(t.clientTaskId) === item.clientTaskId);
-            if (taskIndex !== -1) {
-                this.smartMerge(this.cards[taskIndex], updatedTask);
-                this.cards[taskIndex]._detailsFetched = true;
-                this.createCard(this.cards[taskIndex], {
-                    skip_drawer: true, card_type: this.cards[taskIndex].card_type
-                });
-                this.#updateDrawerContent(this.cards[taskIndex]);
-
-            }
+            this.#updateTaskAndDrawer(updatedTask)
         }).catch(err => {
-            // rollback on failure
             this.log.error('Failed to update task status:', err);
             item.status = previousStatus;
             this.createCard(item, {card_type: item.card_type})
         });
+    }
+
+    #updateTaskAndDrawer(data) {
+        const updatedTask = data?.taskRef || data;
+        if (!updatedTask || !updatedTask.clientTaskId) {
+            this.log.warning(`[updateTaskAndDrawer] No valid task data provided`);
+            return;
+        }
+        const taskId = String(updatedTask.clientTaskId);
+        const taskIndex = this.cards.findIndex(t => String(t.clientTaskId) === taskId);
+        if (taskIndex === -1) {
+            this.log.warning(`[updateTaskAndDrawer] Task with ID ${taskId} not found in cards`);
+            return;
+        }
+        this.log.debug(`[updateTaskAndDrawer] Updating task ID=${taskId}`);
+        this.smartMerge(this.cards[taskIndex], updatedTask);
+        this.cards[taskIndex]._detailsFetched = true;
+        this.createCard(this.cards[taskIndex], {
+            skip_drawer: true,
+            card_type: this.cards[taskIndex].card_type,
+        });
+        this.#updateDrawerContent(this.cards[taskIndex]);
+        this.log.debug(`[updateTaskAndDrawer] Task ID=${taskId} successfully updated`);
     }
 
     #handleCreateBoard(formEl) {
@@ -1588,17 +1577,7 @@ class Migroot {
         if (submitBtn) submitBtn.disabled = true;
 
         this.api.uploadFile(formData, {taskId}).then(updatedTask => {
-            const taskIndex = this.cards.findIndex(t => String(t.clientTaskId) === taskId);
-            if (taskIndex !== -1) {
-                this.smartMerge(this.cards[taskIndex], updatedTask);
-                this.cards[taskIndex]._detailsFetched = true;
-                this.createCard(this.cards[taskIndex], {
-                    skip_drawer: true, card_type: this.cards[taskIndex].card_type
-                });
-                this.#updateDrawerContent(this.cards[taskIndex]);
-            } else {
-                this.log.warning(`Task with ID ${taskId} not found in board`);
-            }
+            this.#updateTaskAndDrawer(updatedTask)
 
             if (submitBtn) submitBtn.disabled = false;
             if (fileInput) fileInput.value = '';
@@ -1624,18 +1603,7 @@ class Migroot {
             author: authorId, message: message
         };
         this.api.commentClientTask(body, {taskId}).then(updatedTask => {
-            const taskIndex = this.cards.findIndex(t => String(t.clientTaskId) === taskId);
-            if (taskIndex !== -1) {
-                this.smartMerge(this.cards[taskIndex], updatedTask);
-                this.cards[taskIndex]._detailsFetched = true;
-                this.createCard(this.cards[taskIndex], {
-                    skip_drawer: true, card_type: this.cards[taskIndex].card_type
-                });
-                this.#updateDrawerContent(this.cards[taskIndex]);
-            } else {
-                this.log.warning(`Task with ID ${taskId} not found in board`);
-            }
-
+            this.#updateTaskAndDrawer(updatedTask)
             input.value = ''; // clear field
         }).catch(err => {
             this.log.error('Comment submit failed:', err);
