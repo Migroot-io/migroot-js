@@ -280,7 +280,13 @@ class Migroot {
 
         if (!Array.isArray(boards) || boards.length === 0) {
             this.log.warning('No boards found for user:', this.boardUser)
-            this.#showCreateButton();
+            if (this.isBuddyUser()) {
+                // redirect to admin
+                window.location.href = `${this.appPrefix()}/admin`;
+
+            } else {
+                this.#showCreateButton();
+            }
             throw new Error('No boards found for user.');
         }
 
@@ -298,18 +304,6 @@ class Migroot {
         }
         await this.loadBoardDocsById(this.boardId)
     }
-
-    // async loadDummyUserBoard() {
-    //     const dummy_user = {
-    //         id: 'f73b9855-efe5-4a89-9c80-3798dc10d1ab',
-    //         type: 'CLIENT',
-    //         email: 'dummyemail@dog.com',
-    //         name: 'Dummy user'
-    //     };
-    //     console.log('Dummy user initialized:', dummy_user);
-    //
-    //     await this.loadUserBoard(dummy_user);
-    // }
 
     /**
      * Creates a new board.
@@ -419,6 +413,7 @@ class Migroot {
 
             switch (type) {
                 case PAGE_TYPES.TODO:
+                    this.clearBoardLocalCache()
                     this.#clearContainers();
                     await this.fetchBoard(finalBoardId);
                     this.#appendBoardIdToLinks(this.boardId);
@@ -426,6 +421,7 @@ class Migroot {
                     this.hideBlockedContainers();
                     break;
                 case PAGE_TYPES.DOCS:
+                    this.clearBoardLocalCache()
                     this.#clearContainers();
                     await this.fetchBoard(finalBoardId);
                     this.#appendBoardIdToLinks(this.boardId);
@@ -478,10 +474,6 @@ class Migroot {
             const urlParams = new URLSearchParams(window.location.search);
             finalBoardId = urlParams.get('boardId');
         }
-        // if (!finalBoardId) {
-        //     this.log.debug('boardId not found in url: triyng to get from LS')
-        //     finalBoardId = localStorage.getItem(LOCALSTORAGE_KEYS.BOARD_ID);
-        // }
         this.log.debug(`boardId result: ${finalBoardId}`)
         return finalBoardId;
     }
