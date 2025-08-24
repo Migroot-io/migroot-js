@@ -1454,7 +1454,7 @@ class Migroot {
         for (const key of formData.keys()) {
             const values = formData.getAll(key).map(v => v.trim()).filter(v => v !== "");
             questionnaire[key] = values.length > 1 ? values : values[0] || "";
-            // todo
+            // todo from checkbox generate features
             if (allowedFeatureTypes.has(key) && values.length > 0) {
                 features.push({
                     type: key,
