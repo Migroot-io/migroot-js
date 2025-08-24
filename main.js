@@ -75,8 +75,19 @@ const LOCALSTORAGE_KEYS = Object.freeze({
     EMAIL: 'defaultBoardEmail'
 });
 
-USER_CONTROL_IDS = ['hubLink', 'todoLink', 'docsLink']
-ADMIN_LINK_ID = 'adminLink'
+const USER_CONTROL_IDS = ['hubLink', 'todoLink', 'docsLink']
+const ADMIN_LINK_ID = 'adminLink'
+
+const FEATURE_TYPES = ['COUNTRY_OF_CITIZENSHIP',
+    'COUNTRY_OF_VISA_APPLICATION',
+    'COUNTRY_OF_DESTINATION',
+    'COUNTRY_OF_RECENT_STAY',
+    'COUNTRY_OF_LABOR_CONTRACT',
+    'COUNTRY_OF_ENTREPRENEURSHIP',
+    'MOVE_WITH_SPOUSE',
+    'MOVE_WITH_CHILDREN',
+    'MOVE_WITH_PARENTS',
+    'MOVE_WITH_PETS']
 
 const PAGE_TYPES = Object.freeze({
     TODO: 'todo',
@@ -1439,12 +1450,15 @@ class Migroot {
         const formData = new FormData(formEl);
         const features = [];
         const questionnaire = {};
-        const allowedFeatureTypes = new Set(['COUNTRY_OF_CITIZENSHIP', 'COUNTRY_OF_VISA_APPLICATION', 'COUNTRY_OF_DESTINATION', 'COUNTRY_OF_RECENT_STAY', 'COUNTRY_OF_LABOR_CONTRACT', 'COUNTRY_OF_ENTREPRENEURSHIP', 'MOVE_WITH_SPOUSE', 'MOVE_WITH_CHILDREN', 'MOVE_WITH_PARENTS', 'MOVE_WITH_PETS']);
-        for (const [key, value] of formData.entries()) {
-            questionnaire[key] = value.trim();
-            if (value && value.trim() !== "" && allowedFeatureTypes.has(key)) {
+        const allowedFeatureTypes = new Set(FEATURE_TYPES);
+        for (const key of formData.keys()) {
+            const values = formData.getAll(key).map(v => v.trim()).filter(v => v !== "");
+            questionnaire[key] = values.length > 1 ? values : values[0] || "";
+            // todo
+            if (allowedFeatureTypes.has(key) && values.length > 0) {
                 features.push({
-                    type: key, value: value.trim()
+                    type: key,
+                    value: values.length === 1 ? values[0] : values  // одно значение или массив
                 });
             }
         }
