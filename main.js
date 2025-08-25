@@ -842,6 +842,10 @@ class Migroot {
         .catch(err => {
             this.log.error('Failed to get url folder:', err);
         });
+        if (!this.userFilesFolder) {
+            this.log.warning("file folder url now found");
+            return;
+        }
         const element = document.getElementById(G_DRIVE_FOLDER_ID);
 
         if (element) {
