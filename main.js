@@ -77,7 +77,8 @@ const LOCALSTORAGE_KEYS = Object.freeze({
 
 const USER_CONTROL_IDS = ['hubLink', 'todoLink', 'docsLink']
 const ADMIN_LINK_ID = 'adminLink'
-
+const G_DRIVE_FOLDER_ID = 'g-drive-folder'
+const BLOCKED_CLASS = 'blocked'
 const FEATURE_TYPES = ['COUNTRY_OF_CITIZENSHIP',
     'COUNTRY_OF_VISA_APPLICATION',
     'COUNTRY_OF_DESTINATION',
@@ -126,6 +127,8 @@ const ENDPOINTS = {
         path: 'board/file/{fileId}/approve', method: 'POST'
     }, rejectFile: {
         path: 'board/file/{fileId}/reject', method: 'POST'
+    }, getUserFilesFolder: {
+        path: '/board/{userId}/getFilesFolder', method: 'GET'
     }, commentClientTask: {
         path: 'board/task/{taskId}/comment', method: 'POST'
     }
@@ -146,6 +149,7 @@ class Migroot {
         this.board.docs = null;
         this.countries = null;
         this.token = null;
+        this.userFilesFolder = null;
         this.init()
     }
 
@@ -638,6 +642,7 @@ class Migroot {
         this.renderNavCountry();
         this.renderProgressBar();
         this.renderBuddyInfo();
+        this.renderUserFolder();
     }
 
 
@@ -823,6 +828,27 @@ class Migroot {
 
         if (fillEl) {
             fillEl.style.width = `${percent}%`;
+        }
+    }
+    renderUserFolder() {
+        if (this.isFreeUser()) {
+            return;
+        }
+        this.api.getUserFilesFolder({}, {userId: this.boardUser.id})
+        .then(urlFolder => {
+            this.userFilesFolder = urlFolder;
+            this.log.debug(`url got for user:  ${urlFolder}`);
+        })
+        .catch(err => {
+            this.log.error('Failed to get url folder:', err);
+        });
+        const element = document.getElementById(G_DRIVE_FOLDER_ID);
+
+        if (element) {
+            element.classList.remove(BLOCKED_CLASS);
+            element.setAttribute("href", this.userFilesFolder);
+        } else {
+            this.log.warning("element  id 'g-drive-folder' not found!");
         }
     }
 
