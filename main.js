@@ -856,7 +856,7 @@ class Migroot {
 
         if (element) {
             element.classList.remove(BLOCKED_CLASS);
-            element.setAttribute("href", this.userFilesFolder);
+            element.setAttribute("href", this.userFilesFolder.viewLink);
         } else {
             this.log.warning("element  id 'g-drive-folder' not found!");
         }
