@@ -848,7 +848,7 @@ class Migroot {
         .catch(err => {
             this.log.error('Failed to get url folder:', err);
         });
-        if (!this.userFilesFolder) {
+        if (!this.userFilesFolder.viewLink) {
             this.log.warning("file folder url now found");
             return;
         }
