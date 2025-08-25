@@ -222,6 +222,9 @@ class Migroot {
         try {
             if (boardId) {
                 await this.loadBoardById(boardId);
+            } else if (this.isBuddyUser()) {
+                // redirect to admin
+                window.location.href = `${this.appPrefix()}/admin`;
             } else {
                 await this.loadUserBoards()
                 // await this.loadDummyUserBoard();
@@ -238,6 +241,9 @@ class Migroot {
 
             if (boardId) {
                 await this.loadBoardDocsById(boardId);
+            } else if (this.isBuddyUser()) {
+                // redirect to admin
+                window.location.href = `${this.appPrefix()}/admin`;
             } else {
                 await this.loadUserBoardDocs()
             }
