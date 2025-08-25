@@ -128,7 +128,7 @@ const ENDPOINTS = {
     }, rejectFile: {
         path: 'board/file/{fileId}/reject', method: 'POST'
     }, getUserFilesFolder: {
-        path: '/board/{userId}/getFilesFolder', method: 'GET'
+        path: 'board/{userId}/getFilesFolder', method: 'GET'
     }, commentClientTask: {
         path: 'board/task/{taskId}/comment', method: 'POST'
     }
