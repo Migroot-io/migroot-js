@@ -836,30 +836,35 @@ class Migroot {
             fillEl.style.width = `${percent}%`;
         }
     }
+
     renderUserFolder() {
         if (this.isFreeUser()) {
             return;
         }
-        this.api.getUserFilesFolder({}, {userId: this.boardUser.id})
-        .then(urlFolder => {
-            this.userFilesFolder = urlFolder;
-            this.log.debug(`url got for user:  ${urlFolder}`);
-        })
-        .catch(err => {
-            this.log.error('Failed to get url folder:', err);
-        });
-        if (!this.userFilesFolder.viewLink) {
-            this.log.warning("file folder url now found");
-            return;
-        }
-        const element = document.getElementById(G_DRIVE_FOLDER_ID);
 
-        if (element) {
-            element.classList.remove(BLOCKED_CLASS);
-            element.setAttribute("href", this.userFilesFolder.viewLink);
-        } else {
-            this.log.warning("element  id 'g-drive-folder' not found!");
-        }
+        this.api.getUserFilesFolder({}, { userId: this.boardUser.id })
+            .then(urlFolder => {
+                this.userFilesFolder = urlFolder;
+                this.log.debug(`url got for user: ${urlFolder}`);
+
+                // Проверяем наличие ссылки только после получения ответа
+                if (!this.userFilesFolder?.viewLink) {
+                    this.log.warning("file folder url not found");
+                    return;
+                }
+
+                const element = document.getElementById(G_DRIVE_FOLDER_ID);
+
+                if (element) {
+                    element.classList.remove(BLOCKED_CLASS);
+                    element.setAttribute("href", this.userFilesFolder.viewLink);
+                } else {
+                    this.log.warning("element id 'g-drive-folder' not found!");
+                }
+            })
+            .catch(err => {
+                this.log.error("Failed to get url folder:", err);
+            });
     }
 
     renderUserPoints() {
