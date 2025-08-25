@@ -846,14 +846,15 @@ class Migroot {
             .then(urlFolder => {
                 this.userFilesFolder = urlFolder;
                 this.log.debug(`url got for user: ${urlFolder}`);
+                const element = document.getElementById(G_DRIVE_FOLDER_ID);
 
                 // Проверяем наличие ссылки только после получения ответа
                 if (!this.userFilesFolder?.viewLink) {
                     this.log.warning("file folder url not found");
+                    if (element) element.remove()
                     return;
                 }
 
-                const element = document.getElementById(G_DRIVE_FOLDER_ID);
 
                 if (element) {
                     element.classList.remove(BLOCKED_CLASS);
