@@ -430,7 +430,6 @@ class Migroot {
             this.log.debug('Step 1: Fetching user and board');
             await this.fetchUserData();
             const finalBoardId = this.#resolveBoardId(boardId);
-            this.renderBodyClass();
 
             switch (type) {
                 case PAGE_TYPES.TODO:
@@ -656,6 +655,7 @@ class Migroot {
         this.renderProgressBar();
         this.renderBuddyInfo();
         this.renderUserFolder();
+        this.renderBodyClass();
     }
 
 
