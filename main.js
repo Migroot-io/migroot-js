@@ -430,7 +430,7 @@ class Migroot {
             this.log.debug('Step 1: Fetching user and board');
             await this.fetchUserData();
             const finalBoardId = this.#resolveBoardId(boardId);
-
+            this.renderBodyClass();
 
             switch (type) {
                 case PAGE_TYPES.TODO:
@@ -642,6 +642,13 @@ class Migroot {
 
     /*───────────────────────────  Dashboard helpers START ────────────────────────────*/
 
+    renderBodyClass() {
+        if (this.isFreeUser()) {
+            document.body.classList.add(BLOCKED_CLASS);
+        } else {
+            document.body.classList.remove(BLOCKED_CLASS);
+        }
+    }
 
     renderUserFields() {
         this.renderUserPoints();
