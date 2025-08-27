@@ -643,8 +643,10 @@ class Migroot {
 
     renderBodyClass() {
         if (this.isFreeUser()) {
+            this.log.debug(`is free user adding ${BLOCKED_CLASS} class to body`)
             document.body.classList.add(BLOCKED_CLASS);
         } else {
+            this.log.debug(`is paid user removing ${BLOCKED_CLASS} class from body`)
             document.body.classList.remove(BLOCKED_CLASS);
         }
     }
