@@ -842,23 +842,39 @@ class Migroot {
             return;
         }
 
+        this.#removeInfoColumn();
+
         this.api.getUserFilesFolder({}, { userId: this.boardUser.id })
             .then(urlFolder => {
                 this.userFilesFolder = urlFolder;
                 this.log.debug(`url got for user: ${urlFolder}`);
+
                 const element = document.getElementById(G_DRIVE_FOLDER_ID);
 
-                // Проверяем наличие ссылки только после получения ответа
+                // Проверка на наличие viewLink
                 if (!this.userFilesFolder?.viewLink) {
                     this.log.warning("file folder url not found");
-                    if (element) element.remove()
+                    if (element) element.remove();
                     return;
                 }
 
-
                 if (element) {
+                    // Удалить атрибуты Fancybox
+                    element.removeAttribute("data-fancybox");
+                    element.removeAttribute("data-src");
+
+                    // Удалить класс блокировки
                     element.classList.remove(BLOCKED_CLASS);
+
+                    // Установить рабочую ссылку
                     element.setAttribute("href", this.userFilesFolder.viewLink);
+                    element.setAttribute("target", "_blank");
+
+                    // Удалить иконку "замочек", если есть
+                    const lockIcon = element.querySelector('.b-lock-icon, .lock, svg.lock');
+                    if (lockIcon) {
+                        lockIcon.remove();
+                    }
                 } else {
                     this.log.warning("element id 'g-drive-folder' not found!");
                 }
@@ -1572,6 +1588,21 @@ class Migroot {
         } else {
             labelText.textContent = 'Add file';
         }
+    }
+
+    #removeInfoColumn() {
+      const infoEl = document.getElementById('info');
+      if (infoEl) {
+        const columnEl = infoEl.closest('.brd-column');
+        if (columnEl) {
+          columnEl.remove();
+          console.log('Column with #info removed');
+        } else {
+          console.warn('Parent .brd-column not found for #info');
+        }
+      } else {
+        console.warn('Element with id "info" not found');
+      }
     }
 
     // File upload submit handler (overwritten)
