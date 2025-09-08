@@ -863,12 +863,14 @@ class Migroot {
                     element.removeAttribute("data-fancybox");
                     element.removeAttribute("data-src");
 
-                    // Удалить класс блокировки
-                    element.classList.remove(BLOCKED_CLASS);
+                    // element.classList.remove(BLOCKED_CLASS);
 
-                    // Установить рабочую ссылку
                     element.setAttribute("href", this.userFilesFolder.viewLink);
                     element.setAttribute("target", "_blank");
+
+                    element.onclick = () => {
+                      window.open(this.userFilesFolder.viewLink, '_blank', 'noopener,noreferrer');
+                    };
 
                     // Удалить иконку "замочек", если есть
                     const lockIcon = element.querySelector('.b-lock-icon, .lock, svg.lock');
