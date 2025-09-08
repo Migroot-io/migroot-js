@@ -453,7 +453,9 @@ class Migroot {
             if (this.board) {
                 this.#updateLocalStorage(this.board)
             }
-            this.renderUserFields();
+            if (type !== PAGE_TYPES.CREATE_BOARD) {
+                this.renderUserFields();
+            };
             this.renderStagingUrls();
             this.log.debug('Dashboard initialized successfully');
 
