@@ -223,13 +223,15 @@ class Migroot {
             if (boardId) {
                 await this.loadBoardById(boardId);
             } else if (this.isBuddyUser()) {
-                // redirect to admin
+                // redirect to admin f
                 window.location.href = `${this.appPrefix()}/admin`;
             } else {
                 await this.loadUserBoards()
                 // await this.loadDummyUserBoard();
             }
-            this.#updateLocalStorage(this.board);
+            if (this.board) {
+                this.#updateLocalStorage(this.board);
+            }
         } catch (error) {
             this.log.error('Board initialization failed:', error);
             throw error;
