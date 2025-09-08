@@ -1,50 +1,33 @@
 class Logger {
-    constructor(debug = false) {
-        this.isDebug = debug;
-    }
+  debug(...args) {
+    const ctx = this.getCallerContext();
+    console.debug(`[${ctx}]`, ...args);
+  }
 
-    _getCurrentTime() {
-        const now = new Date();
-        return now.toISOString().slice(11, 23);
-    }
+  info(...args) {
+    const ctx = this.getCallerContext();
+    console.info(`[${ctx}]`, ...args);
+  }
 
-    _log(message, vars = null, type = 'info') {
-        const styles = {
-            info: 'color: white; font-weight: 500;',
-            debug: 'color: #aaa; font-family: monospace;',
-            warning: 'color: orange; font-weight: bold;',
-            error: 'color: red; font-weight: bold;'
-        };
+  warning(...args) {
+    const ctx = this.getCallerContext();
+    console.warn(`[${ctx}]`, ...args);
+  }
 
-        const logType = type.toLowerCase();
-        const timestamp = this._getCurrentTime();
+  error(...args) {
+    // Без добавления контекста
+    console.error(...args);
+  }
 
-        if (styles[logType]) {
-            console.log(`%c[${timestamp}] [${logType.toUpperCase()}]: ${message}`, styles[logType], vars);
-        } else {
-            console.log(`[${timestamp}] [LOGGER]: ${message}`, vars);
-        }
-    }
+  getCallerContext() {
+    const err = new Error();
+    if (!err.stack) return 'unknown';
 
-    info(message, vars) {
-        this._log(message, vars, 'info');
-    }
-
-    debug(message, vars) {
-        if (this.isDebug) {
-            this._log(message, vars, 'debug');
-        }
-    }
-
-    warning(message, vars) {
-        if (this.isDebug) {
-            this._log(message, vars, 'warning');
-        }
-    }
-
-    error(message, vars) {
-        this._log(message, vars, 'error');
-    }
+    const stackLines = err.stack.split('\n');
+    const callerLine = stackLines[3] || stackLines[2] || '';
+    const match = callerLine.match(/at (\S+)/);
+    return match ? match[1] : 'anonymous';
+  }
 }
 
 
@@ -591,7 +574,7 @@ class Migroot {
 
     #updateLocalStorage(board) {
             if (!board || !Array.isArray(board.tasks)) {
-                this.log.error('Board data is missing or malformed');
+                this.log.debug('Board data in local storage is missing or malformed');
                 return;
             }
             if (board.createdDate) {
@@ -740,6 +723,10 @@ class Migroot {
 
         this.config.form.countryIds.forEach(id => {
             const selectEl = document.getElementById(id);
+            if (!id) {
+                this.log.warning('Empty or null id found in countryIds array');
+                return;
+            }
             if (!selectEl) {
                 this.log.warning(`No input found with id: ${id}`);
                 return;
