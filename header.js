@@ -48,7 +48,7 @@ Outseta.on("nocode.initialized", async () => {
     setTimeout(() => {
       if (!Outseta.getAccessToken() && !redirected) {
         redirected = true;
-        redirectNotAuth();
+        // redirectNotAuth();
       }
     }, 3000); // 3 секунды ожидания токена
   }
