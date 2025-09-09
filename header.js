@@ -1,10 +1,17 @@
-  function redirectNotAuth() {
-    const restrictedPages = ['app']; // all pages started from app should redirect to main page
-    const currentPath = window.location.pathname.split('/').filter(Boolean)[0];
-    if (restrictedPages.includes(currentPath)) {
-      window.location.assign("/");
-    }
+function redirectNotAuth() {
+  const restrictedPages = ['app']; // все страницы, начинающиеся с "app"
+  const pathSegments = window.location.pathname.split('/').filter(Boolean);
+
+  const firstSegment = pathSegments[0];
+  const lastSegment = pathSegments[pathSegments.length - 1];
+
+  const isRestricted = restrictedPages.includes(firstSegment);
+  const isException = lastSegment === 'create-board';
+
+  if (isRestricted && !isException) {
+    window.location.assign('/');
   }
+}
 
   function redirectAuth() {
     const currentPath = window.location.pathname.split('/').filter(Boolean)[0];
@@ -48,7 +55,7 @@ Outseta.on("nocode.initialized", async () => {
     setTimeout(() => {
       if (!Outseta.getAccessToken() && !redirected) {
         redirected = true;
-        // redirectNotAuth();
+        redirectNotAuth();
       }
     }, 3000); // 3 секунды ожидания токена
   }
