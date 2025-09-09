@@ -28,20 +28,28 @@
   }
 
   // Wait until Outseta is initialized
-  Outseta.on("nocode.initialized", async () => {
-    // Check if access token exists
-    if (!Outseta.getAccessToken()) {
-      // console.log('No access token found');
-      // Redirect unauthenticated user to login page
-      redirectNotAuth();
-    } else {
-      // redirectUser()
-      redirectAuth();
-      renderAuthUsersEls(); // rename
-    }
-    // here we should show dashboard
-    Outseta.on("accessToken.set", (decodedToken) => {
-      // Add your custom logic here for auth users
-      // console.log('User authenticated 2');
+Outseta.on("nocode.initialized", async () => {
+  let hasToken = Outseta.getAccessToken();
+
+  if (hasToken) {
+    redirectAuth();
+    renderAuthUsersEls();
+  } else {
+    let redirected = false;
+
+    Outseta.on("accessToken.set", () => {
+      if (!redirected) {
+        redirected = true;
+        redirectAuth();
+        renderAuthUsersEls();
+      }
     });
-  });
+
+    setTimeout(() => {
+      if (!Outseta.getAccessToken() && !redirected) {
+        redirected = true;
+        redirectNotAuth();
+      }
+    }, 3000); // 3 секунды ожидания токена
+  }
+});
