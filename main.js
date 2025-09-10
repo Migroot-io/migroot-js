@@ -30,37 +30,40 @@ class Logger {
   }
 }
 
-class AnalyticsHelper {
+export class AnalyticsHelper {
   constructor(debug = false) {
     this.debug = debug;
+    this.isBuddyUser = false;
+  }
+
+  setBuddyMode(value) {
+    this.isBuddyUser = value;
   }
 
   send_event(eventName) {
-    const params = EVENT_PARAMS[eventName] || {};
     if (this.debug) {
-      console.log('[Analytics] Debug mode on, event not sent:', eventName, params);
+      console.log('[Analytics] Debug mode on, event not sent:', eventName);
       return;
     }
 
     if (typeof window.gtag !== 'function') {
-      console.warn('[Analytics] gtag is not defined, event skipped:', eventName, params);
+      console.warn('[Analytics] gtag is not defined, event skipped:', eventName);
       return;
     }
 
+    const fullEventName = this.isBuddyUser ? `buddy_${eventName}` : eventName;
+    const params = EVENT_PARAMS[eventName] || {};
+
     try {
-      window.gtag('event', eventName, params);
+      window.gtag('event', fullEventName, params);
+      console.log('[Analytics] Event sent:', fullEventName, params);
     } catch (e) {
-      console.error('[Analytics] Failed to send event:', eventName, e);
+      console.error('[Analytics] Failed to send event:', fullEventName, e);
     }
   }
 }
 
 const EVENT_PARAMS = {
-  click_g_drive: {
-    event_category: 'in_app',
-    event_label: 'Google Drive Button',
-    value: 1,
-  },
   click_g_drive: {
     event_category: 'navigation',
     event_label: 'Google Drive Button',
@@ -174,6 +177,7 @@ class Migroot {
         this.backend_url = config.backend_url || 'https://migroot-447015.oa.r.appspot.com/v1'; // taking from config
         this.endpoints = ENDPOINTS;
         this.log = new Logger(this.config.debug);
+        this.ga = new AnalyticsHelper(this.config.debug)
         this.boardUser = null;
         this.currentUser = null;
         this.boardId = null;
@@ -463,10 +467,11 @@ class Migroot {
     async init_dashboard({boardId = null, callback = null, type = PAGE_TYPES.TODO} = {}) {
         try {
             this.log.debug('Step 1: Fetching user and board');
+            this.ga.send_event('init_app')
             await this.fetchUserData();
             const finalBoardId = this.#resolveBoardId(boardId);
-            this.ga = new AnalyticsHelper(this.config.debug || this.isBuddyUser())
 
+            this.ga.setBuddyMode(this.isBuddyUser())
             switch (type) {
                 case PAGE_TYPES.TODO:
                     this.clearBoardLocalCache()
@@ -914,7 +919,7 @@ class Migroot {
                     element.removeAttribute("data-fancybox");
                     element.removeAttribute("data-src");
 
-                    // element.classList.remove(BLOCKED_CLASS);
+                    element.classList.remove('b-button_locked');
 
                     element.setAttribute("href", this.userFilesFolder.viewLink);
                     element.setAttribute("target", "_blank");
