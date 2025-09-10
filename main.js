@@ -30,6 +30,53 @@ class Logger {
   }
 }
 
+class AnalyticsHelper {
+  constructor(debug = false) {
+    this.debug = debug;
+  }
+
+  send_event(eventName) {
+    const params = EVENT_PARAMS[eventName] || {};
+    if (this.debug) {
+      console.log('[Analytics] Debug mode on, event not sent:', eventName, params);
+      return;
+    }
+
+    if (typeof window.gtag !== 'function') {
+      console.warn('[Analytics] gtag is not defined, event skipped:', eventName, params);
+      return;
+    }
+
+    try {
+      window.gtag('event', eventName, params);
+    } catch (e) {
+      console.error('[Analytics] Failed to send event:', eventName, e);
+    }
+  }
+}
+
+const EVENT_PARAMS = {
+  click_g_drive: {
+    event_category: 'in_app',
+    event_label: 'Google Drive Button',
+    value: 1,
+  },
+  click_g_drive: {
+    event_category: 'navigation',
+    event_label: 'Google Drive Button',
+    value: 1,
+  },
+  click_whatsapp: {
+    event_category: 'messenger',
+    event_label: 'WhatsApp Click',
+    value: 1,
+  },
+  screen_home: {
+    app_name: 'Migroot App',
+    screen_name: 'Home',
+  },
+  // добавляй по мере необходимости
+};
 
 const STATUS_FLOW = Object.freeze({
     NOT_STARTED: {next: 'ASAP', prev: null},
@@ -120,10 +167,14 @@ const ENDPOINTS = {
 
 class Migroot {
     constructor(config) {
+        const host = window.location.hostname;
+        const path = window.location.pathname;
         this.config = config;
+        this.config.debug = path.includes('/staging/') || host === 'migroot.webflow.io';
         this.backend_url = config.backend_url || 'https://migroot-447015.oa.r.appspot.com/v1'; // taking from config
         this.endpoints = ENDPOINTS;
         this.log = new Logger(this.config.debug);
+        this.ga = new AnalyticsHelper(this.config.debug)
         this.boardUser = null;
         this.currentUser = null;
         this.boardId = null;
@@ -869,6 +920,7 @@ class Migroot {
                     element.setAttribute("target", "_blank");
 
                     element.onclick = () => {
+                      this.ga.send_event('click_g_drive')
                       window.open(this.userFilesFolder.viewLink, '_blank', 'noopener,noreferrer');
                     };
 
