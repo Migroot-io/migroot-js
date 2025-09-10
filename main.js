@@ -174,7 +174,6 @@ class Migroot {
         this.backend_url = config.backend_url || 'https://migroot-447015.oa.r.appspot.com/v1'; // taking from config
         this.endpoints = ENDPOINTS;
         this.log = new Logger(this.config.debug);
-        this.ga = new AnalyticsHelper(this.config.debug)
         this.boardUser = null;
         this.currentUser = null;
         this.boardId = null;
@@ -466,6 +465,7 @@ class Migroot {
             this.log.debug('Step 1: Fetching user and board');
             await this.fetchUserData();
             const finalBoardId = this.#resolveBoardId(boardId);
+            this.ga = new AnalyticsHelper(this.config.debug || this.isBuddyUser())
 
             switch (type) {
                 case PAGE_TYPES.TODO:
