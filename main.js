@@ -30,7 +30,7 @@ class Logger {
   }
 }
 
-export class AnalyticsHelper {
+class AnalyticsHelper {
   constructor(debug = false) {
     this.debug = debug;
     this.isBuddyUser = false;
