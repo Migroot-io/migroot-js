@@ -46,8 +46,8 @@ class AnalyticsHelper {
       return;
     }
 
-    if (typeof window.gtag !== 'function') {
-      console.warn('[Analytics] gtag is not defined, event skipped:', eventName);
+    if (!window.dataLayer || !Array.isArray(window.dataLayer)) {
+      console.warn('[Analytics] dataLayer is not defined, event skipped:', eventName);
       return;
     }
 
@@ -55,7 +55,10 @@ class AnalyticsHelper {
     const params = EVENT_PARAMS[eventName] || {};
 
     try {
-      window.gtag('event', fullEventName, params);
+      window.dataLayer.push({
+        event: fullEventName,
+        ...params
+      });
       console.log('[Analytics] Event sent:', fullEventName, params);
     } catch (e) {
       console.error('[Analytics] Failed to send event:', fullEventName, e);
@@ -1233,6 +1236,7 @@ class Migroot {
 
     #handleCardClick(item) {
         this.log.debug(`Card clicked: ${item.clientTaskId}`);
+        this.ga.send_event('click_task_details')
         const drawerEl = document.getElementById(`drawer-${item.clientTaskId}`);
         if (drawerEl) {
             drawerEl.style.display = 'flex';
@@ -1422,6 +1426,7 @@ class Migroot {
     }
 
     #handleApproveFile(el) {
+        this.ga.send_event('click_task_approve_file')
         const fileId = el?.dataset?.fileId;
         const actionsContainer = el.parentElement;
         const wrapper = el.closest('.file-wrapper');
@@ -1444,6 +1449,7 @@ class Migroot {
 
 
     #handleRejectFile(el) {
+        this.ga.send_event('click_task_reject_file')
         const fileId = el?.dataset?.fileId;
         const actionsContainer = el.parentElement;
         const wrapper = el.closest('.file-wrapper');
@@ -1491,12 +1497,15 @@ class Migroot {
     }
 
     #handleStartFromButton(btn) {
+        this.ga.send_event('click_task_start')
+
         const id = this.#taskIdFromDrawer(btn);
         const item = this.cards?.find(t => String(t.clientTaskId) === id);
         if (item) this.#handleStatusChange(item, 'IN_PROGRESS');
     }
 
     #handleNextButton(btn) {
+        this.ga.send_event('click_task_next_status')
         const id = this.#taskIdFromDrawer(btn);
         const item = this.cards?.find(t => String(t.clientTaskId) === id);
         const next_status = this.getNextStatus(item.status);
@@ -1504,6 +1513,7 @@ class Migroot {
     }
 
     #handlePrevButton(btn) {
+        this.ga.send_event('click_task_prev_status')
         const id = this.#taskIdFromDrawer(btn);
         const item = this.cards?.find(t => String(t.clientTaskId) === id);
         const prev_status = this.getPrevStatus(item.status);
@@ -1511,6 +1521,7 @@ class Migroot {
     }
 
     #handleReadyButton(btn) {
+        this.ga.send_event('click_task_ready_status')
         const id = this.#taskIdFromDrawer(btn);
         const item = this.cards?.find(t => String(t.clientTaskId) === id);
         if (item) this.#handleStatusChange(item, 'READY');
@@ -1559,6 +1570,7 @@ class Migroot {
 
     #handleCreateBoard(formEl) {
         // Prevent default behavior
+        this.ga.send_event('click_create_board_finish')
         if (formEl?.preventDefault) {
             formEl.preventDefault();
             formEl = formEl.target;
@@ -1619,6 +1631,7 @@ class Migroot {
     }
 
     #handleChooseFile(input) {
+        this.ga.send_event('click_task_choose_file')
         const labelText = input.closest('.frm-upload__label').querySelector('.frm-upload__text');
         const errorEl = input.closest('.frm-upload__card').querySelector('.frm-upload__error');
 
@@ -1666,6 +1679,7 @@ class Migroot {
 
     // File upload submit handler (overwritten)
     #handleFileUploadSubmit(formEl) {
+        this.ga.send_event('click_task_file_send')
         const raw = new FormData(formEl);
         const formData = new FormData();
         const taskId = this.#taskIdFromDrawer(formEl);
@@ -1728,6 +1742,7 @@ class Migroot {
     }
 
     #handleCommentSubmit(formEl) {
+        this.ga.send_event('click_task_comment_send')
         const input = formEl.querySelector('input[name="Comment"]');
         const message = input?.value?.trim();
         const taskId = this.#taskIdFromDrawer(formEl);
