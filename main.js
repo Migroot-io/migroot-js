@@ -1,6 +1,6 @@
 class Logger {
-  constructor(debug = false) {
-    this.debug = debug;
+  constructor(isDebug = false) {
+    this.isDebug = isDebug;
   }
 
   _getCurrentTime() {
@@ -21,19 +21,19 @@ class Logger {
   }
 
   debug(...args) {
-    if (!this.debug) return;
+    if (!this.isDebug) return;
     const ctx = this.getCallerContext();
     this._log('debug', ctx, ...args);
   }
 
   info(...args) {
-    if (!this.debug) return;
+    if (!this.isDebug) return;
     const ctx = this.getCallerContext();
     this._log('info', ctx, ...args);
   }
 
   warning(...args) {
-    if (!this.debug) return;
+    if (!this.isDebug) return;
     const ctx = this.getCallerContext();
     this._log('warning', ctx, ...args);
   }
