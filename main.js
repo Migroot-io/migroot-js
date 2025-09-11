@@ -58,19 +58,24 @@ class AnalyticsHelper {
   constructor(debug = false) {
     this.debug = debug;
     this.isBuddyUser = false;
+    this.senderPlan = 'unknown'
   }
 
   setBuddyMode(value) {
     this.isBuddyUser = value;
   }
 
+    setSenderPlan(value) {
+      this.senderPlan = value || 'unknown';
+    }
+
   send_event(eventName) {
     if (!window.dataLayer || !Array.isArray(window.dataLayer)) {
       console.warn('[Analytics] dataLayer is not defined, event skipped:', eventName);
       return;
     }
-    const defaultEvent = 'app_interaction';
-    const event = this.isBuddyUser ? `buddy_${defaultEvent}` : defaultEvent;
+    const event = 'app_interaction';
+    var sender = this.isBuddyUser ? `buddy` : 'user';
     const params = { ...(EVENT_PARAMS[eventName] || {}) };
     if (this.debug) {
       params.debug_mode = true;
@@ -80,6 +85,8 @@ class AnalyticsHelper {
       window.dataLayer.push({
         event: event,
         event_action: eventName,
+        event_sender: sender,
+        event_sender_plan: this.senderPlan,
         ...params
       });
       console.log('[Analytics] Event sent:', event, params);
@@ -494,6 +501,7 @@ class Migroot {
             const finalBoardId = this.#resolveBoardId(boardId);
 
             this.ga.setBuddyMode(this.isBuddyUser())
+            this.ga.setSenderPlan(this.currentUser?.subscriptionPlan)
             switch (type) {
                 case PAGE_TYPES.TODO:
                     this.clearBoardLocalCache()
