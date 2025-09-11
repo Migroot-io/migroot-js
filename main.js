@@ -59,10 +59,12 @@ class AnalyticsHelper {
     this.debug = debug;
     this.isBuddyUser = false;
     this.senderPlan = 'unknown'
+    this.sender = 'unknown'
   }
 
   setBuddyMode(value) {
     this.isBuddyUser = value;
+    this.sender = this.isBuddyUser ? `buddy` : 'user';
   }
 
     setSenderPlan(value) {
@@ -75,7 +77,6 @@ class AnalyticsHelper {
       return;
     }
     const event = 'app_interaction';
-    var sender = this.isBuddyUser ? `buddy` : 'user';
     const params = { ...(EVENT_PARAMS[eventName] || {}) };
     if (this.debug) {
       params.debug_mode = true;
@@ -85,7 +86,7 @@ class AnalyticsHelper {
       window.dataLayer.push({
         event: event,
         event_action: eventName,
-        event_sender: sender,
+        event_sender: this.sender,
         event_sender_plan: this.senderPlan,
         ...params
       });
