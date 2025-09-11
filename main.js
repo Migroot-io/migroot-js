@@ -41,18 +41,16 @@ class AnalyticsHelper {
   }
 
   send_event(eventName) {
-    if (this.debug) {
-      console.log('[Analytics] Debug mode on, event not sent:', eventName);
-      return;
-    }
-
     if (!window.dataLayer || !Array.isArray(window.dataLayer)) {
       console.warn('[Analytics] dataLayer is not defined, event skipped:', eventName);
       return;
     }
 
     const fullEventName = this.isBuddyUser ? `buddy_${eventName}` : eventName;
-    const params = EVENT_PARAMS[eventName] || {};
+    const params = { ...(EVENT_PARAMS[eventName] || {}) };
+    if (this.debug) {
+      params.debug_mode = true;
+    }
 
     try {
       window.dataLayer.push({
@@ -176,7 +174,7 @@ class Migroot {
         const host = window.location.hostname;
         const path = window.location.pathname;
         this.config = config;
-        this.config.debug = path.includes('/staging/') || host === 'migroot.webflow.io';
+        this.config.debug = path.includes('/staging/') || host === 'migroot.webflow.io' || this.config.debug;
         this.backend_url = config.backend_url || 'https://migroot-447015.oa.r.appspot.com/v1'; // taking from config
         this.endpoints = ENDPOINTS;
         this.log = new Logger(this.config.debug);
@@ -202,7 +200,9 @@ class Migroot {
     }
 
     initHandlers() {
-        window.handleUpdateStatus = el => this.#handleStartFromButton(el);
+        window.handleUpdateStatus = el => this.#handleStartFromButton(el); // not using perhabs
+
+
         window.handleFileUploadSubmit = el => this.#handleFileUploadSubmit(el);
         window.handleCommentSubmit = el => this.#handleCommentSubmit(el);
         window.handleChooseFile = el => this.#handleChooseFile(el);
