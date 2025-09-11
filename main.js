@@ -1,22 +1,46 @@
 class Logger {
+  constructor(debug = false) {
+    this.debug = debug;
+  }
+
+  _getCurrentTime() {
+    const now = new Date();
+    return now.toISOString().slice(11, 23);
+  }
+
+  _log(type, ctx, ...args) {
+    const styles = {
+      info: 'color: white; font-weight: 500;',
+      debug: 'color: #aaa; font-family: monospace;',
+      warning: 'color: orange; font-weight: bold;',
+      error: 'color: red; font-weight: bold;'
+    };
+    const timestamp = this._getCurrentTime();
+    const style = styles[type] || '';
+    console.log(`%c[${timestamp}] [${type.toUpperCase()}] [${ctx}]`, style, ...args);
+  }
+
   debug(...args) {
+    if (!this.debug) return;
     const ctx = this.getCallerContext();
-    console.debug(`[${ctx}]`, ...args);
+    this._log('debug', ctx, ...args);
   }
 
   info(...args) {
+    if (!this.debug) return;
     const ctx = this.getCallerContext();
-    console.info(`[${ctx}]`, ...args);
+    this._log('info', ctx, ...args);
   }
 
   warning(...args) {
+    if (!this.debug) return;
     const ctx = this.getCallerContext();
-    console.warn(`[${ctx}]`, ...args);
+    this._log('warning', ctx, ...args);
   }
 
   error(...args) {
-    // Без добавления контекста
-    console.error(...args);
+    const ctx = this.getCallerContext();
+    this._log('error', ctx, ...args);
   }
 
   getCallerContext() {
