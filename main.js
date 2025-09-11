@@ -69,8 +69,8 @@ class AnalyticsHelper {
       console.warn('[Analytics] dataLayer is not defined, event skipped:', eventName);
       return;
     }
-
-    const fullEventName = this.isBuddyUser ? `buddy_${eventName}` : eventName;
+    const defaultEvent = 'app_interaction';
+    const event = this.isBuddyUser ? `buddy_${defaultEvent}` : defaultEvent;
     const params = { ...(EVENT_PARAMS[eventName] || {}) };
     if (this.debug) {
       params.debug_mode = true;
@@ -78,12 +78,13 @@ class AnalyticsHelper {
 
     try {
       window.dataLayer.push({
-        event: fullEventName,
+        event: event,
+        event_action: eventName,
         ...params
       });
-      console.log('[Analytics] Event sent:', fullEventName, params);
+      console.log('[Analytics] Event sent:', event, params);
     } catch (e) {
-      console.error('[Analytics] Failed to send event:', fullEventName, e);
+      console.error('[Analytics] Failed to send event:', event, e);
     }
   }
 }
@@ -92,16 +93,10 @@ const EVENT_PARAMS = {
   click_g_drive: {
     event_category: 'navigation',
     event_label: 'Google Drive Button',
-    value: 1,
   },
   click_whatsapp: {
     event_category: 'messenger',
     event_label: 'WhatsApp Click',
-    value: 1,
-  },
-  screen_home: {
-    app_name: 'Migroot App',
-    screen_name: 'Home',
   },
   // добавляй по мере необходимости
 };
