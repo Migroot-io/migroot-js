@@ -55,7 +55,8 @@ class Logger {
 }
 
 class AnalyticsHelper {
-  constructor(debug = false) {
+  constructor(event, debug = false) {
+    this.event = event;
     this.debug = debug;
     this.isBuddyUser = false;
     this.senderPlan = 'unknown'
@@ -76,7 +77,6 @@ class AnalyticsHelper {
       console.warn('[Analytics] dataLayer is not defined, event skipped:', eventName);
       return;
     }
-    const event = 'app_interaction';
     const params = { ...(EVENT_PARAMS[eventName] || {}) };
     if (this.debug) {
       params.debug_mode = true;
@@ -84,15 +84,15 @@ class AnalyticsHelper {
 
     try {
       window.dataLayer.push({
-        event: event,
+        event: this.event,
         event_action: eventName,
         event_sender: this.sender,
         event_sender_plan: this.senderPlan,
         ...params
       });
-      console.log('[Analytics] Event sent:', event, params);
+      console.log('[Analytics] Event sent:', eventName, params);
     } catch (e) {
-      console.error('[Analytics] Failed to send event:', event, e);
+      console.error('[Analytics] Failed to send event:', eventName, e);
     }
   }
 }
@@ -205,7 +205,7 @@ class Migroot {
         this.backend_url = config.backend_url || 'https://migroot-447015.oa.r.appspot.com/v1'; // taking from config
         this.endpoints = ENDPOINTS;
         this.log = new Logger(this.config.debug);
-        this.ga = new AnalyticsHelper(this.config.debug)
+        this.ga = new AnalyticsHelper(this.config.event || 'app_interaction', this.config.debug)
         this.boardUser = null;
         this.currentUser = null;
         this.boardId = null;
