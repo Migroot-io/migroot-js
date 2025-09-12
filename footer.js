@@ -5,7 +5,7 @@
     let waited = 0;
 
     if (typeof CONFIG === 'undefined') {
-      console.warn("CONFIG is not defined. Skipping Migroot initialization.");
+      // console.info("CONFIG is not defined for Migroot => using default, without dashboard init.");
       CONFIG = {
         skip_dashboard: true,
         event: 'site_interaction'
@@ -46,11 +46,11 @@ async function initDashboard() {
   try {
     const allowedPages = ['app', 'staging']; // all pages started from app
     const currentPath = window.location.pathname.split('/').filter(Boolean)[0];
-    if (!allowedPages.includes(currentPath)) {
-      return;
-    }
+    // if (!allowedPages.includes(currentPath)) {
+    //   return;
+    // }
 
-    if (typeof preloaderStart === 'function') {
+    if ( !allowedPages.includes(currentPath) && typeof preloaderStart === 'function') {
     	preloaderStart();
     }
 
@@ -61,7 +61,9 @@ async function initDashboard() {
     await window.mg.init_mg({
       boardId: null,
       callback: (result) => {
-        preloaderFinish();
+        if (typeof preloaderFinish === 'function') {
+          preloaderFinish();
+        }
         console.log("Dashboard initialized successfully", result);
       }
      });
