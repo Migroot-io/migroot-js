@@ -6,7 +6,11 @@
 
     if (typeof CONFIG === 'undefined') {
       console.warn("CONFIG is not defined. Skipping Migroot initialization.");
-      return;
+      CONFIG = {
+        skip_dashboard: true,
+        event: 'site_interaction'
+      }
+      // return;
     }
 
     while (typeof window.Migroot !== 'function') {

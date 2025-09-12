@@ -202,7 +202,8 @@ class Migroot {
         const path = window.location.pathname;
         this.config = config;
         this.config.debug = path.includes('/staging/') || host === 'migroot.webflow.io' || this.config.debug;
-        this.backend_url = config.backend_url || 'https://migroot-447015.oa.r.appspot.com/v1'; // taking from config
+        // this.backend_url = config.backend_url || 'https://migroot-447015.oa.r.appspot.com/v1'; // taking from config
+        this.backend_url = host === 'migroot.webflow.io' ?  'https://migroot-447015.oa.r.appspot.com/v1' :  'https://migroot-prod.oa.r.appspot.com/v1';
         this.endpoints = ENDPOINTS;
         this.log = new Logger(this.config.debug);
         this.ga = new AnalyticsHelper(this.config.event || 'app_interaction', this.config.debug)
@@ -501,11 +502,13 @@ class Migroot {
     async init_dashboard({boardId = null, callback = null, type = PAGE_TYPES.TODO} = {}) {
         try {
             this.log.debug('Step 1: Fetching user and board');
-            this.ga.send_event('init_app')
+            this.ga.send_event('init_main')
             await this.fetchUserData();
-            if (!this.currentUser) {
+            if (!this.currentUser || this.config.skip_dashboard) {
+                this.ga.send_event('init_site')
                 return;
             }
+            this.ga.send_event('init_app')
             const finalBoardId = this.#resolveBoardId(boardId);
 
             this.ga.setBuddyMode(this.isBuddyUser())
