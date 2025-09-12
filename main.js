@@ -267,6 +267,10 @@ class Migroot {
     async fetchUserData() {
         try {
             this.token = await this.getAccessToken();
+            if (!this.token) {
+                this.log.debug('User has not auth');
+                return;
+            }
             this.currentUser = await this.api.currentUser();
             this.log.debug('Current user set from API:', this.currentUser);
         } catch (error) {
@@ -499,6 +503,9 @@ class Migroot {
             this.log.debug('Step 1: Fetching user and board');
             this.ga.send_event('init_app')
             await this.fetchUserData();
+            if (!this.currentUser) {
+                return;
+            }
             const finalBoardId = this.#resolveBoardId(boardId);
 
             this.ga.setBuddyMode(this.isBuddyUser())
