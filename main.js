@@ -925,7 +925,13 @@ class Migroot {
     }
 
     renderUserFolder() {
+        const element = document.getElementById(G_DRIVE_FOLDER_ID);
+        if (!element) {
+            this.log.debug(`element ${G_DRIVE_FOLDER_ID} for g drive button not found`)
+            return;
+        }
         if (this.isFreeUser()) {
+            element.onclick = () => this.#handleOpenDrive(null);
             return;
         }
 
@@ -936,7 +942,6 @@ class Migroot {
                 this.userFilesFolder = urlFolder;
                 this.log.debug(`url got for user: ${urlFolder}`);
 
-                const element = document.getElementById(G_DRIVE_FOLDER_ID);
 
                 // Проверка на наличие viewLink
                 if (!this.userFilesFolder?.viewLink) {
@@ -952,13 +957,10 @@ class Migroot {
 
                     element.classList.remove('b-button_locked');
 
-                    element.setAttribute("href", this.userFilesFolder.viewLink);
-                    element.setAttribute("target", "_blank");
+                    // element.setAttribute("href", this.userFilesFolder.viewLink);
+                    // element.setAttribute("target", "_blank");
+                    element.onclick = () => this.#handleOpenDrive(this.userFilesFolder.viewLink);
 
-                    element.onclick = () => {
-                      this.ga.send_event('click_g_drive')
-                      window.open(this.userFilesFolder.viewLink, '_blank', 'noopener,noreferrer');
-                    };
 
                     // Удалить иконку "замочек", если есть
                     const lockIcon = element.querySelector('.b-lock-icon, .lock, svg.lock');
@@ -1261,6 +1263,13 @@ class Migroot {
             this.config.mainContainer.appendChild(drawer);
         }
     }
+
+    #handleOpenDrive(link) {
+      this.ga.send_event('click_g_drive')
+        if (link) {
+          window.open(link, '_blank', 'noopener,noreferrer');
+        }
+    };
 
     #handleCardClick(item) {
         this.log.debug(`Card clicked: ${item.clientTaskId}`);
