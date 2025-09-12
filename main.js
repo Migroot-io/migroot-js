@@ -72,9 +72,9 @@ class AnalyticsHelper {
       this.senderPlan = value || 'unknown';
     }
 
-  send_event(eventName) {
+  send_event(eventName, extraParams = {}) {
     if (!window.dataLayer || !Array.isArray(window.dataLayer)) {
-      console.warn('[Analytics] dataLayer is not defined, event skipped:', eventName);
+      console.warn('[Analytics] dataLayer is not defined, event skipped:', this.event, eventName);
       return;
     }
     const params = { ...(EVENT_PARAMS[eventName] || {}) };
@@ -88,11 +88,12 @@ class AnalyticsHelper {
         event_action: eventName,
         event_sender: this.sender,
         event_sender_plan: this.senderPlan,
-        ...params
+        ...params,
+        ...extraParams
       });
-      console.log('[Analytics] Event sent:', eventName, params);
+      console.log('[Analytics] Event sent:', this.event, eventName, params, extraParams);
     } catch (e) {
-      console.error('[Analytics] Failed to send event:', eventName, e);
+      console.error('[Analytics] Failed to send event:',this.event,  eventName, e);
     }
   }
 }
@@ -1940,6 +1941,15 @@ class Migroot {
 
 
     /*───────────────────────────  Utility & Formatting END ─────────────────*/
+
+    /**
+     * Send a custom event to analytics.
+     * @param {string} eventAction - The event action name.
+     * @param {object} params - Optional extra parameters for the event.
+     */
+    event(eventAction, params = {}) {
+        this.ga.send_event(eventAction, params);
+    }
 }
 
 window.Migroot = Migroot;
