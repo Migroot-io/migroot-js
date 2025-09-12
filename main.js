@@ -99,7 +99,7 @@ class AnalyticsHelper {
 
 const EVENT_PARAMS = {
   click_g_drive: {
-    event_category: 'navigation',
+    event_category: 'paid feature',
     event_label: 'Google Drive Button',
   },
   click_whatsapp: {
