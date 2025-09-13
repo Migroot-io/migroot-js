@@ -309,6 +309,7 @@ class Migroot {
         this.token = null;
         this.userFilesFolder = null;
         this.init()
+        this.#attachEventButtons();
     }
 
     init() {
@@ -2037,6 +2038,21 @@ class Migroot {
 
 
     /*───────────────────────────  Utility & Formatting END ─────────────────*/
+    /**
+     * Attach click listeners to all elements whose id ends with "btn-event".
+     * On click, sends a custom event with event_label as the button's text.
+     * @private
+     */
+    #attachEventButtons() {
+        const buttons = document.querySelectorAll('[id$="btn-event"]');
+        buttons.forEach(el => {
+            el.addEventListener('click', () => {
+                const id = el.id;
+                const label = el.textContent.trim();
+                this.event(`click_${id}`, { event_label: label });
+            });
+        });
+    }
 
     /**
      * Send a custom event to analytics.
