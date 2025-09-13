@@ -163,42 +163,42 @@ const EVENT_PARAMS = {
     event_category: 'activation',
     event_label: 'Send task comment'
   },
-  // click_login: {
-  //   event_category: 'activation',
-  //   event_label: 'Login button',
-  // },
+  click_login: {
+    event_category: 'activation',
+    event_label: 'Login button',
+  },
   click_g_drive: {
     event_category: 'paid feature',
     event_label: 'Google Drive Button',
   },
-  // click_buy_main: {
-  //   event_category: 'conversion',
-  //   event_label: 'Buy from main page',
-  // },
-  // click_buy_plans: {
-  //   event_category: 'conversion',
-  //   event_label: 'Buy from plans page',
-  // },
-  // click_signup: {
-  //   event_category: 'acquisition',
-  //   event_label: 'Sign up button',
-  // },
-  // click_check_me: {
-  //   event_category: 'acquisition',
-  //   event_label: 'Check your eligibility button',
-  // },
-  // click_blog: {
-  //   event_category: 'acquisition',
-  //   event_label: 'Click blog button from main',
-  // },
-  // click_supported_countries: {
-  //   event_category: 'acquisition',
-  //   event_label: 'Click supported_countries from main',
-  // },
-  // click_whatsapp: {
-  //   event_category: 'activation',
-  //   event_label: 'WhatsApp Click',
-  // }
+  click_buy_main: {
+    event_category: 'conversion',
+    event_label: 'Buy from main page',
+  },
+  click_buy_plans: {
+    event_category: 'conversion',
+    event_label: 'Buy from plans page',
+  },
+  click_signup: {
+    event_category: 'acquisition',
+    event_label: 'Sign up button',
+  },
+  click_check_me: {
+    event_category: 'acquisition',
+    event_label: 'Check your eligibility button',
+  },
+  click_blog: {
+    event_category: 'acquisition',
+    event_label: 'Click blog button from main',
+  },
+  click_supported_countries: {
+    event_category: 'acquisition',
+    event_label: 'Click supported_countries from main',
+  },
+  click_whatsapp: {
+    event_category: 'activation',
+    event_label: 'WhatsApp Click',
+  }
 };
 
 const STATUS_FLOW = Object.freeze({
@@ -2044,12 +2044,12 @@ class Migroot {
      * @private
      */
     #attachEventButtons() {
-        const buttons = document.querySelectorAll('[id$="btn-event"]');
+        const buttons = document.querySelectorAll('[data-action-event]');
         buttons.forEach(el => {
             el.addEventListener('click', () => {
-                const id = el.id;
+                const action = el.getAttribute('data-action-event');
                 const label = el.textContent.trim();
-                this.event(`click_${id}`, { event_label: label });
+                this.event(action, { event_label: label });
             });
         });
     }
