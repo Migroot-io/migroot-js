@@ -55,7 +55,7 @@ class Logger {
 }
 
 class AnalyticsHelper {
-  constructor(event, debug = false) {
+  constructor(debug = false) {
     this.debug = debug;
     this.isBuddyUser = false;
     this.senderPlan = 'unknown'
@@ -93,9 +93,9 @@ class AnalyticsHelper {
         ...params,
         ...extraParams
       });
-      console.log('[Analytics] Event sent:', this.event, eventName, params, extraParams);
+      console.log('[Analytics] Event sent:', defaultEvent, eventName, params, extraParams);
     } catch (e) {
-      console.error('[Analytics] Failed to send event:',this.event,  eventName, e);
+      console.error('[Analytics] Failed to send event:',defaultEvent,  eventName, e);
     }
   }
 }
