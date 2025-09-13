@@ -56,7 +56,7 @@ class Logger {
 
 class AnalyticsHelper {
   constructor(event, debug = false) {
-    this.event = event;
+    this.event = String(event);
     this.debug = debug;
     this.isBuddyUser = false;
     this.senderPlan = 'unknown'
@@ -298,7 +298,10 @@ class Migroot {
         this.backend_url = host === 'migroot.webflow.io' ?  'https://migroot-447015.oa.r.appspot.com/v1' :  'https://migroot-prod.oa.r.appspot.com/v1';
         this.endpoints = ENDPOINTS;
         this.log = new Logger(this.config.debug);
-        this.ga = new AnalyticsHelper(this.config.event || 'app_interaction', this.config.debug)
+        const defaultEvent = (window.location.pathname.includes('/app/') || window.location.pathname.includes('/staging/'))
+            ? 'app_interaction'
+            : 'site_interaction';
+        this.ga = new AnalyticsHelper(defaultEvent, this.config.debug);
         this.boardUser = null;
         this.currentUser = null;
         this.boardId = null;
