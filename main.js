@@ -73,7 +73,7 @@ class AnalyticsHelper {
 
   send_event(eventName, extraParams = {}) {
     if (!window.dataLayer || !Array.isArray(window.dataLayer)) {
-      console.warn('[Analytics] dataLayer is not defined, event skipped:', this.event, eventName);
+      console.warn('[Analytics] dataLayer is not defined, event skipped:',defaultEvent, eventName);
       return;
     }
     const params = { ...(EVENT_PARAMS[eventName] || {}) };
