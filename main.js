@@ -84,14 +84,6 @@ class AnalyticsHelper {
     ? 'app_interaction'
     : 'site_interaction';
 
-      console.log('[Analytics] pushing to dl:', {
-        event: defaultEvent,
-        event_action: eventName,
-        event_sender: this.sender,
-        event_sender_plan: this.senderPlan,
-        ...params,
-        ...extraParams
-      });
 
     try {
       window.dataLayer.push({
@@ -102,7 +94,7 @@ class AnalyticsHelper {
         ...params,
         ...extraParams
       });
-      console.log('[Analytics] Event sent:', defaultEvent, eventName, params, extraParams);
+      // console.log('[Analytics] Event sent:', defaultEvent, eventName, params, extraParams);
     } catch (e) {
       console.error('[Analytics] Failed to send event:',defaultEvent,  eventName, e);
     }
