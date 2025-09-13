@@ -99,15 +99,106 @@ class AnalyticsHelper {
 }
 
 const EVENT_PARAMS = {
+  init_main: {
+    event_category: 'initialization',
+    event_label: 'Main module initialization'
+  },
+  init_site: {
+    event_category: 'initialization',
+    event_label: 'Site initialization'
+  },
+  init_app: {
+    event_category: 'initialization',
+    event_label: 'App initialization'
+  },
+  click_task_approve_file: {
+    event_category: 'administration',
+    event_label: 'Approve task file'
+  },
+  click_task_reject_file: {
+    event_category: 'administration',
+    event_label: 'Reject task file'
+  },
+  create_board_finish: {
+    event_category: 'acquisition',
+    event_label: 'Finish board creation'
+  },
+  click_create_board_finish: {
+    event_category: 'acquisition',
+    event_label: 'Click board creation'
+  },
+  click_start_initial_quiz: {
+      event_category: 'acquisition',
+      event_label: 'Go to generate journey quiz',
+  },
+  click_task_details: {
+    event_category: 'activation',
+    event_label: 'Open task details'
+  },
+  click_task_start: {
+    event_category: 'activation',
+    event_label: 'Start task'
+  },
+  click_task_next_status: {
+    event_category: 'activation',
+    event_label: 'Move task to next status'
+  },
+  click_task_prev_status: {
+    event_category: 'activation',
+    event_label: 'Move task to previous status'
+  },
+  click_task_ready_status: {
+    event_category: 'activation',
+    event_label: 'Set task ready status'
+  },
+  click_task_choose_file: {
+    event_category: 'activation',
+    event_label: 'Choose file for task'
+  },
+  click_task_file_send: {
+    event_category: 'activation',
+    event_label: 'Send task file'
+  },
+  click_task_comment_send: {
+    event_category: 'activation',
+    event_label: 'Send task comment'
+  },
+  click_login: {
+    event_category: 'activation',
+    event_label: 'Login button',
+  },
   click_g_drive: {
     event_category: 'paid feature',
     event_label: 'Google Drive Button',
   },
-  click_whatsapp: {
-    event_category: 'messenger',
-    event_label: 'WhatsApp Click',
+  click_buy_main: {
+    event_category: 'conversion',
+    event_label: 'Buy from main page',
   },
-  // добавляй по мере необходимости
+  click_buy_plans: {
+    event_category: 'conversion',
+    event_label: 'Buy from plans page',
+  },
+  click_signup: {
+    event_category: 'acquisition',
+    event_label: 'Sign up button',
+  },
+  click_check_me: {
+    event_category: 'acquisition',
+    event_label: 'Check your eligibility button',
+  },
+  click_blog: {
+    event_category: 'acquisition',
+    event_label: 'Click blog button from main',
+  },
+  click_supported_countries: {
+    event_category: 'acquisition',
+    event_label: 'Click supported_countries from main',
+  },
+  click_whatsapp: {
+    event_category: 'activation',
+    event_label: 'WhatsApp Click',
+  }
 };
 
 const STATUS_FLOW = Object.freeze({
@@ -1661,6 +1752,7 @@ class Migroot {
         this.createBoard(features, questionnaire).then(async (createdBoard) => {
             if (createdBoard && createdBoard.boardId) {
                 this.log.debug('Board successfully created', createdBoard);
+                this.ga.send_event('create_board_finish')
                 await new Promise(resolve => setTimeout(resolve, 2000));
                 // The overlay remains until redirect.
 
@@ -1924,7 +2016,7 @@ class Migroot {
 
         const button = document.createElement('a');
         button.textContent = 'let\'s go';
-        button.href = `${this.appPrefix()}/create-board`;
+        // button.href = `${this.appPrefix()}/create-board`;
         button.style.display = 'inline-block';
         button.style.padding = '12px 24px';
         button.style.backgroundColor = '#ff9900';
@@ -1932,6 +2024,10 @@ class Migroot {
         button.style.textDecoration = 'none';
         button.style.fontSize = '18px';
         button.style.borderRadius = '8px';
+        button.onclick = () => {
+          this.ga.send_event('click_start_initial_quiz');
+          window.location.href = `${this.appPrefix()}/create-board`;
+        };
 
         clone.appendChild(text);
         clone.appendChild(button);
