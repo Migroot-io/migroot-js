@@ -101,6 +101,55 @@ class AnalyticsHelper {
   }
 }
 
+const ONBOARRING_STEPS = [
+        {
+          title: "Task intro",
+          content: "Here’s your first step: Upload your CV. Let’s do it together. Click on that task",
+          target: '#task-c9c9bba8-e74b-4a6b-8f6d-80bac4c86edf',
+          order: 2,
+          placement: "bottom"
+        },
+        {
+          title: "Task details",
+          content: "This panel shows what’s required, due date, and the coins you’ll earn when you finish.",
+          target: '#drawer-c9c9bba8-e74b-4a6b-8f6d-80bac4c86edf .drw-detail',
+          dialogTarget: '.ac-logo',
+          order: 3,
+          placement: "left",
+        },
+        {
+          title: "LinkedIn export tip",
+          content: "💡 No CV ready? Just save your LinkedIn profile as a PDF — it works perfectly.",
+          target: '#drawer-c9c9bba8-e74b-4a6b-8f6d-80bac4c86edf .drw-tabs',
+          dialogTarget: '.ac-logo',
+          order: 4,
+          placement: "left"
+        },
+        {
+          title: "Docs tab",
+          content: "Click Docs here to upload your file. That’s where all task-related documents go.",
+          target: '#drawer-c9c9bba8-e74b-4a6b-8f6d-80bac4c86edf .drw-tabs',
+          dialogTarget: '.ac-logo',
+          order: 5,
+          placement: "left"
+        },
+        {
+          title: "Upload area",
+          content: "Click Upload file. Supported: PDF, JPG, PNG.",
+          target: '#drawer-c9c9bba8-e74b-4a6b-8f6d-80bac4c86edf .drw-tabs',
+          dialogTarget: '.ac-logo',
+          order: 6,
+          placement: "left"
+        },
+        {
+          title: "Success / Progress",
+          content: "🎉 Great job! You’ve uploaded your first document, earned coins, and unlocked progress on your relocation.",
+          target: '.ac-progress',
+          order: 7,
+          placement: "left"
+        }
+    ]
+
 const EVENT_PARAMS = {
   init_main: {
     event_category: 'initialization',
@@ -598,16 +647,21 @@ class Migroot {
 
     /*───────────────────────────  Dynamic API request generator END ──────────────────────────*/
     /// oboarding start
-    ONBOADRING_STEPS = [
 
-    ]
     init_onboarding() {
         if (!this.onboarding) {
             return;
         }
+        var steps = structuredClone(ONBOARRING_STEPS)
+        // add to steps afterEnter beforeEnter https://tourguidejs.com/docs/methods.html#updatepositions
+        this.onboarding.add_steps(steps)
+        this.onboarding.onBeforeStepChange(()=>{
+            if (this.onboarding.activeStep === 2) {
+                document.getElementById('task-c9c9bba8-e74b-4a6b-8f6d-80bac4c86edf').click()
+            } else {
 
-        this.onboarding.add_steps(ONBOADRING_STEPS)
-
+            }
+        })
         if (!this.onboarding.isFinished('general')) {
           this.onboarding.start()
         }
@@ -1438,6 +1492,9 @@ class Migroot {
             }
 
             this._drawerOutsideHandler = (event) => {
+                if  (this.onboarding?.isVisible) {
+                    return;
+                }
                 if (drawerEl && !drawerEl.contains(event.target)) {
                     this.log.debug(`Click outside reopened drawer-${item.clientTaskId}, closing`);
                     drawerEl.style.display = 'none';
