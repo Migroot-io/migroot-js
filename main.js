@@ -663,7 +663,7 @@ class Migroot {
             }
         })
         if (!this.onboarding.isFinished('general')) {
-          this.onboarding.start()
+          // this.onboarding.start()
         }
     }
     /// onboarding end
