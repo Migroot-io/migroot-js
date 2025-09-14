@@ -112,7 +112,7 @@ const ONBOARRING_STEPS = [
         {
           title: "Task details",
           content: "This panel shows what’s required, due date, and the coins you’ll earn when you finish.",
-          target: '#drawer-c9c9bba8-e74b-4a6b-8f6d-80bac4c86edf .drw-details',
+          target: '#drawer-c9c9bba8-e74b-4a6b-8f6d-80bac4c86edf',
           order: 3,
           placement: "left",
         },
