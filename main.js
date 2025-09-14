@@ -654,7 +654,7 @@ class Migroot {
         }
         var steps = structuredClone(ONBOARRING_STEPS)
         // add to steps afterEnter beforeEnter https://tourguidejs.com/docs/methods.html#updatepositions
-        this.onboarding.add_steps(steps)
+        this.onboarding.addSteps(steps)
         this.onboarding.onBeforeStepChange(()=>{
             if (this.onboarding.activeStep === 2) {
                 document.getElementById('task-c9c9bba8-e74b-4a6b-8f6d-80bac4c86edf').click()
