@@ -120,14 +120,14 @@ const ONBOARRING_STEPS = [
         {
           title: "Docs tab",
           content: "Click Docs here to upload your file. That’s where all task-related documents go.",
-          target: '#drawer-c9c9bba8-e74b-4a6b-8f6d-80bac4c86edf [class="drw-tabs"]',
+          target: '#drawer-c9c9bba8-e74b-4a6b-8f6d-80bac4c86edf',
           order: 4,
           placement: "left"
         },
         {
           title: "Upload area",
           content: "Click Upload file. Supported: PDF, JPG, PNG.",
-          target: '#drawer-c9c9bba8-e74b-4a6b-8f6d-80bac4c86edf [class="drw-tabs"]',
+          target: '#drawer-c9c9bba8-e74b-4a6b-8f6d-80bac4c86edf',
           order: 5,
           placement: "left"
         },
