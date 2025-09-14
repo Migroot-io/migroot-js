@@ -111,33 +111,24 @@ const ONBOARRING_STEPS = [
         },
         {
           title: "Task details",
-          content: "This panel shows what’s required, due date, and the coins you’ll earn when you finish.",
+          content: "This panel shows what’s required, due date, and the coins you’ll earn when you finish.\n\n" +
+              "💡 No CV ready? Just save your LinkedIn profile as a PDF — it works perfectly.",
           target: '#drawer-c9c9bba8-e74b-4a6b-8f6d-80bac4c86edf',
           order: 3,
           placement: "left",
         },
         {
-          title: "LinkedIn export tip",
-          content: "💡 No CV ready? Just save your LinkedIn profile as a PDF — it works perfectly.",
-          target: '#drawer-c9c9bba8-e74b-4a6b-8f6d-80bac4c86edf .drw-tabs',
-          dialogTarget: '.ac-logo',
-          order: 4,
-          placement: "left"
-        },
-        {
           title: "Docs tab",
           content: "Click Docs here to upload your file. That’s where all task-related documents go.",
-          target: '#drawer-c9c9bba8-e74b-4a6b-8f6d-80bac4c86edf .drw-tabs',
-          dialogTarget: '.ac-logo',
-          order: 5,
+          target: '#drawer-c9c9bba8-e74b-4a6b-8f6d-80bac4c86edf [class="drw-tabs"]',
+          order: 4,
           placement: "left"
         },
         {
           title: "Upload area",
           content: "Click Upload file. Supported: PDF, JPG, PNG.",
-          target: '#drawer-c9c9bba8-e74b-4a6b-8f6d-80bac4c86edf .drw-tabs',
-          dialogTarget: '.ac-logo',
-          order: 6,
+          target: '#drawer-c9c9bba8-e74b-4a6b-8f6d-80bac4c86edf [class="drw-tabs"]',
+          order: 5,
           placement: "left"
         },
         {
