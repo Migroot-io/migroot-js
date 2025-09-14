@@ -135,7 +135,7 @@ const ONBOARRING_STEPS = [
           title: "Success / Progress",
           content: "🎉 Great job! You’ve uploaded your first document, earned coins, and unlocked progress on your relocation.",
           target: '.ac-progress',
-          order: 7,
+          order: 6,
           placement: "left"
         }
     ]
@@ -645,9 +645,11 @@ class Migroot {
         var steps = structuredClone(ONBOARRING_STEPS)
         // add to steps afterEnter beforeEnter https://tourguidejs.com/docs/methods.html#updatepositions
         this.onboarding.addSteps(steps)
-        this.onboarding.onBeforeStepChange(()=>{
+        this.onboarding.onBeforeStepChange(()=> {
             if (this.onboarding.activeStep === 2) {
                 document.getElementById('task-c9c9bba8-e74b-4a6b-8f6d-80bac4c86edf').click()
+            } else if (this.onboarding.activeStep === 5) {
+                document.getElementById('drawer-c9c9bba8-e74b-4a6b-8f6d-80bac4c86edf').style.display = 'none'
             } else {
 
             }
