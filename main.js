@@ -311,6 +311,7 @@ class Migroot {
         this.countries = null;
         this.token = null;
         this.userFilesFolder = null;
+        this.onboarding = null;
         this.init()
         this.#attachEventButtons();
     }
@@ -318,6 +319,11 @@ class Migroot {
     init() {
         // expose instance and proxy helpers to window (for inline‑onclick in templates)
         window.mg = this;
+        if (tourguide) {
+            this.onboarding = new tourguide.TourGuideClient({
+                exitOnClickOutside: false
+            })
+        }
         this.generateMethodsFromEndpoints();
         this.initHandlers();
         this.log.info('Migroot initialized');
@@ -591,7 +597,22 @@ class Migroot {
     }
 
     /*───────────────────────────  Dynamic API request generator END ──────────────────────────*/
+    /// oboarding start
+    ONBOADRING_STEPS = [
 
+    ]
+    init_onboarding() {
+        if (!this.onboarding) {
+            return;
+        }
+
+        this.onboarding.add_steps(ONBOADRING_STEPS)
+
+        if (!this.onboarding.isFinished('general')) {
+          this.onboarding.start()
+        }
+    }
+    /// onboarding end
     /*───────────────────────────  Dashboard/Docs/HUB START ──────────────────────────*/
 
 
@@ -815,6 +836,7 @@ class Migroot {
         const segments = path.split('/').filter(Boolean);
         const page_type = segments[segments.length - 1];
         await this.init_dashboard({boardId: boardId, callback: callback, type: page_type})
+        this.init_onboarding();
     }
 
     /*───────────────────────────  Dashboard/Docs/HUB END ──────────────────────────*/
