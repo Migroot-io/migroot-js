@@ -653,9 +653,9 @@ class Migroot {
         this.onboarding.addSteps(steps)
         this.onboarding.onBeforeStepChange(()=> {
             if (this.onboarding.activeStep === 2) {
-                document.getElementById('[data-task="preview"][data-onboarding="true"]').click()
+                document.querySelector('[data-task="preview"][data-onboarding="true"]').click()
             } else if (this.onboarding.activeStep === 5) {
-                document.getElementById('[data-task="drawer"][data-onboarding="true"]').style.display = 'none'
+                document.querySelector('[data-task="drawer"][data-onboarding="true"]').style.display = 'none'
             } else {
 
             }
