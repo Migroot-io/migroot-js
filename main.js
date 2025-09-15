@@ -645,7 +645,7 @@ class Migroot {
               placement: "left"
             },
             {
-              title: "Long description and comments",
+              title: "Long description",
               content: "💡 No CV ready? Just save your LinkedIn profile as a PDF — it works perfectly." ,
               target: '[data-task="drawer"][data-onboarding="true"] .drw-tabs',
               order: 5,
@@ -655,13 +655,16 @@ class Migroot {
                   },
             afterEnter: () => {
               const el = document.querySelector('[data-task="drawer"][data-onboarding="true"]')
-              if (el) el.scrollTop = 0
+              if (el) {
+                  el.scrollTop = 0;
+                  el.querySelector('[data-w-tab="Tab 1"]').click();
+              }
             },
               placement: "left"
             },
             {
-              title: "Docs & Upload area",
-              content: "Click Docs here to upload your file. That’s where all task-related documents go. Click Upload file. Supported: PDF, JPG, PNG.",
+              title: " comments",
+              content: "Any issues?  Save notes here or contact  Migroot and will help you in 3 business days (after upgrade - 1 business day)" ,
               target: '[data-task="drawer"][data-onboarding="true"] .drw-tabs',
               order: 6,
               beforeEnter: () => {
@@ -669,8 +672,30 @@ class Migroot {
                   if (el) el.style.display = 'block'
                   },
             afterEnter: () => {
+              const el = document.querySelector('[data-task="drawer"][data-onboarding="true"]')
+              if (el) {
+                  el.scrollTop = 0;
+                  el.querySelector('[data-w-tab="Tab 2"]').click();
+              }
+            },
+              placement: "left"
+            },
+            {
+              title: "Docs & Upload area",
+              content: "Click Docs here to upload your file. That’s where all task-related documents go. Click Upload file. Supported: PDF, JPG, PNG.",
+              target: '[data-task="drawer"][data-onboarding="true"] .drw-tabs',
+              order: 7,
+              beforeEnter: () => {
                   const el = document.querySelector('[data-task="drawer"][data-onboarding="true"]')
-                  if (el) el.scrollTop = 0
+                  if (el) el.style.display = 'block';
+                  },
+            afterEnter: () => {
+                  const el = document.querySelector('[data-task="drawer"][data-onboarding="true"]')
+                  if (el) {
+                      el.scrollTop = 0;
+                        el.querySelector('[data-w-tab="Tab 3"]').click();
+                  }
+
                 },
               placement: "left"
             },
@@ -678,7 +703,7 @@ class Migroot {
               title: "Success / Progress",
               content: "🎉 Great job! You’ve uploaded your first document, earned coins, and unlocked progress on your relocation.",
               target: '.ac-progress',
-              order: 7,
+              order: 8,
               beforeEnter: () => {
                   const el = document.querySelector('[data-task="drawer"][data-onboarding="true"]')
                   if (el) el.style.display = 'none'
