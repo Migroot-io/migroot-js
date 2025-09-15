@@ -120,7 +120,7 @@ const ONBOARRING_STEPS = [
         {
           title: "Docs tab",
           content: "Click Docs here to upload your file. That’s where all task-related documents go.",
-          target: '#drawer-c9c9bba8-e74b-4a6b-8f6d-80bac4c86edf',
+          target: '#drawer-c9c9bba8-e74b-4a6b-8f6d-80bac4c86edf [class="drw-details"]',
           order: 4,
           placement: "left"
         },
