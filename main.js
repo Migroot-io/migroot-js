@@ -1432,6 +1432,10 @@ class Migroot {
         this.#setContent(drawer, item, this.#drawerOpts());
 
         drawer.id = `drawer-${item.clientTaskId}`;
+
+        if (item.onboarding) {
+            drawer.dataset.onboarding = 'true';
+        }
         drawer.dataset.required = item.documentRequired ? 'true' : 'false';
         drawer.dataset.difficulty = item.difficulty || '';
         drawer.dataset.status = item.status || '';
