@@ -107,6 +107,9 @@ const ONBOARRING_STEPS = [
           content: "Here’s your first step: Upload your CV. Let’s do it together. Click on that task",
           target: '[data-task="preview"][data-onboarding="true"]',
           order: 2,
+          beforeEnter:   () => {
+              document.querySelector('[data-task="drawer"][data-onboarding="true"]').style.display = 'none'
+            },
           placement: "bottom"
         },
         {
@@ -114,6 +117,9 @@ const ONBOARRING_STEPS = [
           content: "This panel shows what’s required, due date, and the coins you’ll earn when you finish.\n\n",
           target: '[data-task="drawer"][data-onboarding="true"]',
           order: 3,
+          beforeEnter:   () => {
+              document.querySelector('[data-task="drawer"][data-onboarding="true"]').style.display = 'block'
+            },
           placement: "left",
         },
         {
@@ -121,6 +127,9 @@ const ONBOARRING_STEPS = [
           content: "This panel shows what’s required, due date, and the coins you’ll earn when you finish." ,
           target: '[data-task="drawer"][data-onboarding="true"] [class="drw-details"]',
           order: 4,
+          beforeEnter:   () => {
+              document.querySelector('[data-task="drawer"][data-onboarding="true"]').style.display = 'block'
+            },
           placement: "left"
         },
         {
@@ -128,13 +137,20 @@ const ONBOARRING_STEPS = [
           content: "💡 No CV ready? Just save your LinkedIn profile as a PDF — it works perfectly." ,
           target: '[data-task="drawer"][data-onboarding="true"] .drw-tabs',
           order: 5,
+          beforeEnter:   () => {
+              document.querySelector('[data-task="drawer"][data-onboarding="true"]').style.display = 'block'
+            },
           placement: "left"
         },
         {
           title: "Docs & Upload area",
           content: "Click Docs here to upload your file. That’s where all task-related documents go. Click Upload file. Supported: PDF, JPG, PNG.",
           target: '[data-task="drawer"][data-onboarding="true"] .drw-tabs',
+          drawerState: 'open',
           order: 6,
+          beforeEnter:   () => {
+              document.querySelector('[data-task="drawer"][data-onboarding="true"]').style.display = 'block'
+            },
           placement: "left"
         },
         {
@@ -142,6 +158,9 @@ const ONBOARRING_STEPS = [
           content: "🎉 Great job! You’ve uploaded your first document, earned coins, and unlocked progress on your relocation.",
           target: '.ac-progress',
           order: 7,
+          beforeEnter:   () => {
+              document.querySelector('[data-task="drawer"][data-onboarding="true"]').style.display = 'none'
+            },
           placement: "left"
         }
     ]
@@ -654,7 +673,7 @@ class Migroot {
         this.onboarding.onBeforeStepChange(()=> {
             if (this.onboarding.activeStep === 2) {
                 document.querySelector('[data-task="preview"][data-onboarding="true"]').click()
-            } else if (this.onboarding.activeStep === 5) {
+            } else if (this.onboarding.activeStep === 6) {
                 document.querySelector('[data-task="drawer"][data-onboarding="true"]').style.display = 'none'
             } else {
 
