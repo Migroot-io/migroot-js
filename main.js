@@ -101,7 +101,7 @@ class AnalyticsHelper {
   }
 }
 
-const ONBOARRING_STEPS = [
+const ONBOARDING_STEPS = [
         {
           title: "Task intro",
           content: "Here’s your first step: Upload your CV. Let’s do it together. Click on that task",
@@ -685,7 +685,7 @@ class Migroot {
         if (!this.onboarding) {
             return;
         }
-        var steps = structuredClone(ONBOARRING_STEPS)
+        var steps = structuredClone(ONBOARDING_STEPS)
         // add to steps afterEnter beforeEnter https://tourguidejs.com/docs/methods.html#updatepositions
         this.onboarding.addSteps(steps)
         // this.onboarding.onBeforeStepChange(()=> {
