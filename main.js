@@ -105,35 +105,35 @@ const ONBOARRING_STEPS = [
         {
           title: "Task intro",
           content: "Here’s your first step: Upload your CV. Let’s do it together. Click on that task",
-          target: '#task-c9c9bba8-e74b-4a6b-8f6d-80bac4c86edf',
+          target: '[data-task="preview"][data-onboarding="true"]',
           order: 2,
           placement: "bottom"
         },
         {
           title: "Task drawer full",
           content: "This panel shows what’s required, due date, and the coins you’ll earn when you finish.\n\n",
-          target: '#drawer-c9c9bba8-e74b-4a6b-8f6d-80bac4c86edf',
+          target: '[data-task="drawer"][data-onboarding="true"]',
           order: 3,
           placement: "left",
         },
         {
           title: "Task Details",
           content: "This panel shows what’s required, due date, and the coins you’ll earn when you finish." ,
-          target: '#drawer-c9c9bba8-e74b-4a6b-8f6d-80bac4c86edf [class="drw-details"]',
+          target: '[data-task="drawer"][data-onboarding="true"] [class="drw-details"]',
           order: 4,
           placement: "left"
         },
         {
           title: "Long description and comments",
           content: "💡 No CV ready? Just save your LinkedIn profile as a PDF — it works perfectly." ,
-          target: '#drawer-c9c9bba8-e74b-4a6b-8f6d-80bac4c86edf [class="drw-tabs"]',
+          target: '[data-task="drawer"][data-onboarding="true"] [class="drw-tabs"]',
           order: 5,
           placement: "left"
         },
         {
           title: "Docs & Upload area",
           content: "Click Docs here to upload your file. That’s where all task-related documents go. Click Upload file. Supported: PDF, JPG, PNG.",
-          target: '#drawer-c9c9bba8-e74b-4a6b-8f6d-80bac4c86edf [class="drw-tabs"]',
+          target: '[data-task="drawer"][data-onboarding="true"] [class="drw-tabs"]',
           order: 6,
           placement: "left"
         },
@@ -653,9 +653,9 @@ class Migroot {
         this.onboarding.addSteps(steps)
         this.onboarding.onBeforeStepChange(()=> {
             if (this.onboarding.activeStep === 2) {
-                document.getElementById('task-c9c9bba8-e74b-4a6b-8f6d-80bac4c86edf').click()
+                document.getElementById('[data-task="preview"][data-onboarding="true"]').click()
             } else if (this.onboarding.activeStep === 5) {
-                document.getElementById('drawer-c9c9bba8-e74b-4a6b-8f6d-80bac4c86edf').style.display = 'none'
+                document.getElementById('[data-task="drawer"][data-onboarding="true"]').style.display = 'none'
             } else {
 
             }
@@ -868,7 +868,8 @@ class Migroot {
     #renderCards(cardType) {
         this.log.debug(`Step 3: Creating cards based on ${cardType} tasks`);
         this.cards.sort((a, b) => a.priority - b.priority);
-        const firstNotStarted = this.cards.find(card => card.status === 'NOT_STARTED');
+        const firstNotStarted = [...this.cards].reverse().find(card => card.status === 'NOT_STARTED');
+
         if (firstNotStarted) {
             firstNotStarted.onboarding = true;
         } else {
