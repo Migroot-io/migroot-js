@@ -653,13 +653,14 @@ class Migroot {
               order: 5,
               beforeEnter: () => {
                   const el = document.querySelector('[data-task="drawer"][data-onboarding="true"]')
-                  if (el) el.style.display = 'block'
-                  },
+                  if (el) {
+                      el.style.display = 'block';
+                      el.querySelector('[data-w-tab="Tab 1"]').click();
+                  }},
             afterEnter: () => {
               const el = document.querySelector('[data-task="drawer"][data-onboarding="true"]')
               if (el) {
                   el.scrollTop = 0;
-                  el.querySelector('[data-w-tab="Tab 1"]').click();
               }
             },
               placement: "left"
@@ -671,13 +672,16 @@ class Migroot {
               order: 6,
               beforeEnter: () => {
                   const el = document.querySelector('[data-task="drawer"][data-onboarding="true"]')
-                  if (el) el.style.display = 'block'
+                  if (el) {
+                      el.style.display = 'block';
+                      el.querySelector('[data-w-tab="Tab 2"]').click();
+
+                  }
                   },
             afterEnter: () => {
               const el = document.querySelector('[data-task="drawer"][data-onboarding="true"]')
               if (el) {
                   el.scrollTop = 0;
-                  el.querySelector('[data-w-tab="Tab 2"]').click();
               }
             },
               placement: "left"
@@ -689,15 +693,17 @@ class Migroot {
               order: 7,
               beforeEnter: () => {
                   const el = document.querySelector('[data-task="drawer"][data-onboarding="true"]')
-                  if (el) el.style.display = 'block';
+                  if (el) {
+                      el.style.display = 'block';
+                      el.querySelector('[data-w-tab="Tab 3"]').click();
+                  }
+
                   },
             afterEnter: () => {
                   const el = document.querySelector('[data-task="drawer"][data-onboarding="true"]')
                   if (el) {
                       el.scrollTop = 0;
-                        el.querySelector('[data-w-tab="Tab 3"]').click();
                   }
-
                 },
               placement: "left"
             },
