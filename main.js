@@ -686,9 +686,9 @@ class Migroot {
         if (!this.onboarding) {
             return;
         }
-        var steps = structuredClone(ONBOARDING_STEPS)
+        // var steps = structuredClone(ONBOARDING_STEPS)
         // add to steps afterEnter beforeEnter https://tourguidejs.com/docs/methods.html#updatepositions
-        this.onboarding.addSteps(steps)
+        this.onboarding.addSteps(ONBOARDING_STEPS)
         // this.onboarding.onBeforeStepChange(()=> {
         //     if (this.onboarding.activeStep === 2) {
         //         document.querySelector('[data-task="preview"][data-onboarding="true"]').click()
