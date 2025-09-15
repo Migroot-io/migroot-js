@@ -126,14 +126,14 @@ const ONBOARRING_STEPS = [
         {
           title: "Long description and comments",
           content: "💡 No CV ready? Just save your LinkedIn profile as a PDF — it works perfectly." ,
-          target: '[data-task="drawer"][data-onboarding="true"] [class="drw-tabs"]',
+          target: '[data-task="drawer"][data-onboarding="true"] .drw-tabs',
           order: 5,
           placement: "left"
         },
         {
           title: "Docs & Upload area",
           content: "Click Docs here to upload your file. That’s where all task-related documents go. Click Upload file. Supported: PDF, JPG, PNG.",
-          target: '[data-task="drawer"][data-onboarding="true"] [class="drw-tabs"]',
+          target: '[data-task="drawer"][data-onboarding="true"] .drw-tabs',
           order: 6,
           placement: "left"
         },
