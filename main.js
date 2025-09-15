@@ -107,9 +107,12 @@ const ONBOARRING_STEPS = [
           content: "Here’s your first step: Upload your CV. Let’s do it together. Click on that task",
           target: '[data-task="preview"][data-onboarding="true"]',
           order: 2,
-          beforeEnter:   () => {
-              document.querySelector('[data-task="drawer"][data-onboarding="true"]').style.display = 'none'
-            },
+          beforeEnter: async () => {
+            return new Promise((resolve) => {
+              const el = document.querySelector('[data-task="drawer"][data-onboarding="true"]')
+              if (el) el.style.display = 'none'
+              resolve(true)
+            }) },
           placement: "bottom"
         },
         {
@@ -117,9 +120,12 @@ const ONBOARRING_STEPS = [
           content: "This panel shows what’s required, due date, and the coins you’ll earn when you finish.\n\n",
           target: '[data-task="drawer"][data-onboarding="true"]',
           order: 3,
-          beforeEnter:   () => {
-              document.querySelector('[data-task="drawer"][data-onboarding="true"]').style.display = 'block'
-            },
+          beforeEnter: async () => {
+            return new Promise((resolve) => {
+              const el = document.querySelector('[data-task="drawer"][data-onboarding="true"]')
+              if (el) el.style.display = 'block'
+              resolve(true)
+            }) },
           placement: "left",
         },
         {
@@ -127,9 +133,12 @@ const ONBOARRING_STEPS = [
           content: "This panel shows what’s required, due date, and the coins you’ll earn when you finish." ,
           target: '[data-task="drawer"][data-onboarding="true"] [class="drw-details"]',
           order: 4,
-          beforeEnter:   () => {
-              document.querySelector('[data-task="drawer"][data-onboarding="true"]').style.display = 'block'
-            },
+          beforeEnter: async () => {
+            return new Promise((resolve) => {
+              const el = document.querySelector('[data-task="drawer"][data-onboarding="true"]')
+              if (el) el.style.display = 'block'
+              resolve(true)
+            }) },
           placement: "left"
         },
         {
@@ -137,9 +146,12 @@ const ONBOARRING_STEPS = [
           content: "💡 No CV ready? Just save your LinkedIn profile as a PDF — it works perfectly." ,
           target: '[data-task="drawer"][data-onboarding="true"] .drw-tabs',
           order: 5,
-          beforeEnter:   () => {
-              document.querySelector('[data-task="drawer"][data-onboarding="true"]').style.display = 'block'
-            },
+          beforeEnter: async () => {
+            return new Promise((resolve) => {
+              const el = document.querySelector('[data-task="drawer"][data-onboarding="true"]')
+              if (el) el.style.display = 'block'
+              resolve(true)
+            }) },
           placement: "left"
         },
         {
@@ -148,9 +160,12 @@ const ONBOARRING_STEPS = [
           target: '[data-task="drawer"][data-onboarding="true"] .drw-tabs',
           drawerState: 'open',
           order: 6,
-          beforeEnter:   () => {
-              document.querySelector('[data-task="drawer"][data-onboarding="true"]').style.display = 'block'
-            },
+          beforeEnter: async () => {
+            return new Promise((resolve) => {
+              const el = document.querySelector('[data-task="drawer"][data-onboarding="true"]')
+              if (el) el.style.display = 'block'
+              resolve(true)
+            }) },
           placement: "left"
         },
         {
@@ -158,9 +173,12 @@ const ONBOARRING_STEPS = [
           content: "🎉 Great job! You’ve uploaded your first document, earned coins, and unlocked progress on your relocation.",
           target: '.ac-progress',
           order: 7,
-          beforeEnter:   () => {
-              document.querySelector('[data-task="drawer"][data-onboarding="true"]').style.display = 'none'
-            },
+          beforeEnter: async () => {
+            return new Promise((resolve) => {
+              const el = document.querySelector('[data-task="drawer"][data-onboarding="true"]')
+              if (el) el.style.display = 'none'
+              resolve(true)
+            }) },
           placement: "left"
         }
     ]
