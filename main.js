@@ -623,7 +623,10 @@ class Migroot {
               beforeEnter: () => {
                 return new Promise((resolve) => {
                   const el = document.querySelector('[data-task="drawer"][data-onboarding="true"]')
-                  if (el) el.style.display = 'block'
+                  if (el) {
+                      el.style.display = 'block'
+                      el.scrollTop = 0
+                  }
                   resolve(true)
                 }) },
               placement: "left",
@@ -636,7 +639,10 @@ class Migroot {
               beforeEnter: () => {
                 return new Promise((resolve) => {
                   const el = document.querySelector('[data-task="drawer"][data-onboarding="true"]')
-                  if (el) el.style.display = 'block'
+                  if (el) {
+                      el.style.display = 'block'
+                      el.scrollTop = 0
+                  }
                   resolve(true)
                 }) },
               placement: "left"
@@ -649,7 +655,10 @@ class Migroot {
               beforeEnter: () => {
                 return new Promise((resolve) => {
                   const el = document.querySelector('[data-task="drawer"][data-onboarding="true"]')
-                  if (el) el.style.display = 'block'
+                  if (el) {
+                      el.style.display = 'block'
+                      el.scrollTop = 0
+                  }
                   resolve(true)
                 }) },
               placement: "left"
@@ -658,12 +667,14 @@ class Migroot {
               title: "Docs & Upload area",
               content: "Click Docs here to upload your file. That’s where all task-related documents go. Click Upload file. Supported: PDF, JPG, PNG.",
               target: '[data-task="drawer"][data-onboarding="true"] .drw-tabs',
-              drawerState: 'open',
               order: 6,
               beforeEnter: () => {
                 return new Promise((resolve) => {
                   const el = document.querySelector('[data-task="drawer"][data-onboarding="true"]')
-                  if (el) el.style.display = 'block'
+                  if (el) {
+                      el.style.display = 'block'
+                      el.scrollTop = 0
+                  }
                   resolve(true)
                 }) },
               placement: "left"
@@ -676,7 +687,9 @@ class Migroot {
               beforeEnter: () => {
                 return new Promise((resolve) => {
                   const el = document.querySelector('[data-task="drawer"][data-onboarding="true"]')
-                  if (el) el.style.display = 'none'
+                  if (el) {
+                      el.style.display = 'none'
+                  }
                   resolve(true)
                 }) },
               placement: "left"
