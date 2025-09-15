@@ -321,7 +321,8 @@ class Migroot {
         window.mg = this;
         if (tourguide) {
             this.onboarding = new tourguide.TourGuideClient({
-                exitOnClickOutside: false
+                exitOnClickOutside: false,
+                autoScroll: false
             })
         }
         this.generateMethodsFromEndpoints();
@@ -607,12 +608,10 @@ class Migroot {
               content: "Here’s your first step: Upload your CV. Let’s do it together. Click on that task",
               target: '[data-task="preview"][data-onboarding="true"]',
               order: 2,
-                afterEnter: () => {
+              beforeEnter: () => {
                   const el = document.querySelector('[data-task="drawer"][data-onboarding="true"]')
-                  if (el) {
-                      el.style.display = 'none'
-                  }
-                },
+                  if (el) el.style.display = 'None'
+                  },
               placement: "bottom"
             },
             {
@@ -620,21 +619,13 @@ class Migroot {
               content: "This panel shows what’s required, due date, and the coins you’ll earn when you finish.\n\n",
               target: '[data-task="drawer"][data-onboarding="true"]',
               order: 3,
-              // beforeEnter: () => {
-              //   return new Promise((resolve) => {
-              //     const el = document.querySelector('[data-task="drawer"][data-onboarding="true"]')
-              //     if (el) {
-              //         el.style.display = 'block'
-              //         el.scrollTop = 0
-              //     }
-              //     resolve(true)
-              //   }) },
+              beforeEnter: () => {
+                  const el = document.querySelector('[data-task="drawer"][data-onboarding="true"]')
+                  if (el) el.style.display = 'block'
+                  },
                 afterEnter: () => {
                   const el = document.querySelector('[data-task="drawer"][data-onboarding="true"]')
-                  if (el) {
-                      el.style.display = 'block'
-                      el.scrollTop = 0
-                  }
+                  if (el) el.scrollTop = 0
                 },
               placement: "left",
             },
@@ -643,12 +634,13 @@ class Migroot {
               content: "This panel shows what’s required, due date, and the coins you’ll earn when you finish." ,
               target: '[data-task="drawer"][data-onboarding="true"] [class="drw-details"]',
               order: 4,
-                afterEnter: () => {
+              beforeEnter: () => {
                   const el = document.querySelector('[data-task="drawer"][data-onboarding="true"]')
-                  if (el) {
-                      el.style.display = 'block'
-                      el.scrollTop = 0
-                  }
+                  if (el) el.style.display = 'block'
+                  },
+            afterEnter: () => {
+                  const el = document.querySelector('[data-task="drawer"][data-onboarding="true"]')
+                  if (el) el.scrollTop = 0
                 },
               placement: "left"
             },
@@ -657,13 +649,14 @@ class Migroot {
               content: "💡 No CV ready? Just save your LinkedIn profile as a PDF — it works perfectly." ,
               target: '[data-task="drawer"][data-onboarding="true"] .drw-tabs',
               order: 5,
-                afterEnter: () => {
+              beforeEnter: () => {
                   const el = document.querySelector('[data-task="drawer"][data-onboarding="true"]')
-                  if (el) {
-                      el.style.display = 'block'
-                      el.scrollTop = 0
-                  }
-                },
+                  if (el) el.style.display = 'block'
+                  },
+            afterEnter: () => {
+              const el = document.querySelector('[data-task="drawer"][data-onboarding="true"]')
+              if (el) el.scrollTop = 0
+            },
               placement: "left"
             },
             {
@@ -671,12 +664,13 @@ class Migroot {
               content: "Click Docs here to upload your file. That’s where all task-related documents go. Click Upload file. Supported: PDF, JPG, PNG.",
               target: '[data-task="drawer"][data-onboarding="true"] .drw-tabs',
               order: 6,
-                afterEnter: () => {
+              beforeEnter: () => {
                   const el = document.querySelector('[data-task="drawer"][data-onboarding="true"]')
-                  if (el) {
-                      el.style.display = 'block'
-                      el.scrollTop = 0
-                  }
+                  if (el) el.style.display = 'block'
+                  },
+            afterEnter: () => {
+                  const el = document.querySelector('[data-task="drawer"][data-onboarding="true"]')
+                  if (el) el.scrollTop = 0
                 },
               placement: "left"
             },
@@ -685,11 +679,13 @@ class Migroot {
               content: "🎉 Great job! You’ve uploaded your first document, earned coins, and unlocked progress on your relocation.",
               target: '.ac-progress',
               order: 7,
+              beforeEnter: () => {
+                  const el = document.querySelector('[data-task="drawer"][data-onboarding="true"]')
+                  if (el) el.style.display = 'none'
+                  },
                 afterEnter: () => {
                   const el = document.querySelector('[data-task="drawer"][data-onboarding="true"]')
-                  if (el) {
-                      el.style.display = 'none'
-                  }
+                  if (el) el.scrollTop = 0
                 },
               placement: "left"
             }
