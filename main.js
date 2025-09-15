@@ -620,8 +620,10 @@ class Migroot {
               target: '[data-task="drawer"][data-onboarding="true"]',
               order: 3,
               beforeEnter: () => {
-                  const el = document.querySelector('[data-task="drawer"][data-onboarding="true"]')
-                  if (el) el.style.display = 'block'
+                  const task = document.querySelector('[data-task="preview"][data-onboarding="true"]')
+                  if (task) task.click()
+                  // const el = document.querySelector('[data-task="drawer"][data-onboarding="true"]')
+                  // if (el) el.style.display = 'block'
                   },
                 afterEnter: () => {
                   const el = document.querySelector('[data-task="drawer"][data-onboarding="true"]')
