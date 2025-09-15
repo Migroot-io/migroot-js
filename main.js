@@ -110,32 +110,38 @@ const ONBOARRING_STEPS = [
           placement: "bottom"
         },
         {
-          title: "Task details",
-          content: "This panel shows what’s required, due date, and the coins you’ll earn when you finish.\n\n" +
-              "💡 No CV ready? Just save your LinkedIn profile as a PDF — it works perfectly.",
+          title: "Task drawer full",
+          content: "This panel shows what’s required, due date, and the coins you’ll earn when you finish.\n\n",
           target: '#drawer-c9c9bba8-e74b-4a6b-8f6d-80bac4c86edf',
           order: 3,
           placement: "left",
         },
         {
-          title: "Docs tab",
-          content: "Click Docs here to upload your file. That’s where all task-related documents go.",
+          title: "Task Details",
+          content: "This panel shows what’s required, due date, and the coins you’ll earn when you finish." ,
           target: '#drawer-c9c9bba8-e74b-4a6b-8f6d-80bac4c86edf [class="drw-details"]',
           order: 4,
           placement: "left"
         },
         {
-          title: "Upload area",
-          content: "Click Upload file. Supported: PDF, JPG, PNG.",
-          target: '#drawer-c9c9bba8-e74b-4a6b-8f6d-80bac4c86edf',
+          title: "Long description and comments",
+          content: "💡 No CV ready? Just save your LinkedIn profile as a PDF — it works perfectly." ,
+          target: '#drawer-c9c9bba8-e74b-4a6b-8f6d-80bac4c86edf [class="drw-tabs"]',
           order: 5,
+          placement: "left"
+        },
+        {
+          title: "Docs & Upload area",
+          content: "Click Docs here to upload your file. That’s where all task-related documents go. Click Upload file. Supported: PDF, JPG, PNG.",
+          target: '#drawer-c9c9bba8-e74b-4a6b-8f6d-80bac4c86edf [class="drw-tabs"]',
+          order: 6,
           placement: "left"
         },
         {
           title: "Success / Progress",
           content: "🎉 Great job! You’ve uploaded your first document, earned coins, and unlocked progress on your relocation.",
           target: '.ac-progress',
-          order: 6,
+          order: 7,
           placement: "left"
         }
     ]
@@ -1426,6 +1432,10 @@ class Migroot {
         if (closeButton) {
             closeButton.onclick = (e) => {
                 e.preventDefault();
+                if (this.onboarding?.isVisible) {
+
+                    return;
+                }
                 drawer.style.display = 'none';
             };
         }
