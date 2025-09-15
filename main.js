@@ -739,6 +739,8 @@ class Migroot {
         //
         //     }
         // })
+        const trigger = document.getElementById('onboarding_trigger')
+        if (trigger) trigger.onclick = () => this.onboarding.start();
         if (!this.onboarding.isFinished('general')) {
           // this.onboarding.start()
         }
