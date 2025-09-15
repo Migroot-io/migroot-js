@@ -868,7 +868,12 @@ class Migroot {
     #renderCards(cardType) {
         this.log.debug(`Step 3: Creating cards based on ${cardType} tasks`);
         this.cards.sort((a, b) => a.priority - b.priority);
-
+        const firstNotStarted = this.cards.find(card => card.status === 'NOT_STARTED');
+        if (firstNotStarted) {
+            firstNotStarted.onboarding = true;
+        } else {
+            this.cards[0].onboarding = true;
+        }
         this.cards.forEach(item => {
             try {
                 this.createCard(item, {
@@ -1408,6 +1413,9 @@ class Migroot {
         const targetContainer = this.#getStatusContainer(item.status);
 
         card.id = `task-${item.id}`;
+        if (item.onboarding) {
+            card.dataset.onboarding = 'true';
+        }
         card.dataset.required = item.documentRequired ? 'true' : 'false';
         card.dataset.difficulty = item.difficulty || '';
         card.dataset.status = item.status || '';
