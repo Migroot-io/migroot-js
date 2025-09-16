@@ -319,7 +319,7 @@ class Migroot {
     init() {
         // expose instance and proxy helpers to window (for inline‑onclick in templates)
         window.mg = this;
-        if (tourguide) {
+        if (tourguide && window.location.pathname.includes(PAGE_TYPES.TODO)) {
             this.onboarding = new tourguide.TourGuideClient({
                 exitOnClickOutside: false,
                 autoScroll: false
@@ -722,24 +722,18 @@ class Migroot {
                 },
               placement: "left"
             }
-        ]
+        ];
 
-        if (!this.onboarding) {
+        const hasOnboardingTask = this.cards.some(card => card.onboarding === true);
+        const trigger = document.getElementById('onboarding_trigger')
+
+        if (!this.onboarding || !hasOnboardingTask) {
+            trigger.remove();
             return;
         }
-        // var steps = structuredClone(ONBOARDING_STEPS)
-        // add to steps afterEnter beforeEnter https://tourguidejs.com/docs/methods.html#updatepositions
+
         this.onboarding.addSteps(ONBOARDING_STEPS)
-        // this.onboarding.onBeforeStepChange(()=> {
-        //     if (this.onboarding.activeStep === 2) {
-        //         document.querySelector('[data-task="preview"][data-onboarding="true"]').click()
-        //     } else if (this.onboarding.activeStep === 6) {
-        //         document.querySelector('[data-task="drawer"][data-onboarding="true"]').style.display = 'none'
-        //     } else {
-        //
-        //     }
-        // })
-        const trigger = document.getElementById('onboarding_trigger')
+
         if (trigger) trigger.onclick = () => this.onboarding.start();
         if (!this.onboarding.isFinished('general')) {
           // this.onboarding.start()
@@ -954,7 +948,7 @@ class Migroot {
         if (firstNotStarted) {
             firstNotStarted.onboarding = true;
         } else {
-            this.cards[0].onboarding = true;
+            // no onboarding needed
         }
         this.cards.forEach(item => {
             try {
@@ -1911,22 +1905,41 @@ class Migroot {
         }
 
         // Show preloader overlay before calling createBoard
-        const overlay = document.createElement('div');
-        overlay.id = 'board-create-loader';
-        overlay.style.position = 'fixed';
-        overlay.style.top = '0';
-        overlay.style.left = '0';
-        overlay.style.width = '100%';
-        overlay.style.height = '100%';
-        overlay.style.backgroundColor = 'rgba(0, 0, 0, 0.6)';
-        overlay.style.color = 'white';
-        overlay.style.fontSize = '24px';
-        overlay.style.display = 'flex';
-        overlay.style.alignItems = 'center';
-        overlay.style.justifyContent = 'center';
-        overlay.style.zIndex = '9999';
-        overlay.innerText = 'Board Creating In Process...';
-        document.body.appendChild(overlay);
+        const original = document.getElementById('screen-preloader');
+
+        let overlay = null;
+        if (!original) {
+            // fallback: create a simple overlay if original is not found
+            overlay = document.createElement('div');
+            overlay.id = 'board-create-loader';
+            overlay.style.position = 'fixed';
+            overlay.style.top = '0';
+            overlay.style.left = '0';
+            overlay.style.width = '100%';
+            overlay.style.height = '100%';
+            overlay.style.backgroundColor = 'rgba(0, 0, 0, 0.6)';
+            overlay.style.color = 'white';
+            overlay.style.fontSize = '24px';
+            overlay.style.display = 'flex';
+            overlay.style.alignItems = 'center';
+            overlay.style.justifyContent = 'center';
+            overlay.style.zIndex = '9999';
+            overlay.innerText = '✈️ “Packing your relocation board…”';
+        } else {
+            overlay = original.cloneNode(true);
+            // Remove duplicate id from the cloned overlay
+            overlay.id = 'board-create-loader';
+            // Find the child with id="preloader-text" and update its id and text
+            const innerTextEl = overlay.querySelector('#preloader-text');
+            if (innerTextEl) {
+                innerTextEl.id = 'board-preloader-text';
+                innerTextEl.textContent = '✈️ “Packing your relocation board…”';
+            }
+        }
+
+        if (!document.getElementById('board-create-loader')) {
+            document.body.appendChild(overlay);
+        }
 
         this.createBoard(features, questionnaire).then(async (createdBoard) => {
             if (createdBoard && createdBoard.boardId) {
