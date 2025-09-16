@@ -1,70 +1,109 @@
 class Logger {
-  constructor(isDebug = false) {
-    this.isDebug = isDebug;
-  }
+    constructor(isDebug = false) {
+        this.isDebug = isDebug;
+        this.memoryLogs = [];
+    }
 
-  _getCurrentTime() {
-    const now = new Date();
-    return now.toISOString().slice(11, 23);
-  }
+    _getCurrentTime() {
+        const now = new Date();
+        return now.toISOString().slice(11, 23);
+    }
 
-  _log(type, ctx, ...args) {
-    const styles = {
-      info: 'color: white; font-weight: 500;',
-      debug: 'color: #aaa; font-family: monospace;',
-      warning: 'color: orange; font-weight: bold;',
-      error: 'color: red; font-weight: bold;'
-    };
-    const timestamp = this._getCurrentTime();
-    const style = styles[type] || '';
-    console.log(`%c[${timestamp}] [${type.toUpperCase()}] [${ctx}]`, style, ...args);
-  }
+    _log(type, ctx, ...args) {
+        const styles = {
+            info: 'color: white; font-weight: 500;',
+            debug: 'color: #aaa; font-family: monospace;',
+            warning: 'color: orange; font-weight: bold;',
+            error: 'color: red; font-weight: bold;'
+        };
+        const timestamp = this._getCurrentTime();
+        const style = styles[type] || '';
+        console.log(`%c[${timestamp}] [${type.toUpperCase()}] [${ctx}]`, style, ...args);
+        // Store log in memory
+        this.memoryLogs.push({
+            timestamp,
+            type,
+            ctx,
+            args
+        });
+        if (this.memoryLogs.length > 500) {
+          this.memoryLogs.shift();
+        }
+    }
 
-  debug(...args) {
-    if (!this.isDebug) return;
-    const ctx = this.getCallerContext();
-    this._log('debug', ctx, ...args);
-  }
+    debug(...args) {
+        if (!this.isDebug) return;
+        const ctx = this.getCallerContext();
+        this._log('debug', ctx, ...args);
+    }
 
-  info(...args) {
-    if (!this.isDebug) return;
-    const ctx = this.getCallerContext();
-    this._log('info', ctx, ...args);
-  }
+    info(...args) {
+        if (!this.isDebug) return;
+        const ctx = this.getCallerContext();
+        this._log('info', ctx, ...args);
+    }
 
-  warning(...args) {
-    if (!this.isDebug) return;
-    const ctx = this.getCallerContext();
-    this._log('warning', ctx, ...args);
-  }
+    warning(...args) {
+        if (!this.isDebug) return;
+        const ctx = this.getCallerContext();
+        this._log('warning', ctx, ...args);
+    }
 
-  error(...args) {
-    const ctx = this.getCallerContext();
-    this._log('error', ctx, ...args);
-  }
+    error(...args) {
+        const ctx = this.getCallerContext();
+        this._log('error', ctx, ...args);
+    }
 
-  getCallerContext() {
-    const err = new Error();
-    if (!err.stack) return 'unknown';
+    getCallerContext() {
+        const err = new Error();
+        if (!err.stack) return 'unknown';
 
-    const stackLines = err.stack.split('\n');
-    const callerLine = stackLines[3] || stackLines[2] || '';
-    const match = callerLine.match(/at (\S+)/);
-    return match ? match[1] : 'anonymous';
-  }
+        const stackLines = err.stack.split('\n');
+        const callerLine = stackLines[3] || stackLines[2] || '';
+        const match = callerLine.match(/at (\S+)/);
+        return match ? match[1] : 'anonymous';
+    }
+
+    getErrorLogs() {
+        return this.memoryLogs.filter(entry => entry.type === 'error');
+    }
+
+    getAllLogsAsText() {
+        const header = "⚠️ Do not delete this message – it contains diagnostic logs for support.\n\n";
+        return header + this.memoryLogs.map(entry => {
+            const argsText = entry.args.map(arg => {
+                if (arg instanceof Error) {
+                    return `${arg.name}: ${arg.message}\n${arg.stack}`;
+                }
+                if (typeof arg === 'object') {
+                    try {
+                        return JSON.stringify(arg);
+                    } catch {
+                        return String(arg);
+                    }
+                }
+                return String(arg);
+            }).join(' ');
+            return `[${entry.timestamp}] [${entry.type.toUpperCase()}] [${entry.ctx}] ${argsText}`;
+        }).join('\n');
+    }
+//
+// <a data-mode="popup" data-o-support="1" data-form-defaults="{
+//     &quot;Subject&quot;: &quot;A prewritten subject line&quot;,
+//     &quot;Body&quot;: &quot;A prewritten body&quot;}" href="#" class="ac-profile__link w-dropdown-link" tabindex="0" o-processed="1">Support</a>
 }
 
 class AnalyticsHelper {
-  constructor(debug = false) {
-    this.debug = debug;
-    this.isBuddyUser = false;
-    this.senderPlan = 'unknown'
-    this.sender = 'unknown'
-  }
+    constructor(debug = false) {
+        this.debug = debug;
+        this.isBuddyUser = false;
+        this.senderPlan = 'unknown'
+        this.sender = 'unknown'
+    }
 
-  setBuddyMode(value) {
-    this.isBuddyUser = value;
-    this.sender = this.isBuddyUser ? `buddy` : 'user';
+    setBuddyMode(value) {
+        this.isBuddyUser = value;
+        this.sender = this.isBuddyUser ? `buddy` : 'user';
   }
 
     setSenderPlan(value) {
@@ -344,7 +383,7 @@ class Migroot {
         window.handlePrevButton = el => this.#handlePrevButton(el);
         window.handleReadyButton = el => this.#handleReadyButton(el);
         window.handleCreateBoard = el => this.#handleCreateBoard(el);
-
+        window.getErrorLog = () => this.log.getAllLogsAsText();
     }
 
     /*───────────────────────────  API helpers START ────────────────────────*/
