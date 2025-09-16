@@ -1165,17 +1165,20 @@ class Migroot {
 
     renderProgressBar() {
         const createdDate = localStorage.getItem(LOCALSTORAGE_KEYS.DATE);
-        const goal = parseInt(localStorage.getItem(LOCALSTORAGE_KEYS.GOAL), 10) || 0;
-        const done = parseInt(localStorage.getItem(LOCALSTORAGE_KEYS.DONE), 10) || 0;
-        const percent = goal > 0 ? Math.round((done / goal) * 100) : 0;
         const dateEl = document.getElementById('created-date')
-        const countEl = document.getElementById('progress-bar-count');
-        const fillEl = document.getElementById('progress-bar-fill');
-
         if (dateEl) {
             dateEl.textContent = `Since ${createdDate}`;
 
         }
+        this.updateProgress()
+    }
+
+    updateProgress() {
+        const goal = parseInt(localStorage.getItem(LOCALSTORAGE_KEYS.GOAL), 10) || 0;
+        const done = parseInt(localStorage.getItem(LOCALSTORAGE_KEYS.DONE), 10) || 0;
+        const percent = goal > 0 ? Math.round((done / goal) * 100) : 0;
+        const countEl = document.getElementById('progress-bar-count');
+        const fillEl = document.getElementById('progress-bar-fill');
         if (countEl) {
             countEl.textContent = `Your progress: ${done}/${goal}`;
         }
@@ -1184,6 +1187,8 @@ class Migroot {
             fillEl.style.width = `${percent}%`;
         }
     }
+
+
 
     renderUserFolder() {
         const element = document.getElementById(G_DRIVE_FOLDER_ID);
@@ -1258,6 +1263,18 @@ class Migroot {
 
         el.textContent = points;
         this.log.debug(`User points rendered into #${this.config.user.pointsContainerId}: ${points}`);
+    }
+
+    updateUserPoints(diff) {
+        if (!this.currentUser) {
+            this.log.warning('currentUser not set');
+            return;
+        }
+        if (typeof this.currentUser.points !== 'number') {
+            this.currentUser.points = 0;
+        }
+        this.currentUser.points += diff;
+        this.renderUserPoints();
     }
 
     smartMerge(target, source) {
@@ -1850,6 +1867,17 @@ class Migroot {
         // Persist to backend
         this.api.updateClientTask({status: status}, {taskId: item.clientTaskId}).then(updatedTask => {
             this.#updateTaskAndDrawer(updatedTask)
+            if (previousStatus === "READY" || status === "READY") {
+                this.#updateLocalStorage();
+                this.updateProgress();
+            }
+            if (status === "READY" && previousStatus !== "READY") {
+                this.updateUserPoints(item.points);
+            } else if (status !== "READY" && previousStatus === "READY") {
+                this.updateUserPoints(-item.points);
+            }
+
+
         }).catch(err => {
             this.log.error('Failed to update task status:', err);
             item.status = previousStatus;
