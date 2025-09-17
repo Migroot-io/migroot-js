@@ -1705,7 +1705,7 @@ class Migroot {
     }
 
     #wellcomeComment() {
-        return { author: null, message: 'Hi there, I\'m here and I will help you <a href="#"> magic link </a>', createdDate: this.board.createdDate}
+        return { author: null, message: 'Hi there, I\'m here and I will help you <a href="#" target="_blank" data-event-action="click magick link">magic link </a>', createdDate: this.board.createdDate}
     }
 
     #renderComments(el, val) {
