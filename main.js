@@ -1989,7 +1989,7 @@ class Migroot {
             overlay.style.alignItems = 'center';
             overlay.style.justifyContent = 'center';
             overlay.style.zIndex = '9999';
-            overlay.innerText = '✈️ “Packing your relocation board…”';
+            overlay.innerText = '✈️ Packing your relocation board…';
         } else {
             overlay = original.cloneNode(true);
             // Remove duplicate id from the cloned overlay
@@ -1998,7 +1998,7 @@ class Migroot {
             const innerTextEl = overlay.querySelector('#preloader-text');
             if (innerTextEl) {
                 innerTextEl.id = 'board-preloader-text';
-                innerTextEl.textContent = '✈️ “Packing your relocation board…”';
+                innerTextEl.textContent = '✈️ Packing your relocation board…';
             }
         }
 
