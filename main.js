@@ -1936,6 +1936,7 @@ class Migroot {
         }
         this.log.debug(`[updateTaskAndDrawer] Updating task ID=${taskId}`);
         this.smartMerge(this.cards[taskIndex], updatedTask);
+        this.smartMerge(this.board.tasks[taskIndex], updatedTask);
         this.cards[taskIndex]._detailsFetched = true;
         this.createCard(this.cards[taskIndex], {
             skip_drawer: true,
