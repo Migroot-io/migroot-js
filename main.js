@@ -69,7 +69,9 @@ class Logger {
     }
 
     getAllLogsAsText() {
-        const header = "⚠️ Do not delete this message – it contains diagnostic logs for support.\n\n";
+        const header =
+          "⚠️ Do not delete this message – it contains diagnostic logs for support.\n" +
+          "Page URL: " + window.location.href + "\n\n";
         return header + this.memoryLogs.map(entry => {
             const argsText = entry.args.map(arg => {
                 if (arg instanceof Error) {
@@ -87,10 +89,6 @@ class Logger {
             return `[${entry.timestamp}] [${entry.type.toUpperCase()}] [${entry.ctx}] ${argsText}`;
         }).join('\n');
     }
-//
-// <a data-mode="popup" data-o-support="1" data-form-defaults="{
-//     &quot;Subject&quot;: &quot;A prewritten subject line&quot;,
-//     &quot;Body&quot;: &quot;A prewritten body&quot;}" href="#" class="ac-profile__link w-dropdown-link" tabindex="0" o-processed="1">Support</a>
 }
 
 class AnalyticsHelper {
@@ -1907,7 +1905,7 @@ class Migroot {
         this.api.updateClientTask({status: status}, {taskId: item.clientTaskId}).then(updatedTask => {
             this.#updateTaskAndDrawer(updatedTask)
             if (previousStatus === "READY" || status === "READY") {
-                this.#updateLocalStorage();
+                this.#updateLocalStorage(this.board);
                 this.updateProgress();
             }
             if (status === "READY" && previousStatus !== "READY") {
