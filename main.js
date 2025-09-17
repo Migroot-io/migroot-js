@@ -1885,6 +1885,7 @@ class Migroot {
 
         this.#setContent(drawer, task, this.#drawerOpts());
         drawer.dataset.status = task.status || '';
+        this.#attachEventButtons();
 
     }
 
@@ -1969,7 +1970,6 @@ class Migroot {
             card_type: this.cards[taskIndex].card_type,
         });
         this.#updateDrawerContent(this.cards[taskIndex]);
-        this.#attachEventButtons()
         this.log.debug(`[updateTaskAndDrawer] Task ID=${taskId} successfully updated`);
     }
 
