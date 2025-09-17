@@ -131,7 +131,7 @@ class AnalyticsHelper {
         ...params,
         ...extraParams
       });
-      // console.log('[Analytics] Event sent:', defaultEvent, eventName, params, extraParams);
+      console.log('[Analytics] Event sent:', defaultEvent, eventName, params, extraParams);
     } catch (e) {
       console.error('[Analytics] Failed to send event:',defaultEvent,  eventName, e);
     }
@@ -215,9 +215,27 @@ const EVENT_PARAMS = {
     event_category: 'conversion',
     event_label: 'Buy from main page',
   },
+  click_file_history: {
+    event_category: 'paid_feature',
+  },
   click_buy_plans: {
     event_category: 'conversion',
     event_label: 'Buy from plans page',
+  },
+  click_upgrade: {
+    event_category: 'conversion',
+  },
+  click_welcome_comment: {
+    event_category: 'conversion',
+  },
+  onb_next: {
+    event_category: 'onboarding',
+  },
+  onb_prev: {
+    event_category: 'onboarding',
+  },
+  onb_finish: {
+    event_category: 'onboarding',
   },
   click_signup: {
     event_category: 'acquisition',
@@ -1951,6 +1969,7 @@ class Migroot {
             card_type: this.cards[taskIndex].card_type,
         });
         this.#updateDrawerContent(this.cards[taskIndex]);
+        this.#attachEventButtons()
         this.log.debug(`[updateTaskAndDrawer] Task ID=${taskId} successfully updated`);
     }
 
