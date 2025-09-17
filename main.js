@@ -675,7 +675,7 @@ class Migroot {
               order: 4,
               beforeEnter: () => {
                   const el = document.querySelector('[data-task="drawer"][data-onboarding="true"]')
-                  if (el) el.style.display = 'block'
+                  if (el) el.style.display = 'flex'
                   },
             afterEnter: () => {
                   const el = document.querySelector('[data-task="drawer"][data-onboarding="true"]')
@@ -691,7 +691,7 @@ class Migroot {
               beforeEnter: () => {
                   const el = document.querySelector('[data-task="drawer"][data-onboarding="true"]')
                   if (el) {
-                      el.style.display = 'block';
+                      el.style.display = 'flex';
                       el.querySelector('[data-w-tab="Tab 1"]').click();
                   }},
             afterEnter: () => {
@@ -710,7 +710,7 @@ class Migroot {
               beforeEnter: () => {
                   const el = document.querySelector('[data-task="drawer"][data-onboarding="true"]')
                   if (el) {
-                      el.style.display = 'block';
+                      el.style.display = 'flex';
                       el.querySelector('[data-w-tab="Tab 2"]').click();
 
                   }
@@ -731,7 +731,7 @@ class Migroot {
               beforeEnter: () => {
                   const el = document.querySelector('[data-task="drawer"][data-onboarding="true"]')
                   if (el) {
-                      el.style.display = 'block';
+                      el.style.display = 'flex';
                       el.querySelector('[data-w-tab="Tab 3"]').click();
                   }
 
@@ -1617,6 +1617,9 @@ class Migroot {
                 this.api.getClientTask({}, {taskId: item.clientTaskId})
                     .then(fullTask => {
                         fullTask = this.#taskItemToCard(fullTask);
+                        if (drawerEl.dataset.onboarding === 'true') {
+                            fullTask.comments.push(this.#wellcomeComment());
+                        }
                         this.smartMerge(task, fullTask);
                         task._detailsFetched = true;
                         this.log.debug(`Task ${task.clientTaskId} enriched with full data`);
@@ -1701,11 +1704,15 @@ class Migroot {
         if (val) el.textContent = this.#formatDifficulty(val); else el.remove();
     }
 
+    #wellcomeComment() {
+        return { author: null, message: 'Hi there, I\'m here and I will help you <a href="#"> magic link </a>', createdDate: this.board.createdDate}
+    }
+
     #renderComments(el, val) {
         const arr = Array.isArray(val) ? val : [];
         const container = el.querySelector('.cmt-wrap');
         if (!container) {
-            el.textContent = 'Files container not found';
+            el.textContent = 'Comments container not found';
             return;
         }
         if (!arr.length) {
