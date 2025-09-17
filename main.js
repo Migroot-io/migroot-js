@@ -835,6 +835,7 @@ class Migroot {
                 this.renderUserFields();
             };
             this.renderStagingUrls();
+            this.#attachEventButtons();
             this.log.debug('Dashboard initialized successfully');
 
             if (typeof callback === 'function') {
@@ -2310,11 +2311,13 @@ class Migroot {
     #attachEventButtons() {
         const buttons = document.querySelectorAll('[data-action-event]');
         buttons.forEach(el => {
+            if (el.dataset.eventAttached === "true") return;
             el.addEventListener('click', () => {
                 const action = el.getAttribute('data-action-event');
                 const label = el.textContent.trim();
                 this.event(action, { event_label: label });
             });
+            el.dataset.eventAttached = "true";
         });
     }
 
