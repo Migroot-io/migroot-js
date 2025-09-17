@@ -27,7 +27,7 @@ class Logger {
             args
         });
         if (this.memoryLogs.length > 500) {
-          this.memoryLogs.shift();
+            this.memoryLogs.shift();
         }
     }
 
@@ -70,8 +70,8 @@ class Logger {
 
     getAllLogsAsText() {
         const header =
-          "⚠️ Do not delete this message – it contains diagnostic logs for support.\n" +
-          "Page URL: " + window.location.href + "\n\n";
+            "⚠️ Do not delete this message – it contains diagnostic logs for support.\n" +
+            "Page URL: " + window.location.href + "\n\n";
         return header + this.memoryLogs.map(entry => {
             const argsText = entry.args.map(arg => {
                 if (arg instanceof Error) {
@@ -102,161 +102,158 @@ class AnalyticsHelper {
     setBuddyMode(value) {
         this.isBuddyUser = value;
         this.sender = this.isBuddyUser ? `buddy` : 'user';
-  }
+    }
 
     setSenderPlan(value) {
-      this.senderPlan = value || 'unknown';
+        this.senderPlan = value || 'unknown';
     }
 
-  send_event(eventName, extraParams = {}) {
-    if (!window.dataLayer || !Array.isArray(window.dataLayer)) {
-      console.warn('[Analytics] dataLayer is not defined, event skipped:',defaultEvent, eventName);
-      return;
-    }
-    const params = { ...(EVENT_PARAMS[eventName] || {}) };
-    if (this.debug) {
-      params.debug_mode = true;
-    }
-    const defaultEvent = (window.location.pathname.includes('/app/') || window.location.pathname.includes('/staging/'))
-    ? 'app_interaction'
-    : 'site_interaction';
+    send_event(eventName, extraParams = {}) {
+        if (!window.dataLayer || !Array.isArray(window.dataLayer)) {
+            console.warn('[Analytics] dataLayer is not defined, event skipped:', defaultEvent, eventName);
+            return;
+        }
+        const params = {...(EVENT_PARAMS[eventName] || {})};
+        if (this.debug) {
+            params.debug_mode = true;
+        }
+        const defaultEvent = (window.location.pathname.includes('/app/') || window.location.pathname.includes('/staging/'))
+            ? 'app_interaction'
+            : 'site_interaction';
 
 
-    try {
-      window.dataLayer.push({
-        event: defaultEvent,
-        event_action: eventName,
-        event_sender: this.sender,
-        event_sender_plan: this.senderPlan,
-        ...params,
-        ...extraParams
-      });
-      console.log('[Analytics] Event sent:', defaultEvent, eventName, params, extraParams);
-    } catch (e) {
-      console.error('[Analytics] Failed to send event:',defaultEvent,  eventName, e);
+        try {
+            window.dataLayer.push({
+                event: defaultEvent,
+                event_action: eventName,
+                event_sender: this.sender,
+                event_sender_plan: this.senderPlan,
+                ...params,
+                ...extraParams
+            });
+            console.log('[Analytics] Event sent:', defaultEvent, eventName, params, extraParams);
+        } catch (e) {
+            console.error('[Analytics] Failed to send event:', defaultEvent, eventName, e);
+        }
     }
-  }
 }
 
 const EVENT_PARAMS = {
-  init_main: {
-    event_category: 'initialization',
-    event_label: 'Main module initialization'
-  },
-  init_site: {
-    event_category: 'initialization',
-    event_label: 'Site initialization'
-  },
-  init_app: {
-    event_category: 'initialization',
-    event_label: 'App initialization'
-  },
-  click_task_approve_file: {
-    event_category: 'administration',
-    event_label: 'Approve task file'
-  },
-  click_task_reject_file: {
-    event_category: 'administration',
-    event_label: 'Reject task file'
-  },
-  create_board_finish: {
-    event_category: 'acquisition',
-    event_label: 'Finish board creation'
-  },
-  click_create_board_finish: {
-    event_category: 'acquisition',
-    event_label: 'Click board creation'
-  },
-  click_start_initial_quiz: {
-      event_category: 'acquisition',
-      event_label: 'Go to generate journey quiz',
-  },
-  click_task_details: {
-    event_category: 'activation',
-    event_label: 'Open task details'
-  },
-  click_task_start: {
-    event_category: 'activation',
-    event_label: 'Start task'
-  },
-  click_task_next_status: {
-    event_category: 'activation',
-    event_label: 'Move task to next status'
-  },
-  click_task_prev_status: {
-    event_category: 'activation',
-    event_label: 'Move task to previous status'
-  },
-  click_task_ready_status: {
-    event_category: 'activation',
-    event_label: 'Set task ready status'
-  },
-  click_task_choose_file: {
-    event_category: 'activation',
-    event_label: 'Choose file for task'
-  },
-  click_task_file_send: {
-    event_category: 'activation',
-    event_label: 'Send task file'
-  },
-  click_task_comment_send: {
-    event_category: 'activation',
-    event_label: 'Send task comment'
-  },
-  click_login: {
-    event_category: 'activation',
-    event_label: 'Login button',
-  },
-  click_g_drive: {
-    event_category: 'paid feature',
-    event_label: 'Google Drive Button',
-  },
-  click_buy_main: {
-    event_category: 'conversion',
-    event_label: 'Buy from main page',
-  },
-  click_file_history: {
-    event_category: 'paid_feature',
-  },
-  click_buy_plans: {
-    event_category: 'conversion',
-    event_label: 'Buy from plans page',
-  },
-  click_upgrade: {
-    event_category: 'conversion',
-  },
-  click_welcome_comment: {
-    event_category: 'conversion',
-  },
-  onb_next: {
-    event_category: 'onboarding',
-  },
-  onb_prev: {
-    event_category: 'onboarding',
-  },
-  onb_finish: {
-    event_category: 'onboarding',
-  },
-  click_signup: {
-    event_category: 'acquisition',
-    event_label: 'Sign up button',
-  },
-  click_check_me: {
-    event_category: 'acquisition',
-    event_label: 'Check your eligibility button',
-  },
-  click_blog: {
-    event_category: 'acquisition',
-    event_label: 'Click blog button from main',
-  },
-  click_supported_countries: {
-    event_category: 'acquisition',
-    event_label: 'Click supported_countries from main',
-  },
-  click_whatsapp: {
-    event_category: 'activation',
-    event_label: 'WhatsApp Click',
-  }
+    init_main: {
+        event_category: 'initialization',
+        event_label: 'Main module initialization'
+    },
+    init_site: {
+        event_category: 'initialization',
+        event_label: 'Site initialization'
+    },
+    init_app: {
+        event_category: 'initialization',
+        event_label: 'App initialization'
+    },
+    click_task_approve_file: {
+        event_category: 'administration',
+        event_label: 'Approve task file'
+    },
+    click_task_reject_file: {
+        event_category: 'administration',
+        event_label: 'Reject task file'
+    },
+    create_board_finish: {
+        event_category: 'acquisition',
+        event_label: 'Finish board creation'
+    },
+    click_create_board_finish: {
+        event_category: 'acquisition',
+        event_label: 'Click board creation'
+    },
+    click_start_initial_quiz: {
+        event_category: 'acquisition',
+        event_label: 'Go to generate journey quiz',
+    },
+    click_task_details: {
+        event_category: 'activation',
+        event_label: 'Open task details'
+    },
+    click_task_start: {
+        event_category: 'activation',
+        event_label: 'Start task'
+    },
+    click_task_next_status: {
+        event_category: 'activation',
+        event_label: 'Move task to next status'
+    },
+    click_task_prev_status: {
+        event_category: 'activation',
+        event_label: 'Move task to previous status'
+    },
+    click_task_ready_status: {
+        event_category: 'activation',
+        event_label: 'Set task ready status'
+    },
+    click_task_choose_file: {
+        event_category: 'activation',
+        event_label: 'Choose file for task'
+    },
+    click_task_file_send: {
+        event_category: 'activation',
+        event_label: 'Send task file'
+    },
+    click_task_comment_send: {
+        event_category: 'activation',
+        event_label: 'Send task comment'
+    },
+    click_login: {
+        event_category: 'activation',
+        event_label: 'Login button',
+    },
+    click_g_drive: {
+        event_category: 'paid feature',
+        event_label: 'Google Drive Button',
+    },
+    click_buy_main: {
+        event_category: 'conversion',
+        event_label: 'Buy from main page',
+    },
+    click_file_history: {
+        event_category: 'paid_feature',
+    },
+    click_buy_plans: {
+        event_category: 'conversion',
+        event_label: 'Buy from plans page',
+    },
+    click_upgrade: {
+        event_category: 'conversion',
+    },
+    click_welcome_comment: {
+        event_category: 'conversion',
+    },
+    onb_step_enter: {
+        event_category: 'onboarding',
+    },
+    onb_finish: {
+        event_category: 'onboarding',
+    },
+    click_signup: {
+        event_category: 'acquisition',
+        event_label: 'Sign up button',
+    },
+    click_check_me: {
+        event_category: 'acquisition',
+        event_label: 'Check your eligibility button',
+    },
+    click_blog: {
+        event_category: 'acquisition',
+        event_label: 'Click blog button from main',
+    },
+    click_supported_countries: {
+        event_category: 'acquisition',
+        event_label: 'Click supported_countries from main',
+    },
+    click_whatsapp: {
+        event_category: 'activation',
+        event_label: 'WhatsApp Click',
+    }
 };
 
 const STATUS_FLOW = Object.freeze({
@@ -353,7 +350,7 @@ class Migroot {
         this.config = config;
         this.config.debug = path.includes('/staging/') || host === 'migroot.webflow.io' || this.config.debug;
         // this.backend_url = config.backend_url || 'https://migroot-447015.oa.r.appspot.com/v1'; // taking from config
-        this.backend_url = host === 'migroot.webflow.io' ?  'https://migroot-447015.oa.r.appspot.com/v1' :  'https://migroot-prod.oa.r.appspot.com/v1';
+        this.backend_url = host === 'migroot.webflow.io' ? 'https://migroot-447015.oa.r.appspot.com/v1' : 'https://migroot-prod.oa.r.appspot.com/v1';
         this.endpoints = ENDPOINTS;
         this.log = new Logger(this.config.debug);
         this.ga = new AnalyticsHelper(this.config.debug);
@@ -585,7 +582,7 @@ class Migroot {
                 owner: {
                     id: this.currentUser?.id, type: this.currentUser?.type
                 }, features: features,
-                   questionnaire: questionnaire
+                questionnaire: questionnaire
             });
 
             this.log.debug('board created:', createdBoard);
@@ -653,129 +650,138 @@ class Migroot {
     }
 
     /*───────────────────────────  Dynamic API request generator END ──────────────────────────*/
+
     /// oboarding start
 
     init_onboarding() {
 
         const ONBOARDING_STEPS = [
             {
-              title: "Task intro",
-              content: "Here’s your first step: Upload your CV. Let’s do it together. Click on that task",
-              target: '[data-task="preview"][data-onboarding="true"]',
-              order: 2,
-              beforeEnter: () => {
-                  const el = document.querySelector('[data-task="drawer"][data-onboarding="true"]')
-                  if (el) el.style.display = 'None'
-                  },
-              placement: "bottom"
+                title: "Task intro",
+                content: "Here’s your first step: Upload your CV. Let’s do it together. Click on that task",
+                target: '[data-task="preview"][data-onboarding="true"]',
+                order: 2,
+                group: 'task',
+                beforeEnter: () => {
+                    const el = document.querySelector('[data-task="drawer"][data-onboarding="true"]')
+                    if (el) el.style.display = 'None'
+                },
+                placement: "bottom"
             },
             {
-              title: "Task drawer full",
-              content: "This panel shows what’s required, due date, and the coins you’ll earn when you finish.\n\n",
-              target: '[data-task="drawer"][data-onboarding="true"]',
-              order: 3,
-              beforeEnter: () => {
-                  const task = document.querySelector('[data-task="preview"][data-onboarding="true"]')
-                  if (task) task.click()
-                  // const el = document.querySelector('[data-task="drawer"][data-onboarding="true"]')
-                  // if (el) el.style.display = 'block'
-                  },
+                title: "Task drawer full",
+                content: "This panel shows what’s required, due date, and the coins you’ll earn when you finish.\n\n",
+                target: '[data-task="drawer"][data-onboarding="true"]',
+                group: 'task',
+                order: 3,
+                beforeEnter: () => {
+                    const task = document.querySelector('[data-task="preview"][data-onboarding="true"]')
+                    if (task) task.click()
+                    // const el = document.querySelector('[data-task="drawer"][data-onboarding="true"]')
+                    // if (el) el.style.display = 'block'
+                },
                 afterEnter: () => {
-                  const el = document.querySelector('[data-task="drawer"][data-onboarding="true"]')
-                  if (el) el.scrollTop = 0
+                    const el = document.querySelector('[data-task="drawer"][data-onboarding="true"]')
+                    if (el) el.scrollTop = 0
                 },
-              placement: "left",
+                placement: "left",
             },
             {
-              title: "Task Details",
-              content: "This panel shows what’s required, due date, and the coins you’ll earn when you finish." ,
-              target: '[data-task="drawer"][data-onboarding="true"] [class="drw-details"]',
-              order: 4,
-              beforeEnter: () => {
-                  const el = document.querySelector('[data-task="drawer"][data-onboarding="true"]')
-                  if (el) el.style.display = 'flex'
-                  },
-            afterEnter: () => {
-                  const el = document.querySelector('[data-task="drawer"][data-onboarding="true"]')
-                  if (el) el.scrollTop = 0
+                title: "Task Details",
+                content: "This panel shows what’s required, due date, and the coins you’ll earn when you finish.",
+                target: '[data-task="drawer"][data-onboarding="true"] [class="drw-details"]',
+                order: 4,
+                group: 'task',
+                beforeEnter: () => {
+                    const el = document.querySelector('[data-task="drawer"][data-onboarding="true"]')
+                    if (el) el.style.display = 'flex'
                 },
-              placement: "left"
-            },
-            {
-              title: "Long description",
-              content: "💡 No CV ready? Just save your LinkedIn profile as a PDF — it works perfectly." ,
-              target: '[data-task="drawer"][data-onboarding="true"] .drw-tabs',
-              order: 5,
-              beforeEnter: () => {
-                  const el = document.querySelector('[data-task="drawer"][data-onboarding="true"]')
-                  if (el) {
-                      el.style.display = 'flex';
-                      el.querySelector('[data-w-tab="Tab 1"]').click();
-                  }},
-            afterEnter: () => {
-              const el = document.querySelector('[data-task="drawer"][data-onboarding="true"]')
-              if (el) {
-                  el.scrollTop = 0;
-              }
-            },
-              placement: "left"
-            },
-            {
-              title: " comments",
-              content: "Any issues?  Save notes here or contact  Migroot and will help you in 3 business days (after upgrade - 1 business day)" ,
-              target: '[data-task="drawer"][data-onboarding="true"] .drw-tabs',
-              order: 6,
-              beforeEnter: () => {
-                  const el = document.querySelector('[data-task="drawer"][data-onboarding="true"]')
-                  if (el) {
-                      el.style.display = 'flex';
-                      el.querySelector('[data-w-tab="Tab 2"]').click();
-
-                  }
-                  },
-            afterEnter: () => {
-              const el = document.querySelector('[data-task="drawer"][data-onboarding="true"]')
-              if (el) {
-                  el.scrollTop = 0;
-              }
-            },
-              placement: "left"
-            },
-            {
-              title: "Docs & Upload area",
-              content: "Click Docs here to upload your file. That’s where all task-related documents go. Click Upload file. Supported: PDF, JPG, PNG.",
-              target: '[data-task="drawer"][data-onboarding="true"] .drw-tabs',
-              order: 7,
-              beforeEnter: () => {
-                  const el = document.querySelector('[data-task="drawer"][data-onboarding="true"]')
-                  if (el) {
-                      el.style.display = 'flex';
-                      el.querySelector('[data-w-tab="Tab 3"]').click();
-                  }
-
-                  },
-            afterEnter: () => {
-                  const el = document.querySelector('[data-task="drawer"][data-onboarding="true"]')
-                  if (el) {
-                      el.scrollTop = 0;
-                  }
-                },
-              placement: "left"
-            },
-            {
-              title: "Success / Progress",
-              content: "🎉 Great job! You’ve uploaded your first document, earned coins, and unlocked progress on your relocation.",
-              target: '.ac-progress',
-              order: 8,
-              beforeEnter: () => {
-                  const el = document.querySelector('[data-task="drawer"][data-onboarding="true"]')
-                  if (el) el.style.display = 'none'
-                  },
                 afterEnter: () => {
-                  const el = document.querySelector('[data-task="drawer"][data-onboarding="true"]')
-                  if (el) el.scrollTop = 0
+                    const el = document.querySelector('[data-task="drawer"][data-onboarding="true"]')
+                    if (el) el.scrollTop = 0
                 },
-              placement: "left"
+                placement: "left"
+            },
+            {
+                title: "Long description",
+                content: "💡 No CV ready? Just save your LinkedIn profile as a PDF — it works perfectly.",
+                target: '[data-task="drawer"][data-onboarding="true"] .drw-tabs',
+                order: 5,
+                group: 'task',
+                beforeEnter: () => {
+                    const el = document.querySelector('[data-task="drawer"][data-onboarding="true"]')
+                    if (el) {
+                        el.style.display = 'flex';
+                        el.querySelector('[data-w-tab="Tab 1"]').click();
+                    }
+                },
+                afterEnter: () => {
+                    const el = document.querySelector('[data-task="drawer"][data-onboarding="true"]')
+                    if (el) {
+                        el.scrollTop = 0;
+                    }
+                },
+                placement: "left"
+            },
+            {
+                title: " comments",
+                content: "Any issues?  Save notes here or contact  Migroot and will help you in 3 business days (after upgrade - 1 business day)",
+                target: '[data-task="drawer"][data-onboarding="true"] .drw-tabs',
+                order: 6,
+                group: 'task',
+                beforeEnter: () => {
+                    const el = document.querySelector('[data-task="drawer"][data-onboarding="true"]')
+                    if (el) {
+                        el.style.display = 'flex';
+                        el.querySelector('[data-w-tab="Tab 2"]').click();
+
+                    }
+                },
+                afterEnter: () => {
+                    const el = document.querySelector('[data-task="drawer"][data-onboarding="true"]')
+                    if (el) {
+                        el.scrollTop = 0;
+                    }
+                },
+                placement: "left"
+            },
+            {
+                title: "Docs & Upload area",
+                content: "Click Docs here to upload your file. That’s where all task-related documents go. Click Upload file. Supported: PDF, JPG, PNG.",
+                target: '[data-task="drawer"][data-onboarding="true"] .drw-tabs',
+                order: 7,
+                group: 'task',
+                beforeEnter: () => {
+                    const el = document.querySelector('[data-task="drawer"][data-onboarding="true"]')
+                    if (el) {
+                        el.style.display = 'flex';
+                        el.querySelector('[data-w-tab="Tab 3"]').click();
+                    }
+
+                },
+                afterEnter: () => {
+                    const el = document.querySelector('[data-task="drawer"][data-onboarding="true"]')
+                    if (el) {
+                        el.scrollTop = 0;
+                    }
+                },
+                placement: "left"
+            },
+            {
+                title: "Success / Progress",
+                content: "🎉 Great job! You’ve uploaded your first document, earned coins, and unlocked progress on your relocation.",
+                target: '.ac-progress',
+                order: 8,
+                group: 'final',
+                beforeEnter: () => {
+                    const el = document.querySelector('[data-task="drawer"][data-onboarding="true"]')
+                    if (el) el.style.display = 'none'
+                },
+                afterEnter: () => {
+                    const el = document.querySelector('[data-task="drawer"][data-onboarding="true"]')
+                    if (el) el.scrollTop = 0
+                },
+                placement: "left"
             }
         ];
 
@@ -788,12 +794,27 @@ class Migroot {
         }
 
         this.onboarding.addSteps(ONBOARDING_STEPS)
+        const totalSteps = this.onboarding.tourSteps.length;
 
+        this.onboarding.tourSteps.forEach((step, index) => {
+            const originalBeforeEnter = step.beforeEnter;
+            step.beforeEnter = () => {
+                if (typeof originalBeforeEnter === 'function') {
+                    originalBeforeEnter();
+                }
+                this.event('onb_step_enter', {
+                    event_label: step.group || '(not_set)',
+                    step: index + 1,
+                    total_steps: totalSteps
+                });
+            };
+        });
         if (trigger) trigger.onclick = () => this.onboarding.start();
         if (!this.onboarding.isFinished('general')) {
-          // this.onboarding.start()
+            // this.onboarding.start()
         }
     }
+
     /// onboarding end
     /*───────────────────────────  Dashboard/Docs/HUB START ──────────────────────────*/
 
@@ -851,7 +872,8 @@ class Migroot {
             }
             if (type !== PAGE_TYPES.CREATE_BOARD) {
                 this.renderUserFields();
-            };
+            }
+            ;
             this.renderStagingUrls();
             this.#attachEventButtons();
             this.log.debug('Dashboard initialized successfully');
@@ -859,7 +881,7 @@ class Migroot {
             if (typeof callback === 'function') {
                 this.log.debug('callback called');
                 try {
-                    callback({ cards: this.cards.length });
+                    callback({cards: this.cards.length});
                 } catch (cbErr) {
                     this.log.error('Callback failed:', cbErr);
                 }
@@ -916,7 +938,7 @@ class Migroot {
         this.cards = [];
         this.log.debug('start filling cards with admin boards');
         await this.loadUserBoards();
-                this.boards.forEach(item => {
+        this.boards.forEach(item => {
             try {
                 this.log.debug('creating AdminCard  for item:', item);
                 this.cards.push(this.#boardItemToCard(item));
@@ -950,7 +972,7 @@ class Migroot {
     }
 
     #docItemToCard(item) {
-        const base = item?.taskRef ? { ...item.taskRef } : {};
+        const base = item?.taskRef ? {...item.taskRef} : {};
         return {
             ...base,
             id: base.clientTaskId,
@@ -972,29 +994,29 @@ class Migroot {
     }
 
     #updateLocalStorage(board) {
-            if (!board || !Array.isArray(board.tasks)) {
-                this.log.debug('Board data in local storage is missing or malformed');
-                return;
-            }
-            if (board.createdDate) {
-                const isoDate = board.createdDate;
-                const date = new Date(isoDate);
-                var readableDate = date.toLocaleString('en-GB', {
-                    day: 'numeric', month: 'short', year: 'numeric',
-                });
-            }
-
-            const goalTasks = board.tasks.filter(task => task.documentRequired).length;
-            const doneTasks = board.tasks.filter(task => task.status === 'READY' && task.documentRequired).length;
-
-            localStorage.setItem(LOCALSTORAGE_KEYS.COUNTRY, board.country || '');
-            localStorage.setItem(LOCALSTORAGE_KEYS.BOARD_ID, board.boardId || '');
-            localStorage.setItem(LOCALSTORAGE_KEYS.GOAL, String(goalTasks));
-            localStorage.setItem(LOCALSTORAGE_KEYS.DONE, String(doneTasks));
-            localStorage.setItem(LOCALSTORAGE_KEYS.DATE, readableDate || '')
-            localStorage.setItem(LOCALSTORAGE_KEYS.EMAIL, board.owner.email || '')
-
+        if (!board || !Array.isArray(board.tasks)) {
+            this.log.debug('Board data in local storage is missing or malformed');
+            return;
         }
+        if (board.createdDate) {
+            const isoDate = board.createdDate;
+            const date = new Date(isoDate);
+            var readableDate = date.toLocaleString('en-GB', {
+                day: 'numeric', month: 'short', year: 'numeric',
+            });
+        }
+
+        const goalTasks = board.tasks.filter(task => task.documentRequired).length;
+        const doneTasks = board.tasks.filter(task => task.status === 'READY' && task.documentRequired).length;
+
+        localStorage.setItem(LOCALSTORAGE_KEYS.COUNTRY, board.country || '');
+        localStorage.setItem(LOCALSTORAGE_KEYS.BOARD_ID, board.boardId || '');
+        localStorage.setItem(LOCALSTORAGE_KEYS.GOAL, String(goalTasks));
+        localStorage.setItem(LOCALSTORAGE_KEYS.DONE, String(doneTasks));
+        localStorage.setItem(LOCALSTORAGE_KEYS.DATE, readableDate || '')
+        localStorage.setItem(LOCALSTORAGE_KEYS.EMAIL, board.owner.email || '')
+
+    }
 
     #renderCards(cardType) {
         this.log.debug(`Step 3: Creating cards based on ${cardType} tasks`);
@@ -1050,7 +1072,6 @@ class Migroot {
         this.renderUserFolder();
         this.renderBodyClass();
     }
-
 
 
     renderHubFields() {
@@ -1164,16 +1185,16 @@ class Migroot {
     }
 
     renderStagingUrls() {
-      const isStaging = window.location.pathname.startsWith('/staging/');
-      if (!isStaging) return;
+        const isStaging = window.location.pathname.startsWith('/staging/');
+        if (!isStaging) return;
 
-      document.querySelectorAll('a[href*="/app/"]').forEach(link => {
-        link.href = link.href.replace('/app/', '/staging/');
-      });
+        document.querySelectorAll('a[href*="/app/"]').forEach(link => {
+            link.href = link.href.replace('/app/', '/staging/');
+        });
     }
 
     appPrefix() {
-      return window.location.pathname.startsWith('/staging/') ? '/staging' : '/app';
+        return window.location.pathname.startsWith('/staging/') ? '/staging' : '/app';
     }
 
     renderBuddyInfo() {
@@ -1203,19 +1224,19 @@ class Migroot {
     }
 
     #appendBoardIdToLinks(boardId) {
-      USER_CONTROL_IDS.forEach(id => {
-        const link = document.getElementById(id);
-        if (link && link.href) {
-          try {
-            const url = new URL(link.href);
-            url.searchParams.set('boardId', boardId);
-            link.href = url.toString();
-            this.log.debug(`✨ Updated link [${id}]: ${link.href}`);
-          } catch (e) {
-            this.log.debug(`Invalid URL in link [${id}]:`, link.href);
-          }
-        }
-      });
+        USER_CONTROL_IDS.forEach(id => {
+            const link = document.getElementById(id);
+            if (link && link.href) {
+                try {
+                    const url = new URL(link.href);
+                    url.searchParams.set('boardId', boardId);
+                    link.href = url.toString();
+                    this.log.debug(`✨ Updated link [${id}]: ${link.href}`);
+                } catch (e) {
+                    this.log.debug(`Invalid URL in link [${id}]:`, link.href);
+                }
+            }
+        });
     }
 
 
@@ -1245,7 +1266,6 @@ class Migroot {
     }
 
 
-
     renderUserFolder() {
         const element = document.getElementById(G_DRIVE_FOLDER_ID);
         if (!element) {
@@ -1259,7 +1279,7 @@ class Migroot {
 
         this.#removeInfoColumn();
 
-        this.api.getUserFilesFolder({}, { userId: this.boardUser.id })
+        this.api.getUserFilesFolder({}, {userId: this.boardUser.id})
             .then(urlFolder => {
                 this.userFilesFolder = urlFolder;
                 this.log.debug(`url got for user: ${urlFolder}`);
@@ -1398,14 +1418,14 @@ class Migroot {
     }
 
     isFreeUser() {
-      return this.boardUser?.subscriptionPlan?.includes('Free') || false;
+        return this.boardUser?.subscriptionPlan?.includes('Free') || false;
     }
 
     clearBoardLocalCache() {
-      Object.values(LOCALSTORAGE_KEYS).forEach(key => {
-        localStorage.removeItem(key);
-      });
-      this.log.info('✨ Cleared board cache from localStorage');
+        Object.values(LOCALSTORAGE_KEYS).forEach(key => {
+            localStorage.removeItem(key);
+        });
+        this.log.info('✨ Cleared board cache from localStorage');
     }
 
     createCard(item, options = {}) {
@@ -1478,7 +1498,7 @@ class Migroot {
     }
 
     /** @type {Set<string>} */
-    // delete assign from that set after it has been added to backend //
+        // delete assign from that set after it has been added to backend //
     #optionalFields = new Set(['location', 'deadline', 'assign']);
 
     /**
@@ -1610,9 +1630,9 @@ class Migroot {
     }
 
     #handleOpenDrive(link) {
-      this.ga.send_event('click_g_drive')
+        this.ga.send_event('click_g_drive')
         if (link) {
-          window.open(link, '_blank', 'noopener,noreferrer');
+            window.open(link, '_blank', 'noopener,noreferrer');
         }
     };
 
@@ -1658,7 +1678,7 @@ class Migroot {
             }
 
             this._drawerOutsideHandler = (event) => {
-                if  (this.onboarding?.isVisible) {
+                if (this.onboarding?.isVisible) {
                     return;
                 }
                 if (drawerEl && !drawerEl.contains(event.target)) {
@@ -1724,7 +1744,11 @@ class Migroot {
     }
 
     #wellcomeComment() {
-        return { author: null, message: 'Hi there, I\'m here and I will help you <a href="#" target="_blank" data-action-event="click magick link">magic link </a>', createdDate: this.board.createdDate}
+        return {
+            author: null,
+            message: 'Hi there, I\'m here and I will help you <a href="#" target="_blank" data-action-event="click_welcome_comment">magic link </a>',
+            createdDate: this.board.createdDate
+        }
     }
 
     #renderComments(el, val) {
@@ -1774,7 +1798,7 @@ class Migroot {
 
     isBuddyUser() {
         return ['BUDDY', 'SUPERVISOR', 'ADMIN'].includes(this.currentUser?.type) &&
-               this.currentUser?.email !== 'kornieiev89.o@gmail.com';
+            this.currentUser?.email !== 'kornieiev89.o@gmail.com';
     }
 
     #renderFiles(el, val) {
@@ -1824,7 +1848,7 @@ class Migroot {
         const wrapper = el.closest('.file-wrapper');
         const originalHTML = actionsContainer.innerHTML;
         actionsContainer.innerHTML = '<div class="loading-placeholder">Grooting... </div>';
-        this.api.approveFile({}, { fileId }).then((updatedFile) => {
+        this.api.approveFile({}, {fileId}).then((updatedFile) => {
             this.log.info(`File ${fileId} approved`);
             if (wrapper) {
                 const statusEl = wrapper.querySelector('.f-item__status');
@@ -1847,7 +1871,7 @@ class Migroot {
         const wrapper = el.closest('.file-wrapper');
         const originalHTML = actionsContainer.innerHTML;
         actionsContainer.innerHTML = '<div class="loading-placeholder">Grooting...</div>';
-        this.api.rejectFile({}, { fileId }).then((updatedFile) => {
+        this.api.rejectFile({}, {fileId}).then((updatedFile) => {
             this.log.info(`File ${fileId} rejected`);
             if (wrapper) {
                 const statusEl = wrapper.querySelector('.f-item__status');
@@ -2088,18 +2112,18 @@ class Migroot {
     }
 
     #removeInfoColumn() {
-      const infoEl = document.getElementById('info');
-      if (infoEl) {
-        const columnEl = infoEl.closest('.brd-column');
-        if (columnEl) {
-          columnEl.remove();
-          console.log('Column with #info removed');
+        const infoEl = document.getElementById('info');
+        if (infoEl) {
+            const columnEl = infoEl.closest('.brd-column');
+            if (columnEl) {
+                columnEl.remove();
+                console.log('Column with #info removed');
+            } else {
+                console.warn('Parent .brd-column not found for #info');
+            }
         } else {
-          console.warn('Parent .brd-column not found for #info');
+            console.warn('Element with id "info" not found');
         }
-      } else {
-        console.warn('Element with id "info" not found');
-      }
     }
 
     // File upload submit handler (overwritten)
@@ -2200,7 +2224,7 @@ class Migroot {
     }
 
     #observeContainersWithCount() {
-        const observerConfig = { childList: true, subtree: false };
+        const observerConfig = {childList: true, subtree: false};
 
         Object.entries(this.config.containers).forEach(([key, container]) => {
             if (!container || !container.id) {
@@ -2310,8 +2334,8 @@ class Migroot {
         button.style.fontSize = '18px';
         button.style.borderRadius = '8px';
         button.onclick = () => {
-          this.ga.send_event('click_start_initial_quiz');
-          window.location.href = `${this.appPrefix()}/create-board`;
+            this.ga.send_event('click_start_initial_quiz');
+            window.location.href = `${this.appPrefix()}/create-board`;
         };
 
         clone.appendChild(text);
@@ -2334,7 +2358,7 @@ class Migroot {
             el.addEventListener('click', () => {
                 const action = el.getAttribute('data-action-event');
                 const label = el.textContent.trim();
-                this.event(action, { event_label: label });
+                this.event(action, {event_label: label});
             });
             el.dataset.eventAttached = "true";
         });
