@@ -19,7 +19,6 @@ class Logger {
         const timestamp = this._getCurrentTime();
         const style = styles[type] || '';
         console.log(`%c[${timestamp}] [${type.toUpperCase()}] [${ctx}]`, style, ...args);
-        // Store log in memory
         this.memoryLogs.push({
             timestamp,
             type,
@@ -114,6 +113,8 @@ class AnalyticsHelper {
             return;
         }
         const params = {...(EVENT_PARAMS[eventName] || {})};
+        console.log('[Analytics] params set:', params, extraParams);
+
         if (this.debug) {
             params.debug_mode = true;
         }
@@ -123,14 +124,16 @@ class AnalyticsHelper {
 
 
         try {
-            window.dataLayer.push({
+            const event_collection = {
                 event: defaultEvent,
                 event_action: eventName,
                 event_sender: this.sender,
                 event_sender_plan: this.senderPlan,
                 ...params,
                 ...extraParams
-            });
+            }
+            console.log('[Analytics] Event collection:', event_collection);
+            window.dataLayer.push(event_collection);
             console.log('[Analytics] Event sent:', defaultEvent, eventName, params, extraParams);
         } catch (e) {
             console.error('[Analytics] Failed to send event:', defaultEvent, eventName, e);
@@ -222,6 +225,14 @@ const EVENT_PARAMS = {
         event_category: 'conversion',
         event_label: 'Buy from plans page',
     },
+    click_modal_prices: {
+        event_category: 'conversion',
+        event_notes: 'Click check prices from "upgrade" modal window',
+    },
+    click_modal_ask: {
+        event_category: 'conversion',
+        event_notes: 'Click ask migroot from "upgrade" modal window',
+    },
     click_upgrade: {
         event_category: 'conversion',
     },
@@ -232,6 +243,9 @@ const EVENT_PARAMS = {
         event_category: 'onboarding',
     },
     onb_finish: {
+        event_category: 'onboarding',
+    },
+    onb_exit: {
         event_category: 'onboarding',
     },
     click_signup: {
