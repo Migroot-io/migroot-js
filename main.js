@@ -112,7 +112,11 @@ class AnalyticsHelper {
             console.warn('[Analytics] dataLayer is not defined, event skipped:', defaultEvent, eventName);
             return;
         }
-        const params = {...(EVENT_PARAMS[eventName] || {})};
+        const params = {
+          event_category: '(not_set)',
+          event_label: '(not_set)',
+          ...(EVENT_PARAMS[eventName] || {})
+        };
         console.log('[Analytics] params set:', params, extraParams);
 
         if (this.debug) {
