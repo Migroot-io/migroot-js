@@ -675,6 +675,24 @@ class Migroot {
 
         const ONBOARDING_STEPS = [
             {
+                title: "Welcome on board!",
+                content: "I’m your Migroot buddy — your co-pilot for relocation. Let’s take a quick tour.",
+                target: '#migroot-logo',
+                order: 0,
+                group: 'general',
+                placement: "bottom"
+            },
+                        {
+                title: "Task intro",
+                content:`Hub is your command center. Updates, news, and big-picture progress all live here.<br><br>
+                        Todo is your mission board. Every relocation step is broken into tasks — just start with the first one.<br><br>
+                        Docs is your secure vault. Keep all your papers safe, organized, and easy to find.`,
+                target: '#control-panel',
+                order: 1,
+                group: 'general',
+                placement: "bottom"
+            },
+            {
                 title: "Task intro",
                 content: "Here’s your first step: Upload your CV. Let’s do it together. Click on that task",
                 target: '[data-task="preview"][data-onboarding="true"]',
