@@ -676,25 +676,25 @@ class Migroot {
         const ONBOARDING_STEPS = [
             {
                 title: "Welcome on board!",
-                content: "I’m your Migroot buddy — your co-pilot for relocation. Let’s take a quick tour.",
+                content: "I’m Migroot — your co-pilot for relocation. Let’s take a quick tour together.",
                 target: '#migroot-logo',
                 order: 0,
                 group: 'general',
                 placement: "bottom"
             },
                         {
-                title: "Task intro",
-                content:`Hub is your command center. Updates, news, and big-picture progress all live here.<br><br>
-                        Todo is your mission board. Every relocation step is broken into tasks — just start with the first one.<br><br>
-                        Docs is your secure vault. Keep all your papers safe, organized, and easy to find.`,
+                title: "Meet your control panel",
+                content:`🔮 Hub is your command center — news, updates, and your big-picture progress.<br><br>
+                        ✅ Todo is your mission board — every relocation step broken into clear tasks.<br><br>
+                        📂 Docs is your secure vault — keep all your papers safe, organized, and always at hand`,
                 target: '#control-panel',
                 order: 1,
                 group: 'general',
                 placement: "bottom"
             },
             {
-                title: "Task intro",
-                content: "Here’s your first step: Upload your CV. Let’s do it together. Click on that task",
+                title: "Your first mission",
+                content: "🎯 Upload your CV. Let’s kick things off together — just click on the task to begin.",
                 target: '[data-task="preview"][data-onboarding="true"]',
                 order: 2,
                 group: 'task',
@@ -705,8 +705,8 @@ class Migroot {
                 placement: "bottom"
             },
             {
-                title: "Task drawer full",
-                content: "This panel shows what’s required, due date, and the coins you’ll earn when you finish.\n\n",
+                title: "Task details",
+                content: "This panel is your little guide for the task — requirements, deadline, and your reward. All in one cozy place.",
                 target: '[data-task="drawer"][data-onboarding="true"]',
                 group: 'task',
                 order: 3,
@@ -723,8 +723,9 @@ class Migroot {
                 placement: "left",
             },
             {
-                title: "Task Details",
-                content: "This panel shows what’s required, due date, and the coins you’ll earn when you finish.",
+                title: "Task stats and control",
+                content: "Every mission has its stats — difficulty, deadline, and your reward. Check them here before you dive in.<br><br>" +
+                    "You can also update the task status by using the arrows next to the status line.",
                 target: '[data-task="drawer"][data-onboarding="true"] [class="drw-details"]',
                 order: 4,
                 group: 'task',
@@ -739,8 +740,8 @@ class Migroot {
                 placement: "left"
             },
             {
-                title: "Long description",
-                content: "💡 No CV ready? Just save your LinkedIn profile as a PDF — it works perfectly.",
+                title: "Help with every task: No CV? No problem",
+                content: "Don`t have a file ready? Just save your LinkedIn profile as a PDF — fast, simple, and it works perfectly here",
                 target: '[data-task="drawer"][data-onboarding="true"] .drw-tabs',
                 order: 5,
                 group: 'task',
@@ -760,8 +761,8 @@ class Migroot {
                 placement: "left"
             },
             {
-                title: " comments",
-                content: "Any issues?  Save notes here or contact  Migroot and will help you in 3 business days (after upgrade - 1 business day)",
+                title: "Need more help?",
+                content: "Got a question or stuck on something? Drop a comment here. We’ll reply within 3 business days — or faster if you’re upgraded. You’re never alone on this journey.",
                 target: '[data-task="drawer"][data-onboarding="true"] .drw-tabs',
                 order: 6,
                 group: 'task',
@@ -782,8 +783,8 @@ class Migroot {
                 placement: "left"
             },
             {
-                title: "Docs & Upload area",
-                content: "Click Docs here to upload your file. That’s where all task-related documents go. Click Upload file. Supported: PDF, JPG, PNG.",
+                title: "Upload your file",
+                content: "Head to the Docs tab to upload your CV. Just click Upload file — we support PDF, JPG, or PNG. Drop it in and you’re good to go!",
                 target: '[data-task="drawer"][data-onboarding="true"] .drw-tabs',
                 order: 7,
                 group: 'task',
@@ -804,8 +805,8 @@ class Migroot {
                 placement: "left"
             },
             {
-                title: "Success / Progress",
-                content: "🎉 Great job! You’ve uploaded your first document, earned coins, and unlocked progress on your relocation.",
+                title: "First win!",
+                content: "🎉 Great job! You’ve uploaded your first document, earned your first coins, and unlocked progress on your relocation. One step down, many exciting ones ahead!",
                 target: '.ac-progress',
                 order: 8,
                 group: 'final',
@@ -1782,7 +1783,7 @@ class Migroot {
     #wellcomeComment() {
         return {
             author: null,
-            message: 'Hi there, I\'m here and I will help you <a href="#" target="_blank" data-action-event="click_welcome_comment">magic link </a>',
+            message: 'Hi! I’m here to help. Need more? Try our expert buddy for <a href="#" target="_blank" data-fancybox="" data-src="#paid" data-action-event="click_welcome_comment">real-time support.</a>',
             createdDate: this.board.createdDate
         }
     }
