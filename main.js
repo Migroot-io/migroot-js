@@ -392,7 +392,8 @@ class Migroot {
         if (tourguide && window.location.pathname.includes(PAGE_TYPES.TODO)) {
             this.onboarding = new tourguide.TourGuideClient({
                 exitOnClickOutside: false,
-                autoScroll: false
+                autoScroll: false,
+                propagateEvents: true,
             })
         }
         this.generateMethodsFromEndpoints();
