@@ -855,7 +855,7 @@ class Migroot {
         });
         if (trigger) trigger.onclick = () => this.onboarding.start();
         this.onboarding.onAfterExit(()=>{
-              document.cookie = "onboarding_exited=1; max-age=" + (3 * 24 * 60 * 60) + "; path=/app/todo";
+              document.cookie = "onboarding_exited=1; max-age=" + (3 * 24 * 60 * 60) + "; path=/";
             // set 3 days cooka onboarding exited
         })
         this.onboarding.onFinish(()=>{
