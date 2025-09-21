@@ -858,9 +858,9 @@ class Migroot {
               document.cookie = "onboarding_exited=1; max-age=" + (3 * 24 * 60 * 60) + "; path=/";
             // set 3 days cooka onboarding exited
         })
-        this.onboarding.onFinish(()=>{
-            this.onboarding.finishTour(false, 'general') // exit: false, group: 'general'
-        })
+        // this.onboarding.onFinish(()=>{
+        //     this.onboarding.finishTour(false, 'general') // exit: false, group: 'general'
+        // })
 
         if (!this.onboarding.isFinished('general') && !getCookie("onboarding_exited")) {
             this.onboarding.start()
