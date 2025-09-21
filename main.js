@@ -697,7 +697,7 @@ class Migroot {
                 content: "🎯 Upload your CV. Let’s kick things off together — just click on the task to begin.",
                 target: '[data-task="preview"][data-onboarding="true"]',
                 order: 2,
-                group: 'task',
+                group: 'general',
                 beforeEnter: () => {
                     const el = document.querySelector('[data-task="drawer"][data-onboarding="true"]')
                     if (el) el.style.display = 'None'
@@ -708,7 +708,7 @@ class Migroot {
                 title: "Task details",
                 content: "This panel is your little guide for the task — requirements, deadline, and your reward. All in one cozy place.",
                 target: '[data-task="drawer"][data-onboarding="true"]',
-                group: 'task',
+                group: 'general',
                 order: 3,
                 beforeEnter: () => {
                     const task = document.querySelector('[data-task="preview"][data-onboarding="true"]')
@@ -728,7 +728,7 @@ class Migroot {
                     "You can also update the task status by using the arrows next to the status line.",
                 target: '[data-task="drawer"][data-onboarding="true"] [class="drw-details"]',
                 order: 4,
-                group: 'task',
+                group: 'general',
                 beforeEnter: () => {
                     const el = document.querySelector('[data-task="drawer"][data-onboarding="true"]')
                     if (el) el.style.display = 'flex'
@@ -744,7 +744,7 @@ class Migroot {
                 content: "Don`t have a file ready? Just save your LinkedIn profile as a PDF — fast, simple, and it works perfectly here",
                 target: '[data-task="drawer"][data-onboarding="true"] .drw-tabs',
                 order: 5,
-                group: 'task',
+                group: 'general',
                 beforeEnter: () => {
                     const el = document.querySelector('[data-task="drawer"][data-onboarding="true"]')
                     if (el) {
@@ -765,7 +765,7 @@ class Migroot {
                 content: "Got a question or stuck on something? Drop a comment here. We’ll reply within 3 business days — or faster if you’re upgraded. You’re never alone on this journey.",
                 target: '[data-task="drawer"][data-onboarding="true"] .drw-tabs',
                 order: 6,
-                group: 'task',
+                group: 'general',
                 beforeEnter: () => {
                     const el = document.querySelector('[data-task="drawer"][data-onboarding="true"]')
                     if (el) {
@@ -787,7 +787,7 @@ class Migroot {
                 content: "Head to the Docs tab to upload your CV. Just click Upload file — we support PDF, JPG, or PNG. Drop it in and you’re good to go!",
                 target: '[data-task="drawer"][data-onboarding="true"] .drw-tabs',
                 order: 7,
-                group: 'task',
+                group: 'general',
                 beforeEnter: () => {
                     const el = document.querySelector('[data-task="drawer"][data-onboarding="true"]')
                     if (el) {
@@ -809,18 +809,25 @@ class Migroot {
                 content: "🎉 Great job! You’ve uploaded your first document, earned your first coins, and unlocked progress on your relocation. One step down, many exciting ones ahead!",
                 target: '.ac-progress',
                 order: 8,
-                group: 'final',
+                group: 'general',
                 beforeEnter: () => {
                     const el = document.querySelector('[data-task="drawer"][data-onboarding="true"]')
                     if (el) el.style.display = 'none'
                 },
                 afterEnter: () => {
                     const el = document.querySelector('[data-task="drawer"][data-onboarding="true"]')
-                    if (el) el.scrollTop = 0
+                    if (el) el.scrollTop = 0;
+                    this.onboarding.finishTour(false, 'general') // exit: false, group: 'general'
                 },
                 placement: "left"
             }
         ];
+
+        function getCookie(name) {
+          const value = `; ${document.cookie}`;
+          const parts = value.split(`; ${name}=`);
+          if (parts.length === 2) return parts.pop().split(';').shift();
+        }
 
         const hasOnboardingTask = this.cards.some(card => card.onboarding === true);
         const trigger = document.getElementById('onboarding_trigger')
@@ -847,8 +854,16 @@ class Migroot {
             };
         });
         if (trigger) trigger.onclick = () => this.onboarding.start();
-        if (!this.onboarding.isFinished('general')) {
-            // this.onboarding.start()
+        this.onboarding.onAfterExit(()=>{
+              document.cookie = "onboarding_exited=1; max-age=" + (3 * 24 * 60 * 60) + "; path=/app/todo";
+            // set 3 days cooka onboarding exited
+        })
+        this.onboarding.onFinish(()=>{
+            this.onboarding.finishTour(false, 'general') // exit: false, group: 'general'
+        })
+
+        if (!this.onboarding.isFinished('general') && !getCookie("onboarding_exited")) {
+            this.onboarding.start()
         }
     }
 
