@@ -854,7 +854,10 @@ class Migroot {
             };
         });
         if (trigger) trigger.onclick = () => this.onboarding.start();
-        this.onboarding.onAfterExit(()=>{
+        this.onboarding.onBeforeExit(()=>{
+              if (this.onboarding.activeStep > 6 ) {
+                  this.onboarding.finishTour(false, 'general') // exit: false, group: 'general'
+              }
               document.cookie = "onboarding_exited=1; max-age=" + (3 * 24 * 60 * 60) + "; path=/";
             // set 3 days cooka onboarding exited
         })
