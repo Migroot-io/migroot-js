@@ -393,7 +393,7 @@ class Migroot {
             this.onboarding = new tourguide.TourGuideClient({
                 exitOnClickOutside: false,
                 autoScroll: false,
-                propagateEvents: true,
+                // propagateEvents: true, not working
             })
         }
         this.generateMethodsFromEndpoints();
@@ -824,6 +824,9 @@ class Migroot {
             }
         ];
 
+
+
+
         function getCookie(name) {
           const value = `; ${document.cookie}`;
           const parts = value.split(`; ${name}=`);
@@ -854,8 +857,13 @@ class Migroot {
                 });
             };
         });
-        if (trigger) trigger.onclick = () => this.onboarding.start();
+        if (trigger) trigger.onclick = () => {
+            this.#toggleAutoClosePaid(true);
+            this.onboarding.start();
+
+        }
         this.onboarding.onBeforeExit(()=>{
+              this.#toggleAutoClosePaid(false);
               if (this.onboarding.activeStep > 6 ) {
                   this.onboarding.finishTour(false, 'general') // exit: false, group: 'general'
               }
@@ -867,9 +875,56 @@ class Migroot {
         })
 
         if (!this.onboarding.isFinished('general') && !getCookie("onboarding_exited")) {
+            this.#toggleAutoClosePaid(true);
             this.onboarding.start()
+
         }
     }
+
+    #toggleAutoClosePaid(enable = true, options = {}) {
+            const LISTENER_ATTR = 'data-auto-close-paid-listener';
+            const HANDLER_KEY = '__autoClosePaidHandler';
+            const {
+              triggerSelector = '[data-src="#paid"]',
+              modalId = 'paid',
+              delayMs = 2300,
+            } = options;
+
+            if (enable) {
+              if (document.documentElement.hasAttribute(LISTENER_ATTR)) return;
+              const handler = (event) => {
+                const trigger = event.target.closest(triggerSelector);
+                if (!trigger) return;
+
+                setTimeout(() => {
+                  const modal = document.getElementById(modalId);
+
+                  if (modal?.classList.contains('fancybox__content')) {
+                    if (window.Fancybox?.close) {
+                      window.Fancybox.close();
+                    } else {
+                      modal.classList.remove('fancybox__content');
+                      modal.closest('.fancybox__container')?.remove();
+                    }
+                  }
+                }, delayMs);
+              };
+
+              // сохраняем обработчик, чтобы можно было удалить
+              window[HANDLER_KEY] = handler;
+              document.addEventListener('click', handler);
+              document.documentElement.setAttribute(LISTENER_ATTR, 'enabled');
+            } else {
+              // выключаем автозакрытие
+              const handler = window[HANDLER_KEY];
+              if (handler) {
+                document.removeEventListener('click', handler);
+                delete window[HANDLER_KEY];
+              }
+              document.documentElement.removeAttribute(LISTENER_ATTR);
+            }
+          };
+
 
     /// onboarding end
     /*───────────────────────────  Dashboard/Docs/HUB START ──────────────────────────*/
