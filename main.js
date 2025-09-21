@@ -1733,7 +1733,7 @@ class Migroot {
             }
 
             this._drawerOutsideHandler = (event) => {
-                if (this.onboarding?.isVisible) {
+                if (this.onboarding?.isVisible || this.isModalOpen()) {
                     return;
                 }
                 if (drawerEl && !drawerEl.contains(event.target)) {
@@ -1749,8 +1749,12 @@ class Migroot {
             document.addEventListener('pointerdown', this._drawerOutsideHandler);
             // drawer closing logic end ///
         }
-    }
+    };
 
+    isModalOpen(id = 'paid') {
+      const el = document.getElementById(id);
+      return el?.classList.contains('fancybox__content') || false;
+    }
     /*───────────────────────────  Card & Drawer DOM END ────────────────────*/
 
 
