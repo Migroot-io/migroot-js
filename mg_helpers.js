@@ -438,8 +438,9 @@ class OnboardingManager {
         const hasOnboardingTask = this.migroot.cards.some(card => card.onboarding === true);
         const hasCardsWithFiles = this.migroot.cards.some(card => card.filesCount > 0);
         const trigger = document.getElementById('onboarding_trigger');
+        const onboardingPassed = this.migroot.currentUser?.onboardingPassed
 
-          if (hasCardsWithFiles) {
+        if (hasCardsWithFiles || onboardingPassed) {
             this.migroot.onboarding.finishTour(false, 'general');
           }
 
@@ -495,6 +496,7 @@ class OnboardingManager {
 
         this.migroot.onboarding.onFinish(() => {
             this.migroot.onboarding.finishTour(false, 'general');
+            this.migroot.markOnboardingPassed();
         });
     }
 

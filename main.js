@@ -11,6 +11,8 @@ const ENDPOINTS = {
         path: 'currentUser', method: 'GET'
     }, getUser: {
         path: 'user/{userId}', method: 'GET'
+    }, updateUser: {
+        path: 'user/{userId}', method: 'PUT'
     }, getCountryList: {
         path: 'countries', method: 'GET'
     }, searchUsers: {
@@ -403,6 +405,10 @@ class Migroot {
         const onboardingManager = new OnboardingManager(this);
         onboardingManager.init();
     }
+
+    markOnboardingPassed() {
+        // todo send to backand
+    };
 
     /// onboarding end
     /*───────────────────────────  Dashboard/Docs/HUB START ──────────────────────────*/
