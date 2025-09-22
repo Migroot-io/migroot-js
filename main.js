@@ -1558,10 +1558,8 @@ class Migroot {
         // Persist to backend
         this.api.updateClientTask({status: status}, {taskId: item.clientTaskId}).then(updatedTask => {
             this.#updateTaskAndDrawer(updatedTask)
-            if (previousStatus === "READY" || status === "READY") {
-                this.#updateLocalStorage(this.board);
-                this.updateProgress();
-            }
+            this.#updateLocalStorage(this.board);
+            this.updateProgress();
             if (status === "READY" && previousStatus !== "READY") {
                 this.updateUserPoints(item.points);
             } else if (status !== "READY" && previousStatus === "READY") {
