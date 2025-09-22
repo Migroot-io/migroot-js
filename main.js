@@ -87,7 +87,8 @@ const PAGE_TYPES = Object.freeze({
     DOCS: 'docs',
     HUB: 'hub',
     ADMIN: 'admin',
-    CREATE_BOARD: 'create-board'
+    CREATE_BOARD: 'create-board',
+    MAIN: 'main',
 });
 
 class Migroot {
@@ -458,6 +459,9 @@ class Migroot {
                     await this.#prepareAdminCards();
                     this.#hideUserControls();
                     break;
+                case PAGE_TYPES.MAIN:
+                    this.renderBuddyInfo();
+                    return;
                 default:
                     this.log.debug('page is not a dashboard: ', type);
                     return;
@@ -641,8 +645,13 @@ class Migroot {
 
     async init_mg({boardId = null, callback = null} = {}) {
         const path = window.location.pathname;
-        const segments = path.split('/').filter(Boolean);
-        const page_type = segments[segments.length - 1];
+        let page_type;
+        if (path === '/' ) {
+            page_type = 'main'
+        } else {
+            const segments = path.split('/').filter(Boolean);
+            page_type = segments[segments.length - 1];
+        }
         await this.init_dashboard({boardId: boardId, callback: callback, type: page_type})
         this.init_onboarding();
     }
