@@ -60,6 +60,7 @@ const LOCALSTORAGE_KEYS = Object.freeze({
     BOARD_ID: 'defaultBoardId',
     GOAL: 'defaultBoardGoalTasks',
     DONE: 'defaultBoardDoneTasks',
+    IN_PROGRESS: 'defaultBoardInProgressTasks',
     DATE: 'defaultBoardDate',
     EMAIL: 'defaultBoardEmail'
 });
@@ -596,10 +597,12 @@ class Migroot {
 
         const goalTasks = board.tasks.filter(task => task.documentRequired).length;
         const doneTasks = board.tasks.filter(task => task.status === 'READY' && task.documentRequired).length;
+        const inProgressTasks = board.tasks.filter(task => task.status !== 'READY' && task.status !== 'NOT_STARTED' &&  task.documentRequired).length;
 
         localStorage.setItem(LOCALSTORAGE_KEYS.COUNTRY, board.country || '');
         localStorage.setItem(LOCALSTORAGE_KEYS.BOARD_ID, board.boardId || '');
         localStorage.setItem(LOCALSTORAGE_KEYS.GOAL, String(goalTasks));
+        localStorage.setItem(LOCALSTORAGE_KEYS.IN_PROGRESS, String(inProgressTasks));
         localStorage.setItem(LOCALSTORAGE_KEYS.DONE, String(doneTasks));
         localStorage.setItem(LOCALSTORAGE_KEYS.DATE, readableDate || '')
         localStorage.setItem(LOCALSTORAGE_KEYS.EMAIL, board.owner.email || '')
@@ -841,15 +844,23 @@ class Migroot {
     updateProgress() {
         const goal = parseInt(localStorage.getItem(LOCALSTORAGE_KEYS.GOAL), 10) || 0;
         const done = parseInt(localStorage.getItem(LOCALSTORAGE_KEYS.DONE), 10) || 0;
-        const percent = goal > 0 ? Math.round((done / goal) * 100) : 0;
+        const inProgress = parseInt(localStorage.getItem(LOCALSTORAGE_KEYS.IN_PROGRESS), 10) || 0;
+        const effectiveDone = done + inProgress * 0.5;
+        const inProgressPercent = goal > 0 ? Math.round((inProgress / goal) * 100) : 0;
+
+        const totalPercent = goal > 0 ? Math.round((effectiveDone / goal) * 100) : 0;
         const countEl = document.getElementById('progress-bar-count');
-        const fillEl = document.getElementById('progress-bar-fill');
+        const progressFillEl = document.getElementById('progress-bar-fill');
+        const doneFillEl = document.getElementById('done-bar-fill');
         if (countEl) {
-            countEl.textContent = `Your progress: ${done}/${goal}`;
+            countEl.textContent = `Your relocation progress: ${totalPercent} %`;
         }
 
-        if (fillEl) {
-            fillEl.style.width = `${percent}%`;
+        if (progressFillEl) {
+            fillEl.style.width = `${inProgressPercent}%`;
+        }
+        if (doneFillEl) {
+            fillEl.style.width = `${totalPercent}%`;
         }
     }
 
