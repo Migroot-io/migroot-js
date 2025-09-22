@@ -846,7 +846,7 @@ class Migroot {
         const done = parseInt(localStorage.getItem(LOCALSTORAGE_KEYS.DONE), 10) || 0;
         const inProgress = parseInt(localStorage.getItem(LOCALSTORAGE_KEYS.IN_PROGRESS), 10) || 0;
         const effectiveDone = done + inProgress * 0.5;
-        const inProgressPercent = goal > 0 ? Math.round((inProgress / goal) * 100) : 0;
+        const inProgressPercent = goal > 0 ? Math.round((inProgress * 0.5 / goal) * 100) : 0;
 
         const totalPercent = goal > 0 ? Math.round((effectiveDone / goal) * 100) : 0;
         const countEl = document.getElementById('progress-bar-count');
