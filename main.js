@@ -857,10 +857,10 @@ class Migroot {
         }
 
         if (progressFillEl) {
-            fillEl.style.width = `${inProgressPercent}%`;
+            progressFillEl.style.width = `${inProgressPercent}%`;
         }
         if (doneFillEl) {
-            fillEl.style.width = `${totalPercent}%`;
+            doneFillEl.style.width = `${totalPercent}%`;
         }
     }
 
