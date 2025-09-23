@@ -420,17 +420,24 @@ class Migroot {
             this.log.debug('Step 1: Fetching user and board');
             this.ga.send_event('init_main')
             await this.fetchUserData();
-            if (!this.currentUser || this.config.skip_dashboard) {
-                this.ga.send_event('init_site')
+            if (!this.currentUser) {
+                this.ga.send_event('init_site') // only possible on site, all app pages redirect
+                return;
+            } else {
+                this.ga.setBuddyMode(this.isBuddyUser())
+                this.ga.setSenderPlan(this.currentUser?.subscriptionPlan)
+            }
+            if (this.config.skip_dashboard && type !== PAGE_TYPES.MAIN) {
                 return;
             }
-            this.ga.send_event('init_app')
+            this.ga.send_event('init_app', {event_label: type})
+
             const finalBoardId = this.#resolveBoardId(boardId);
 
-            this.ga.setBuddyMode(this.isBuddyUser())
-            this.ga.setSenderPlan(this.currentUser?.subscriptionPlan)
+
             switch (type) {
                 case PAGE_TYPES.TODO:
+
                     this.clearBoardLocalCache()
                     this.#clearContainers();
                     await this.fetchBoard(finalBoardId);
