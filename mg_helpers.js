@@ -104,6 +104,7 @@ const EVENT_PARAMS = {
         event_category: 'initialization',
         event_label: 'App initialization'
     },
+    // buddy events start
     click_task_approve_file: {
         event_category: 'administration',
         event_label: 'Approve task file'
@@ -112,6 +113,9 @@ const EVENT_PARAMS = {
         event_category: 'administration',
         event_label: 'Reject task file'
     },
+    // buddy events end
+
+    // acquisition events start
     create_board_finish: {
         event_category: 'acquisition',
         event_label: 'Finish board creation'
@@ -124,9 +128,44 @@ const EVENT_PARAMS = {
         event_category: 'acquisition',
         event_label: 'Go to generate journey quiz',
     },
+    click_signup: {
+        event_category: 'acquisition',
+        event_label: 'Sign up button',
+    },
+    click_check_me: {
+        event_category: 'acquisition',
+        event_label: 'Check your eligibility button',
+    },
+    click_blog: {
+        event_category: 'acquisition',
+        event_label: 'Click blog button from main',
+    },
+    click_prices: {
+        event_category: 'acquisition',
+        event_label: 'Click blog button from main',
+    },
+    click_supported_countries: {
+        event_category: 'acquisition',
+        event_label: 'Click supported_countries from main',
+    },
+    click_whatsapp: {
+        event_category: 'activation',
+        event_label: 'WhatsApp Click',
+    },
+    // acquisition events end
+// click_social, click_faq
+    // activation
+    click_support: {
+        event_category: 'activation',
+        event_label: 'Open support popup'
+    },
     click_task_details: {
         event_category: 'activation',
         event_label: 'Open task details'
+    },
+    click_app: {
+        event_category: 'activation',
+        event_label: 'Go into app tab'
     },
     click_task_start: {
         event_category: 'activation',
@@ -160,20 +199,15 @@ const EVENT_PARAMS = {
         event_category: 'activation',
         event_label: 'Login button',
     },
-    click_g_drive: {
-        event_category: 'paid feature',
-        event_label: 'Google Drive Button',
+
+    // conversion events start
+    click_buy_plans: {
+        event_category: 'conversion',
+        event_label: 'Buy from plans page',
     },
     click_buy_main: {
         event_category: 'conversion',
         event_label: 'Buy from main page',
-    },
-    click_file_history: {
-        event_category: 'paid_feature',
-    },
-    click_buy_plans: {
-        event_category: 'conversion',
-        event_label: 'Buy from plans page',
     },
     click_modal_prices: {
         event_category: 'conversion',
@@ -183,12 +217,21 @@ const EVENT_PARAMS = {
         event_category: 'conversion',
         event_notes: 'Click ask migroot from "upgrade" modal window',
     },
+    click_g_drive: {
+        event_category: 'paid feature',
+        event_label: 'Google Drive Button',
+    },
+    click_file_history: {
+        event_category: 'paid_feature',
+    },
     click_upgrade: {
         event_category: 'conversion',
     },
     click_welcome_comment: {
         event_category: 'conversion',
     },
+
+    // onboarding
     onb_step_enter: {
         event_category: 'onboarding',
     },
@@ -197,26 +240,6 @@ const EVENT_PARAMS = {
     },
     onb_exit: {
         event_category: 'onboarding',
-    },
-    click_signup: {
-        event_category: 'acquisition',
-        event_label: 'Sign up button',
-    },
-    click_check_me: {
-        event_category: 'acquisition',
-        event_label: 'Check your eligibility button',
-    },
-    click_blog: {
-        event_category: 'acquisition',
-        event_label: 'Click blog button from main',
-    },
-    click_supported_countries: {
-        event_category: 'acquisition',
-        event_label: 'Click supported_countries from main',
-    },
-    click_whatsapp: {
-        event_category: 'activation',
-        event_label: 'WhatsApp Click',
     }
 };
 

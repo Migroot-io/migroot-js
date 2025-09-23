@@ -1371,7 +1371,7 @@ class Migroot {
     #wellcomeComment() {
         return {
             author: null,
-            message: 'Hi! I’m here to help. Need more? Try our expert buddy for <a href="#" target="_blank" data-fancybox="" data-src="#paid" data-action-event="click_welcome_comment">real-time support.</a>',
+            message: 'Hi! I’m here to help. Need more? Try our expert buddy for <a href="#" target="_blank" data-fancybox="" data-src="#paid" data-event-action="click_welcome_comment">real-time support.</a>',
             createdDate: this.board.createdDate
         }
     }
@@ -1975,11 +1975,11 @@ class Migroot {
      * @private
      */
     #attachEventButtons() {
-        const buttons = document.querySelectorAll('[data-action-event]');
+        const buttons = document.querySelectorAll('[data-event-action]');
         buttons.forEach(el => {
             if (el.dataset.eventAttached === "true") return;
             el.addEventListener('click', () => {
-                const action = el.getAttribute('data-action-event');
+                const action = el.getAttribute('data-event-action');
                 const label = el.textContent.trim();
                 this.event(action, {event_label: label});
             });
