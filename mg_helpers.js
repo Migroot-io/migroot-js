@@ -152,8 +152,15 @@ const EVENT_PARAMS = {
         event_category: 'activation',
         event_label: 'WhatsApp Click',
     },
+    click_faq: {
+      event_category: 'activation',
+      event_label: 'FAQ question Click',
+    },
+    click_social: {
+      event_category: 'activation',
+      event_label: 'Social network link Click',
+    },
     // acquisition events end
-// click_social, click_faq
     // activation
     click_support: {
         event_category: 'activation',
