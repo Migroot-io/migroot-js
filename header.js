@@ -1,7 +1,25 @@
 function captureGAIdentifiers() {
 
     var GAIdentifiers = JSON.parse(localStorage.getItem("o-snippet.ga"));
-
+    var UtmValues = JSON.parse(localStorage.getItem("o-snippet.utm"));
+    var ReferringDomain = localStorage.getItem("o-snippet.referring-domain");
+    if (!UtmValues) {
+        var params = new URL(window.location).searchParams;
+        var UtmSource = params.get("utm_source");
+        var UtmCampaign = params.get("utm_campaign");
+        var UtmMedium = params.get("utm_medium");
+        if (UtmSource || UtmCampaign || UtmMedium) {
+            // Sets first touch UTM values if one is present
+            UtmValues = {UtmSource, UtmCampaign, UtmMedium};
+            localStorage.setItem("o-snippet.utm", JSON.stringify(UtmValues));
+        }
+    }
+    if (!ReferringDomain && document.referrer) {
+        const ReferrerURL = new URL(document.referrer);
+        // Sets first touch Referrer value if one is present
+        ReferringDomain = ReferrerURL.hostname;
+        localStorage.setItem("o-snippet.referring-domain", ReferringDomain);
+    }
     if (!GAIdentifiers || !GAIdentifiers.clientId || !GAIdentifiers.sessionId) {
 
         // Get Client ID from _ga cookie
