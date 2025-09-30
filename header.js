@@ -38,9 +38,8 @@ function captureGAIdentifiers() {
 
         if (clientId || sessionId) {
             GAIdentifiers = {
-                clientId: clientId || (GAIdentifiers && GAIdentifiers.clientId) || null,
-                sessionId: sessionId || (GAIdentifiers && GAIdentifiers.sessionId) || null,
-                capturedAt: new Date().toISOString()
+                ClientId: clientId || (GAIdentifiers && GAIdentifiers.clientId) || null,
+                SessionId: sessionId || (GAIdentifiers && GAIdentifiers.sessionId) || null,
             };
             localStorage.setItem("o-snippet.ga", JSON.stringify(GAIdentifiers));
         }
