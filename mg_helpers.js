@@ -104,6 +104,14 @@ const EVENT_PARAMS = {
         event_category: 'initialization',
         event_label: 'App initialization'
     },
+    logout: {
+        event_category: 'auth',
+        event_label: 'User logout'
+    },
+    click_login: {
+        event_category: 'auth',
+        event_label: 'Login button',
+    },
     // buddy events start
     click_task_approve_file: {
         event_category: 'administration',
@@ -116,18 +124,6 @@ const EVENT_PARAMS = {
     // buddy events end
 
     // acquisition events start
-    create_board_finish: {
-        event_category: 'acquisition',
-        event_label: 'Finish board creation'
-    },
-    click_create_board_finish: {
-        event_category: 'acquisition',
-        event_label: 'Click board creation'
-    },
-    click_start_initial_quiz: {
-        event_category: 'acquisition',
-        event_label: 'Go to generate journey quiz',
-    },
     click_signup: {
         event_category: 'acquisition',
         event_label: 'Sign up button',
@@ -142,29 +138,37 @@ const EVENT_PARAMS = {
     },
     click_prices: {
         event_category: 'acquisition',
-        event_label: 'Click blog button from main',
+        event_label: 'Click prices button from main',
     },
     click_supported_countries: {
         event_category: 'acquisition',
         event_label: 'Click supported_countries from main',
     },
     click_whatsapp: {
-        event_category: 'activation',
+        event_category: 'acquisition',
         event_label: 'WhatsApp Click',
     },
     click_faq: {
-      event_category: 'activation',
+      event_category: 'acquisition',
       event_label: 'FAQ question Click',
     },
     click_social: {
-      event_category: 'activation',
+      event_category: 'acquisition',
       event_label: 'Social network link Click',
     },
     // acquisition events end
     // activation
-    click_support: {
+    create_board_finish: {
         event_category: 'activation',
-        event_label: 'Open support popup'
+        event_label: 'Finish board creation'
+    },
+    click_create_board_finish: {
+        event_category: 'activation',
+        event_label: 'Click board creation'
+    },
+    click_start_initial_quiz: {
+        event_category: 'activation',
+        event_label: 'Go to generate journey quiz',
     },
     click_task_details: {
         event_category: 'activation',
@@ -202,10 +206,12 @@ const EVENT_PARAMS = {
         event_category: 'activation',
         event_label: 'Send task comment'
     },
-    click_login: {
-        event_category: 'activation',
-        event_label: 'Login button',
+    // neutral engagement start  (could be clicked logged or as a guest)
+    click_support: {
+        event_category: 'engagement',
+        event_label: 'Open support popup'
     },
+    // neutral engagement end
 
     // conversion events start
     click_buy_plans: {
@@ -229,7 +235,7 @@ const EVENT_PARAMS = {
         event_label: 'Google Drive Button',
     },
     click_file_history: {
-        event_category: 'paid_feature',
+        event_category: 'paid feature',
     },
     click_upgrade: {
         event_category: 'conversion',

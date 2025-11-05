@@ -421,16 +421,26 @@ class Migroot {
             this.ga.send_event('init_main')
             await this.fetchUserData();
             if (!this.currentUser) {
-                this.ga.send_event('init_site') // only possible on site, all app pages redirect
+                const wasLogged = sessionStorage.getItem('wasLogged');
+
+                if (wasLogged) {
+                    this.ga.send_event('logout', { user_id: null });
+                    sessionStorage.removeItem('wasLogged');
+                } else {
+                    this.ga.send_event('init_site');
+                }
+
                 return;
             } else {
-                this.ga.setBuddyMode(this.isBuddyUser())
-                this.ga.setSenderPlan(this.currentUser?.subscriptionPlan)
+                this.ga.setBuddyMode(this.isBuddyUser());
+                this.ga.setSenderPlan(this.currentUser?.subscriptionPlan);
+                sessionStorage.setItem('wasLogged', 'true');
             }
             if (this.config.skip_dashboard && type !== PAGE_TYPES.MAIN) {
                 return;
             }
-            this.ga.send_event('init_app', {event_label: type})
+            const user_id = this.currentUser?.id ?? null;
+            this.ga.send_event('init_app', {event_label: type, user_id: user_id})
 
             const finalBoardId = this.#resolveBoardId(boardId);
 
