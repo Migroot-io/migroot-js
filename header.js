@@ -3,6 +3,7 @@ function captureGAIdentifiers() {
     var GAIdentifiers = JSON.parse(localStorage.getItem("o-snippet.ga"));
     var UtmValues = JSON.parse(localStorage.getItem("o-snippet.utm"));
     var ReferringDomain = localStorage.getItem("o-snippet.referring-domain");
+    var PromoCode = localStorage.getItem("o-snippet.promo-code");
     if (!UtmValues) {
         var params = new URL(window.location).searchParams;
         var UtmSource = params.get("utm_source");
@@ -12,6 +13,21 @@ function captureGAIdentifiers() {
             // Sets first touch UTM values if one is present
             UtmValues = {UtmSource, UtmCampaign, UtmMedium};
             localStorage.setItem("o-snippet.utm", JSON.stringify(UtmValues));
+        }
+    }
+    if (!PromoCode) {
+        var params = new URL(window.location).searchParams;
+        PromoCode = params.get('ref');
+        if (PromoCode) {
+            localStorage.setItem("o-snippet.promo-code", PromoCode);
+        }
+    }
+
+    // Auto-fill promo code input if it exists
+    if (PromoCode) {
+        var promoInput = document.querySelector('input[name="Account.PromoCode"]');
+        if (promoInput && !promoInput.value) {
+            promoInput.value = PromoCode;
         }
     }
     if (!ReferringDomain && document.referrer) {
