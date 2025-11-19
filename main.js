@@ -489,8 +489,7 @@ class Migroot {
             }
             if (type !== PAGE_TYPES.CREATE_BOARD) {
                 this.renderUserFields();
-            }
-            ;
+            };
             this.renderStagingUrls();
             this.#attachEventButtons();
             this.log.debug('Dashboard initialized successfully');
@@ -875,11 +874,12 @@ class Migroot {
                 return;
             }
 
-            const formDefaults = deleteButton.getAttribute('data-form-defaults');
-            if (formDefaults) {
-                supportLink.setAttribute('data-form-defaults', formDefaults);
-            }
+            const formDefaults = JSON.stringify({
+                Subject: 'Account termination request',
+                Body: 'Hi, I want to delete my account and all my data'
+            });
 
+            supportLink.setAttribute('data-form-defaults', formDefaults);
             supportLink.click();
 
             setTimeout(() => {
