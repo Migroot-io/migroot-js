@@ -146,6 +146,7 @@ class Migroot {
         window.handleReadyButton = el => this.#handleReadyButton(el);
         window.handleCreateBoard = el => this.#handleCreateBoard(el);
         window.getErrorLog = () => this.log.getAllLogsAsText();
+
     }
 
     /*───────────────────────────  API helpers START ────────────────────────*/
@@ -694,6 +695,7 @@ class Migroot {
         this.renderBuddyInfo();
         this.renderUserFolder();
         this.renderBodyClass();
+        this.#setupDeleteRequestHandler();
     }
 
 
@@ -860,6 +862,30 @@ class Migroot {
                 }
             }
         });
+    }
+
+    #setupDeleteRequestHandler() {
+        const deleteButton = document.getElementById('acc-delete-request');
+        if (!deleteButton) return;
+
+        deleteButton.onclick = () => {
+            const supportLink = document.querySelector('[data-o-support]');
+            if (!supportLink) {
+                this.log.warning('Support element not found');
+                return;
+            }
+
+            const formDefaults = deleteButton.getAttribute('data-form-defaults');
+            if (formDefaults) {
+                supportLink.setAttribute('data-form-defaults', formDefaults);
+            }
+
+            supportLink.click();
+
+            setTimeout(() => {
+                supportLink.removeAttribute('data-form-defaults');
+            }, 100);
+        };
     }
 
 
