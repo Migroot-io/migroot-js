@@ -558,7 +558,6 @@ class Migroot {
             this.renderStagingUrls();
             this.#attachEventButtons();
             this.log.debug('Dashboard initialized successfully');
-
             // ═══════════════════════════════════════════════════════════════════════════
             // CALLBACK: Уведомляем footer.js что инициализация завершена
             // ═══════════════════════════════════════════════════════════════════════════

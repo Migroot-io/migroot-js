@@ -157,26 +157,25 @@ const EVENT_PARAMS = {
       event_label: 'Social network link Click',
     },
     // acquisition events end
-    // activation
+    // pre_activation
     create_board_finish: {
-        event_category: 'activation',
+        event_category: 'pre_activation',
         event_label: 'Finish board creation'
     },
     click_create_board_finish: {
-        event_category: 'activation',
+        event_category: 'pre_activation',
         event_label: 'Click board creation'
     },
     click_start_initial_quiz: {
-        event_category: 'activation',
+        event_category: 'pre_activation',
         event_label: 'Go to generate journey quiz',
     },
+    // pre_activation end
+    // activation_start
+
     click_task_details: {
         event_category: 'activation',
         event_label: 'Open task details'
-    },
-    click_app: {
-        event_category: 'activation',
-        event_label: 'Go into app tab'
     },
     click_task_start: {
         event_category: 'activation',
@@ -213,6 +212,20 @@ const EVENT_PARAMS = {
     },
     // neutral engagement end
 
+    // navigation start
+    click_app: {
+        event_category: 'navigation',
+        event_label: 'Go into app tab'
+    },
+    click_todo: {
+        event_category: 'navigation',
+        event_label: 'Go todo tab'
+    },
+    click_docs: {
+        event_category: 'navigation',
+        event_label: 'Go docs tab'
+    },
+    // navigation end
     // conversion events start
     click_buy_plans: {
         event_category: 'conversion',
