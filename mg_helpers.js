@@ -262,6 +262,7 @@ class AnalyticsHelper {
         this.isBuddyUser = false;
         this.senderPlan = 'unknown'
         this.sender = 'unknown'
+        this.hasBoard = false;
     }
 
     setBuddyMode(value) {
@@ -271,6 +272,10 @@ class AnalyticsHelper {
 
     setSenderPlan(value) {
         this.senderPlan = value || 'unknown';
+    }
+
+    setHasBoard(value) {
+        this.hasBoard = !!value;
     }
 
     send_event(eventName, extraParams = {}) {
@@ -292,6 +297,10 @@ class AnalyticsHelper {
             ? 'app_interaction'
             : 'site_interaction';
 
+        // Set pre_activation category for app_interaction events when user has no board
+        if (defaultEvent === 'app_interaction' && !this.hasBoard) {
+            params.event_category = 'pre_activation';
+        }
 
         try {
             const event_collection = {

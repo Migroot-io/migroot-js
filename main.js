@@ -208,6 +208,7 @@ class Migroot {
             }
             if (this.board) {
                 this.#updateLocalStorage(this.board);
+                this.ga.setHasBoard(true);
             }
         } catch (error) {
             this.log.error('Board initialization failed:', error);
@@ -336,6 +337,7 @@ class Migroot {
             });
 
             this.log.debug('board created:', createdBoard);
+            this.ga.setHasBoard(true);
             return createdBoard;
         } catch (error) {
             this.log.error('Board creation failed:', error);
@@ -421,34 +423,73 @@ class Migroot {
             this.log.debug('Step 1: Fetching user and board');
             this.ga.send_event('init_main')
             await this.fetchUserData();
+
+            // ═══════════════════════════════════════════════════════════════════════════
+            // AUTHENTICATION CHECK: Незалогиненных пользователей не пускаем в /app/
+            // ═══════════════════════════════════════════════════════════════════════════
+            // Если пользователь не залогинен - он может быть только на публичном сайте
+            // (маркетинговые страницы /, /login, /sign-up). В /app/ его редиректит footer.js
             if (!this.currentUser) {
                 const wasLogged = sessionStorage.getItem('wasLogged');
 
                 if (wasLogged) {
+                    // Был залогинен, но сейчас нет → пользователь разлогинился
                     this.ga.send_event('logout', { user_id: null });
                     sessionStorage.removeItem('wasLogged');
                 } else {
+                    // Никогда не был залогинен → обычный посетитель на сайте
+                    // init_site = пользователь на публичном сайте (не в приложении)
+                    // так как физически не может зайти в приложение без логина,
+                    // единственное возможное место для неавторизованных это сайт
                     this.ga.send_event('init_site');
                 }
-
+                // Прерываем инициализацию дашборда - незалогиненным пользователям он не нужен
                 return;
             } else {
+                // ═══════════════════════════════════════════════════════════════════════
+                // AUTHENTICATED USER: Настраиваем аналитику для залогиненного пользователя
+                // ═══════════════════════════════════════════════════════════════════════
+
+                // Определяем тип пользователя: обычный юзер или buddy/admin
                 this.ga.setBuddyMode(this.isBuddyUser());
+
+                // Определяем план подписки (Free/Paid)
                 this.ga.setSenderPlan(this.currentUser?.subscriptionPlan);
+
+                // Запоминаем, что пользователь залогинен (для отслеживания logout)
                 sessionStorage.setItem('wasLogged', 'true');
+
+                // ═══════════════════════════════════════════════════════════════════════
+                // PRE-ACTIVATION CHECK: Есть ли у пользователя борда?
+                // ═══════════════════════════════════════════════════════════════════════
+                // Если юзер зарегистрировался, но еще не создал борду → события будут
+                // с category: 'pre_activation' (см. mg_helpers.js send_event)
+                const storedBoardId = localStorage.getItem(LOCALSTORAGE_KEYS.BOARD_ID);
+                this.ga.setHasBoard(!!storedBoardId);
             }
+
+            // ═══════════════════════════════════════════════════════════════════════════
+            // SKIP DASHBOARD: Не инициализируем дашборд на маркетинговых страницах
+            // ═══════════════════════════════════════════════════════════════════════════
+            // config.skip_dashboard = true на страницах вне /app/ (например, /, /blog)
+            // Исключение: MAIN страница нужна для отображения buddy info
             if (this.config.skip_dashboard && type !== PAGE_TYPES.MAIN) {
                 return;
             }
+
+            // init_app = пользователь залогинен и находится в приложении /app/*
             const user_id = this.currentUser?.id ?? null;
             this.ga.send_event('init_app', {event_label: type, user_id: user_id})
 
             const finalBoardId = this.#resolveBoardId(boardId);
 
-
+            // ═══════════════════════════════════════════════════════════════════════════
+            // PAGE TYPE INITIALIZATION: Загружаем данные в зависимости от типа страницы
+            // ═══════════════════════════════════════════════════════════════════════════
             switch (type) {
                 case PAGE_TYPES.TODO:
-
+                    // Страница TODO: канбан-доска с задачами
+                    // Загружаем борду, рендерим карточки задач по колонкам (статусам)
                     this.clearBoardLocalCache()
                     this.#clearContainers();
                     await this.fetchBoard(finalBoardId);
@@ -456,44 +497,72 @@ class Migroot {
                     await this.#prepareTodo(this.boardId);
                     this.hideBlockedContainers();
                     break;
+
                 case PAGE_TYPES.DOCS:
+                    // Страница DOCS: список документов для просмотра/аппрува
                     this.clearBoardLocalCache()
                     this.#clearContainers();
                     await this.fetchBoard(finalBoardId);
                     this.#appendBoardIdToLinks(this.boardId);
                     await this.#prepareDocs(this.boardId);
                     break;
+
                 case PAGE_TYPES.CREATE_BOARD:
+                    // Страница создания борды: форма с выбором стран
+                    // У пользователя еще НЕТ борды - он ее только создает
                     await this.fetchCountryList();
                     this.renderCountryInputs();
                     break;
+
                 case PAGE_TYPES.HUB:
+                    // Страница HUB: показываем инфу по стране и прогресс релокации
                     await this.fetchBoard(finalBoardId);
                     this.#appendBoardIdToLinks(this.boardId);
                     this.renderHubFields();
                     break;
+
                 case PAGE_TYPES.ADMIN:
+                    // Страница ADMIN: для buddy/supervisor - список всех бордов юзеров
                     this.clearBoardLocalCache()
                     await this.#prepareAdminCards();
                     this.#hideUserControls();
                     break;
+
                 case PAGE_TYPES.MAIN:
+                    // Главная страница: минимальная инициализация для buddy info
                     this.renderBuddyInfo();
                     return;
+
                 default:
+                    // Не дашборд-страница (например, /blog) - инициализация не нужна
                     this.log.debug('page is not a dashboard: ', type);
                     return;
             }
+
+            // ═══════════════════════════════════════════════════════════════════════════
+            // POST-LOAD RENDERING: Рендерим UI элементы после загрузки данных
+            // ═══════════════════════════════════════════════════════════════════════════
+
+            // Сохраняем данные борды в localStorage для кеширования и трекинга прогресса
+            // (country, boardId, goal/done/inProgress counts, date, email)
             if (this.board) {
                 this.#updateLocalStorage(this.board)
             }
+
+            // Рендерим UI пользователя: прогресс-бар, поинты, Google Drive кнопку и т.д.
+            // Пропускаем для CREATE_BOARD, т.к. у пользователя еще нет борды
             if (type !== PAGE_TYPES.CREATE_BOARD) {
                 this.renderUserFields();
             };
+
             this.renderStagingUrls();
             this.#attachEventButtons();
             this.log.debug('Dashboard initialized successfully');
 
+            // ═══════════════════════════════════════════════════════════════════════════
+            // CALLBACK: Уведомляем footer.js что инициализация завершена
+            // ═══════════════════════════════════════════════════════════════════════════
+            // Callback используется для скрытия preloader (см. footer.js initDashboard)
             if (typeof callback === 'function') {
                 this.log.debug('callback called');
                 try {
