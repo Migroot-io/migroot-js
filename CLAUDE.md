@@ -10,7 +10,7 @@ Migroot is a JavaScript-based relocation assistance platform built on Webflow. T
 
 ### Core Components
 
-**Migroot Class** (`main.js:94-2008`)
+**Migroot Class** (`main.js`)
 - Main application controller managing the entire frontend lifecycle
 - Handles API communication, user state, board data, and UI rendering
 - Instantiated globally as `window.mg` for template access
@@ -18,13 +18,29 @@ Migroot is a JavaScript-based relocation assistance platform built on Webflow. T
 
 **Helper Classes** (`mg_helpers.js`)
 - `Logger`: Centralized logging with in-memory storage (last 500 entries)
-- `AnalyticsHelper`: GA4 event tracking with custom event parameters
+- `AnalyticsHelper`: GA4 event tracking with custom event parameters and user journey stages
 - `OnboardingManager`: Tour.js-based onboarding flow with 9 steps
 
 **Entry Points**
 - `header.js`: Pre-authentication setup, GA identifier capture, auth redirects
 - `footer.js`: Post-load initialization, waits for Outseta and Migroot, then calls `init_mg()`
 - `header.html`/`footer.html`: CDN script loading for Outseta, Intercom, Fancybox, GTM
+
+### Application Lifecycle (`main.js:init_dashboard()`)
+
+The application has distinct initialization paths based on user authentication status:
+
+**Unauthenticated Users** (`!this.currentUser`):
+- Physically cannot access `/app/*` routes (redirected by `footer.js`)
+- Only interact with public marketing pages (/, /login, /sign-up)
+- Events tracked as `site_interaction` with `init_site` event
+- Dashboard initialization is skipped
+
+**Authenticated Users** (`this.currentUser` exists):
+- Access granted to `/app/*` routes
+- Events tracked as `app_interaction` with `init_app` event
+- Analytics configured with buddy mode, subscription plan, and board ownership status
+- Dashboard initialized based on page type (TODO, DOCS, HUB, etc.)
 
 ### State Management
 
@@ -59,9 +75,28 @@ Dynamic API methods are auto-generated from `ENDPOINTS` object (`main.js:3-39`):
 
 ### Adding Analytics Events
 
-1. Define event parameters in `EVENT_PARAMS` (`mg_helpers.js:94-257`)
+Analytics events follow a user journey funnel structure with automatic categorization:
+
+**Event Categories** (defined in `EVENT_PARAMS` in `mg_helpers.js`):
+- `initialization`: Site/app loading (`init_site`, `init_app`)
+- `acquisition`: Marketing funnel events (`click_signup`, `click_blog`, `click_prices`)
+- `pre_activation`: Post-registration, pre-board creation (`click_start_initial_quiz`, `click_create_board_finish`)
+- `activation`: User engaging with their board (`click_task_details`, `click_task_file_send`)
+- `navigation`: Internal navigation (`click_app`, `click_todo`, `click_docs`)
+- `engagement`: Support interactions (`click_support`)
+- `conversion`: Monetization events (`click_buy_plans`, `click_upgrade`)
+- `administration`: Buddy/supervisor actions (`click_task_approve_file`)
+
+**Pre-Activation Auto-Detection**:
+- `AnalyticsHelper` tracks if user has a board via `setHasBoard()`
+- For `app_interaction` events, if `!hasBoard`, category is automatically set to `pre_activation`
+- This captures the critical post-signup, pre-board-creation journey phase
+
+**Adding New Events**:
+1. Define event parameters in `EVENT_PARAMS` object (`mg_helpers.js`)
 2. Send via `this.ga.send_event(eventName, extraParams)`
-3. Auto-attached to elements with `data-event-action` attribute
+3. Auto-attach to DOM elements using `data-event-action` attribute
+4. Update `hasBoard` status in `init_dashboard()`, `fetchBoard()`, and `createBoard()` to maintain accurate pre-activation tracking
 
 ### Modifying Task Rendering
 
@@ -98,7 +133,17 @@ Task counts in column headers are auto-updated via `MutationObserver` on each st
 
 ### Smart Merging
 
-`smartMerge()` (`main.js:987-1012`) preserves existing arrays if server returns empty arrays, avoiding data loss during partial updates.
+`smartMerge()` preserves existing arrays if server returns empty arrays, avoiding data loss during partial updates.
+
+### Analytics State Management
+
+The `AnalyticsHelper` maintains critical user journey state:
+- `hasBoard`: Tracks if user has created a board (impacts `pre_activation` category)
+- `isBuddyUser`: Determines if user is buddy/supervisor/admin
+- `senderPlan`: User's subscription level (Free/Paid)
+- `sender`: Derived from buddy status ('buddy' or 'user')
+
+These states are set during `init_dashboard()` and updated on major lifecycle events (board creation, board loading).
 
 ## External Dependencies
 
@@ -125,3 +170,13 @@ Free users are blocked from certain statuses and features via `isFreeUser()` che
 - Local testing requires setting `CONFIG.token` or running with Outseta auth
 - Use `CONFIG.skip_dashboard = true` to bypass board initialization on non-app pages
 - Access error logs via `window.getErrorLog()` (defined in `initHandlers()`)
+
+## Analytics Implementation Notes
+
+When modifying user flows or adding features that affect board creation/ownership:
+
+1. **Board Creation Flow**: After `createBoard()` succeeds, call `this.ga.setHasBoard(true)` to transition user out of pre-activation state
+2. **Board Loading**: After `fetchBoard()` succeeds, call `this.ga.setHasBoard(true)` to ensure consistent state
+3. **Initial Load**: In `init_dashboard()`, check `localStorage` for existing `boardId` to set initial `hasBoard` state
+4. **Event Type Logic**: Events are automatically typed as `site_interaction` (unauthenticated) or `app_interaction` (authenticated) based on URL path (`/app/` or `/staging/`)
+5. **Category Override**: Manual `event_category` in `extraParams` overrides auto-detection, including pre-activation logic
