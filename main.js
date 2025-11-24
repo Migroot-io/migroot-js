@@ -128,6 +128,7 @@ class Migroot {
         }
         this.generateMethodsFromEndpoints();
         this.initHandlers();
+        this.#setupAskMessageHandlers();
         this.log.info('Migroot initialized');
     }
 
@@ -931,29 +932,49 @@ class Migroot {
         });
     }
 
+    #openSupportWithMessage(subject, body) {
+        const supportLink = document.querySelector('[data-o-support]');
+        if (!supportLink) {
+            this.log.warning('Support element not found');
+            return;
+        }
+
+        const formDefaults = JSON.stringify({
+            Subject: subject,
+            Body: body
+        });
+
+        supportLink.setAttribute('data-form-defaults', formDefaults);
+        supportLink.click();
+
+        setTimeout(() => {
+            supportLink.removeAttribute('data-form-defaults');
+        }, 100);
+    }
+
     #setupDeleteRequestHandler() {
         const deleteButton = document.getElementById('acc-delete-request');
         if (!deleteButton) return;
 
         deleteButton.onclick = () => {
-            const supportLink = document.querySelector('[data-o-support]');
-            if (!supportLink) {
-                this.log.warning('Support element not found');
-                return;
-            }
-
-            const formDefaults = JSON.stringify({
-                Subject: 'Account termination request',
-                Body: 'Hi, I want to delete my account and all my data'
-            });
-
-            supportLink.setAttribute('data-form-defaults', formDefaults);
-            supportLink.click();
-
-            setTimeout(() => {
-                supportLink.removeAttribute('data-form-defaults');
-            }, 100);
+            this.#openSupportWithMessage(
+                'Account termination request',
+                'Hi, I want to delete my account and all my data'
+            );
         };
+    }
+
+    #setupAskMessageHandlers() {
+        const askButtons = document.querySelectorAll('[data-ask-message]');
+        if (!askButtons.length) return;
+
+        askButtons.forEach((button) => {
+            button.onclick = () => {
+                const message = button.getAttribute('data-ask-message');
+                const title = button.getAttribute('data-ask-title') || 'Question';
+                this.#openSupportWithMessage(title, message);
+            };
+        });
     }
 
 
