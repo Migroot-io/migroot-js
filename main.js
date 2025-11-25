@@ -293,7 +293,7 @@ class Migroot {
         }
         const boardId = boards[0].boardId;
         this.board = await this.api.getBoard({}, { boardId });
-        this.boardId = this.board.boardId;
+        this.boardId = boardId;
 
         this.log.debug('First board initialized for user:', this.board);
     }
