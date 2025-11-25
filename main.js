@@ -291,8 +291,8 @@ class Migroot {
             }
             throw new Error('No boards found for user.');
         }
-
-        this.board = boards[0];
+        const boardId = boards[0].boardId;
+        this.board = await this.api.getBoard({}, { boardId });
         this.boardId = this.board.boardId;
 
         this.log.debug('First board initialized for user:', this.board);
@@ -764,7 +764,7 @@ class Migroot {
         this.renderUserFolder();
         this.renderBodyClass();
         this.#setupDeleteRequestHandler();
-    }
+}
 
 
     renderHubFields() {
