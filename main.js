@@ -198,19 +198,24 @@ class Migroot {
 
     async fetchBoard(boardId = null) {
         try {
+            let hasBoard = false;
+
             if (boardId) {
                 await this.loadBoardById(boardId);
+                hasBoard = true;
             } else if (this.isBuddyUser()) {
-                // redirect to admin f
-                window.location.href = `${this.appPrefix()}/admin`;
+                // Buddy users without specific boardId should go to admin
+                return { hasBoard: false, isBuddy: true };
             } else {
-                await this.loadUserBoards()
-                // await this.loadDummyUserBoard();
+                hasBoard = await this.loadFirstUserBoard();
             }
+
             if (this.board) {
                 this.#updateLocalStorage(this.board);
                 this.ga.setHasBoard(true);
             }
+
+            return { hasBoard, isBuddy: false };
         } catch (error) {
             this.log.error('Board initialization failed:', error);
             throw error;
@@ -264,15 +269,15 @@ class Migroot {
         }
     }
 
-    async loadUserBoards(boardUser = null) {
+    async searchUserBoards(boardUser = null) {
         this.boardUser = boardUser || this.currentUser
 
         if (!this.boardUser?.id || !this.boardUser?.type) {
             this.log.error('User init error for user:', this.boardUser)
-            throw new Error('User init error');
+            return [];
         }
 
-        this.log.debug(' user initialized:', this.boardUser);
+        this.log.debug('User initialized:', this.boardUser);
 
         const boards = await this.api.searchBoard({
             userType: this.boardUser.type, userId: this.boardUser.id
@@ -280,31 +285,34 @@ class Migroot {
         this.boards = boards;
         this.log.debug('Boards found for user:', boards);
 
-        if (!Array.isArray(boards) || boards.length === 0) {
-            this.log.warning('No boards found for user:', this.boardUser)
-            if (this.isBuddyUser()) {
-                // redirect to admin
-                window.location.href = `${this.appPrefix()}/admin`;
+        return Array.isArray(boards) ? boards : [];
+    }
 
-            } else {
-                this.#showCreateButton();
-            }
-            throw new Error('No boards found for user.');
+    async loadFirstUserBoard(boardUser = null) {
+        const boards = await this.searchUserBoards(boardUser);
+
+        if (boards.length === 0) {
+            this.log.warning('No boards found for user:', this.boardUser)
+            return false;
         }
+
         const boardId = boards[0].boardId;
         this.board = await this.api.getBoard({}, { boardId });
         this.boardId = boardId;
+        this.boardUser = this.board.owner;
 
         this.log.debug('First board initialized for user:', this.board);
+        return true;
     }
 
     async loadUserBoardDocs(boardUser = null) {
-        await this.loadUserBoards(boardUser);
-        if (!this.boardId) {
+        const hasBoard = await this.loadFirstUserBoard(boardUser);
+        if (!hasBoard || !this.boardId) {
             this.log.error('No docs and boards found for user:', this.boardUser)
-            throw new Error('Fetch docs error: cant get board for user');
+            return false;
         }
         await this.loadBoardDocsById(this.boardId)
+        return true;
     }
 
     /**
@@ -493,7 +501,18 @@ class Migroot {
                     // Загружаем борду, рендерим карточки задач по колонкам (статусам)
                     this.clearBoardLocalCache()
                     this.#clearContainers();
-                    await this.fetchBoard(finalBoardId);
+                    const todoResult = await this.fetchBoard(finalBoardId);
+
+                    if (!todoResult.hasBoard) {
+                        if (todoResult.isBuddy) {
+                            window.location.href = `${this.appPrefix()}/admin`;
+                            return;
+                        }
+                        // No board - redirect to HUB to show empty state
+                        window.location.href = `${this.appPrefix()}/hub`;
+                        return;
+                    }
+
                     this.#appendBoardIdToLinks(this.boardId);
                     await this.#prepareTodo(this.boardId);
                     this.hideBlockedContainers();
@@ -503,7 +522,18 @@ class Migroot {
                     // Страница DOCS: список документов для просмотра/аппрува
                     this.clearBoardLocalCache()
                     this.#clearContainers();
-                    await this.fetchBoard(finalBoardId);
+                    const docsResult = await this.fetchBoard(finalBoardId);
+
+                    if (!docsResult.hasBoard) {
+                        if (docsResult.isBuddy) {
+                            window.location.href = `${this.appPrefix()}/admin`;
+                            return;
+                        }
+                        // No board - redirect to HUB to show empty state
+                        window.location.href = `${this.appPrefix()}/hub`;
+                        return;
+                    }
+
                     this.#appendBoardIdToLinks(this.boardId);
                     await this.#prepareDocs(this.boardId);
                     break;
@@ -517,7 +547,18 @@ class Migroot {
 
                 case PAGE_TYPES.HUB:
                     // Страница HUB: показываем инфу по стране и прогресс релокации
-                    await this.fetchBoard(finalBoardId);
+                    const hubResult = await this.fetchBoard(finalBoardId);
+
+                    if (!hubResult.hasBoard) {
+                        if (hubResult.isBuddy) {
+                            window.location.href = `${this.appPrefix()}/admin`;
+                            return;
+                        }
+                        // No board - show create board button (empty state)
+                        this.#showCreateButton();
+                        return;
+                    }
+
                     this.#appendBoardIdToLinks(this.boardId);
                     this.renderHubFields();
                     break;
@@ -622,7 +663,7 @@ class Migroot {
     async #prepareAdminCards() {
         this.cards = [];
         this.log.debug('start filling cards with admin boards');
-        await this.loadUserBoards();
+        await this.searchUserBoards();
         this.boards.forEach(item => {
             try {
                 this.log.debug('creating AdminCard  for item:', item);
