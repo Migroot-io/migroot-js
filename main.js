@@ -35,6 +35,8 @@ const ENDPOINTS = {
         path: 'board/{userId}/getFilesFolder', method: 'GET'
     }, commentClientTask: {
         path: 'board/task/{taskId}/comment', method: 'POST'
+    }, downloadFile: {
+        path: 'board/file/{fileId}/download', method: 'GET'
     }
 };
 
@@ -705,7 +707,6 @@ class Migroot {
             commentsCount: 0,
             filesCount: 0,
             fileName: item.fileName,
-            viewLink: item.viewLink,
             fileStatus: this.#processStatus(item.status),
             card_type: PAGE_TYPES.DOCS
         };
@@ -1059,50 +1060,11 @@ class Migroot {
             this.log.debug(`element ${G_DRIVE_FOLDER_ID} for g drive button not found`)
             return;
         }
-        if (this.isFreeUser()) {
-            element.onclick = () => this.#handleOpenDrive(null);
-            return;
-        }
 
-        this.#removeInfoColumn();
-
-        this.api.getUserFilesFolder({}, {userId: this.boardUser.id})
-            .then(urlFolder => {
-                this.userFilesFolder = urlFolder;
-                this.log.debug(`url got for user: ${urlFolder}`);
-
-
-                // Проверка на наличие viewLink
-                if (!this.userFilesFolder?.viewLink) {
-                    this.log.warning("file folder url not found");
-                    if (element) element.remove();
-                    return;
-                }
-
-                if (element) {
-                    // Удалить атрибуты Fancybox
-                    element.removeAttribute("data-fancybox");
-                    element.removeAttribute("data-src");
-
-                    element.classList.remove('b-button_locked');
-
-                    // element.setAttribute("href", this.userFilesFolder.viewLink);
-                    // element.setAttribute("target", "_blank");
-                    element.onclick = () => this.#handleOpenDrive(this.userFilesFolder.viewLink);
-
-
-                    // Удалить иконку "замочек", если есть
-                    const lockIcon = element.querySelector('.b-lock-icon, .lock, svg.lock');
-                    if (lockIcon) {
-                        lockIcon.remove();
-                    }
-                } else {
-                    this.log.warning("element id 'g-drive-folder' not found!");
-                }
-            })
-            .catch(err => {
-                this.log.error("Failed to get url folder:", err);
-            });
+        // Google Drive button is now blocked for ALL users
+        // Files are accessed through GCS download API instead
+        element.onclick = () => this.#handleOpenDrive(null);
+        this.log.debug('Google Drive button blocked for all users (GCS migration)');
     }
 
     renderUserPoints() {
@@ -1610,7 +1572,7 @@ class Migroot {
             return `
                 <div class="file-wrapper">
                   <div class="file-info">
-                    <a class="f-item" href="${file.downloadLink}" target="_blank">
+                    <a class="f-item" href="#" data-file-id="${file.fileId}">
                         <div class="f-item__header">
                             <img src="https://cdn.prod.website-files.com/679bc8f10611c9a0d94a0caa/683476cbb9aeb76905819fc7_document-color.svg" alt="" class="f-item__icon">
                             <div class="f-item__name">${file.fileName}</div>
@@ -1630,6 +1592,24 @@ class Migroot {
                 </div>
             `;
         }).join('');
+
+        // Attach click handlers for file download
+        container.querySelectorAll('.f-item[data-file-id]').forEach(link => {
+            link.onclick = async (e) => {
+                e.preventDefault();
+                const fileId = link.getAttribute('data-file-id');
+                try {
+                    const response = await this.api.downloadFile({}, { fileId });
+                    if (response.downloadUrl) {
+                        window.open(response.downloadUrl, '_blank', 'noopener,noreferrer');
+                    } else {
+                        this.log.error('No downloadUrl in response');
+                    }
+                } catch (err) {
+                    this.log.error('Failed to get download URL:', err);
+                }
+            };
+        });
     }
 
     #handleApproveFile(el) {
