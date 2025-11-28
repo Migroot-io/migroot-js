@@ -1216,7 +1216,7 @@ class Migroot {
      * @property {string} shortDescription - Brief description of the task
      * @property {string} longDescription - description for the drawer
      * @property {string} [location] - Country or location where the task applies (optional)
-     * @property {string} [deadline] - Deadline date as an ISO string (optional)
+     * @property {number} [duration] - Duration in days (optional)
      * @property {string} assignName - Name of the assignee
      * @property {string} difficulty - Difficulty level
      * @property {Array} files - Array of attached files
@@ -1248,7 +1248,7 @@ class Migroot {
 
     /** @type {Set<string>} */
         // delete assign from that set after it has been added to backend //
-    #optionalFields = new Set(['location', 'deadline', 'assign']);
+    #optionalFields = new Set(['location', 'duration', 'assign']);
 
     /**
      * Populates a cloned task/card template with the values from a task object.
@@ -1286,8 +1286,8 @@ class Migroot {
                 if (key === 'location') {
                     this.log.debug(`Missing location; setting default to "online"`);
                     value = 'online';
-                } else if (key === 'deadline') {
-                    this.log.debug(`Missing deadline; setting default to "TBD"`);
+                } else if (key === 'duration') {
+                    this.log.debug(`Missing duration; setting default to "TBD"`);
                     value = 'TBD';
                 } else {
                     this.log.debug(`Optional value="${value}" for key="${key}" in ${fieldSelector} removing`);
@@ -1324,7 +1324,7 @@ class Migroot {
                 viewLink: this.#renderUrl.bind(this),  // for doc-board
                 linkTodo: this.#renderUrl.bind(this),  // for admin
                 linkDocs: this.#renderUrl.bind(this),  // for admin
-                deadline: this.#renderDeadline.bind(this),
+                duration: this.#renderDuration.bind(this),
                 difficulty: this.#renderDifficulty.bind(this)
             }
         });
@@ -1457,7 +1457,7 @@ class Migroot {
     #drawerOpts() {
         return {
             fieldSelector: '[data-drawer]', labelSelector: '.js-ingest', renderers: {
-                deadline: this.#renderDeadline.bind(this),
+                duration: this.#renderDuration.bind(this),
                 difficulty: this.#renderDifficulty.bind(this),
                 longDescription: this.#renderLongDescription.bind(this), // upload_button     : this.#renderUploadButton.bind(this),
                 comments: this.#renderComments.bind(this),
@@ -1488,8 +1488,8 @@ class Migroot {
         if (val) el.innerHTML = val; else el.remove();
     }
 
-    #renderDeadline(el, val) {
-        if (val) el.textContent = this.#formatDate(val); else el.remove();
+    #renderDuration(el, val) {
+        if (val) el.textContent = this.#formatDuration(val); else el.remove();
     }
 
     #renderDifficulty(el, val) {
@@ -2043,6 +2043,13 @@ class Migroot {
             minute: '2-digit',
             hour12: false,
         });
+    }
+
+    #formatDuration(days) {
+        if (days === 'TBD' || !days) return 'TBD';
+        const num = parseInt(days, 10);
+        if (isNaN(num)) return 'TBD';
+        return num === 1 ? '1 day' : `${num} days`;
     }
 
     #formatDifficulty(value) {
