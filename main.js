@@ -551,14 +551,24 @@ class Migroot {
                     // Страница HUB: показываем инфу по стране и прогресс релокации
                     const hubResult = await this.fetchBoard(finalBoardId);
 
+                    const emptyStateDiv = document.querySelector('.ac-hub__empty-state');
+
                     if (!hubResult.hasBoard) {
                         if (hubResult.isBuddy) {
                             window.location.href = `${this.appPrefix()}/admin`;
                             return;
                         }
-                        // No board - show create board button (empty state)
+                        // No board - remove previous sibling of empty state div
+                        if (emptyStateDiv && emptyStateDiv.previousElementSibling) {
+                            emptyStateDiv.previousElementSibling.remove();
+                        }
                         this.#showCreateButton();
                         return;
+                    }
+
+                    // Has board - remove empty state div
+                    if (emptyStateDiv) {
+                        emptyStateDiv.remove();
                     }
 
                     this.#appendBoardIdToLinks(this.boardId);
