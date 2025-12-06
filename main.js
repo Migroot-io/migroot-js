@@ -664,6 +664,9 @@ class Migroot {
         });
         this.#observeContainersWithCount();
         this.#renderCards(PAGE_TYPES.TODO);
+
+        // Open task drawer from URL if taskId parameter exists
+        this.#openTaskFromUrl();
     }
 
     async #prepareDocs(finalBoardId) {
@@ -835,60 +838,120 @@ class Migroot {
             return;
         }
 
-        const links = this.config?.hub?.[countryKey]?.links || [];
-        const visa = this.config?.hub?.[countryKey]?.visa || [];
-        const hubLinksContainer = document.getElementById('hub-links');
-        if (!hubLinksContainer) {
-            this.log.debug('No element with id "hub-links" found');
+        // Get hub data from HUB_CONFIG (defined in hub_config.js)
+        if (typeof HUB_CONFIG === 'undefined') {
+            this.log.warning('HUB_CONFIG is not defined');
             return;
         }
 
-        hubLinksContainer.innerHTML = ''; // Очистить контейнер
+        const hubData = HUB_CONFIG[countryKey];
+        if (!hubData) {
+            this.log.debug(`No hub data found for country: ${countryKey}`);
+            return;
+        }
+
+        // 1. Render Visa Requirements
+        this.#renderVisaRequirements(hubData.requirements || []);
+
+        // 2. Render Recommended Tasks (first 3 NOT_STARTED tasks)
+        this.#renderRecommendedTasks();
+
+        // 3. Render Useful Links
+        this.#renderUsefulLinks(hubData.links || []);
+    }
+
+    #renderVisaRequirements(requirements) {
+        const container = document.querySelector('.ac-hub__requirements .ac-hub__filled');
+        if (!container) {
+            this.log.debug('Visa requirements container not found');
+            return;
+        }
+
+        container.innerHTML = '';
+
+        requirements.forEach(req => {
+            const block = document.createElement('div');
+            block.className = 'ac-hub__requirement';
+            block.innerHTML = `
+                <div class="b-text-medium b-text-grey">${req.title}</div>
+                <div class="b-text-bold b-text-right">${req.value}</div>
+            `;
+            container.appendChild(block);
+        });
+
+        this.log.debug(`Rendered ${requirements.length} visa requirements`);
+    }
+
+    #renderRecommendedTasks() {
+        const container = document.querySelector('.ac-hub__tasks');
+        if (!container) {
+            this.log.debug('Recommended tasks container not found');
+            return;
+        }
+
+        container.innerHTML = '';
+
+        // Get top 3 tasks by priority
+        const topTasks = [...this.cards]
+            .sort((a, b) => a.priority - b.priority)
+            .slice(0, 3);
+
+        if (topTasks.length === 0) {
+            container.innerHTML = '<div class="drw-empty">No tasks available</div>';
+            return;
+        }
+
+        topTasks.forEach(task => {
+            const block = document.createElement('div');
+            block.className = 't-hub';
+            block.style.cursor = 'pointer';
+            block.innerHTML = `
+                <div class="t-hub__content">
+                    <div class="b-text-bold">${task.name || 'Untitled task'}</div>
+                    <div class="b-text-medium">${task.shortDescription || ''}</div>
+                </div>
+                <div data-task="points" class="t-mark t-mark_hub-points">
+                    <img loading="lazy" alt="" src="https://cdn.prod.website-files.com/679bc8f10611c9a0d94a0caa/66f86606b96e68570977c7da_Point.svg" class="t-mark__avatar">
+                    <div class="t-mark__label">${task.points || 0}</div>
+                </div>
+            `;
+
+            // Add click handler to redirect to TODO page with taskId
+            block.onclick = () => {
+                const boardId = this.boardId || localStorage.getItem(LOCALSTORAGE_KEYS.BOARD_ID);
+                const url = `${this.appPrefix()}/todo?boardId=${boardId}&taskId=${task.clientTaskId}`;
+                this.log.debug(`Redirecting to: ${url}`);
+                window.location.href = url;
+            };
+
+            container.appendChild(block);
+        });
+
+        this.log.debug(`Rendered ${topTasks.length} recommended tasks (sorted by priority)`);
+    }
+
+    #renderUsefulLinks(links) {
+        const container = document.querySelector('.ac-hub__contacts');
+        if (!container) {
+            this.log.debug('Useful links container not found');
+            return;
+        }
+
+        container.innerHTML = '';
 
         links.forEach(link => {
             const block = document.createElement('div');
             block.className = 'ac-hub__contact';
             block.innerHTML = `
-                <div class="ac-hub__contact-icon">
-                    <div class="b-embed w-embed">
-                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path fill-rule="evenodd" clip-rule="evenodd" d="M13.185 2.81465C13.543 3.17198 13.5277 3.78998 13.5064 4.25798C13.481 4.81398 13.3744 5.52398 13.1644 6.30398C12.745 7.86065 11.893 9.76331 10.357 11.3C8.6357 13.0213 6.5617 14.024 4.91704 14.418C4.70026 14.4689 4.47403 14.4632 4.26006 14.4016C4.04608 14.34 3.85153 14.2244 3.69504 14.066L1.9337 12.3046C1.77528 12.1483 1.65965 11.9539 1.5979 11.74C1.53615 11.5262 1.53034 11.3001 1.58104 11.0833C1.9757 9.43798 2.97837 7.36465 4.6997 5.64331C6.23637 4.10598 8.1397 3.25465 9.6957 2.83531C10.4757 2.62465 11.1857 2.51865 11.7424 2.49331C12.2097 2.47198 12.8277 2.45665 13.185 2.81465Z" fill="white"></path>
-                        </svg>
-                    </div>
-                </div>
-                <div class="ac-hub__info-content">
-                    <div class="b-table__text">${link.name}</div>
-                    ${link.value}
+                <div class="ac-hub__contact-details">
+                    <div class="b-text-medium">${link.label}</div>
+                    <a href="${link.url}" target="_blank" class="b-text-bold b-link b-text-right">${link.title}</a>
                 </div>
             `;
-            hubLinksContainer.appendChild(block);
+            container.appendChild(block);
         });
 
-
-        const visaContainer = document.getElementById('hub-visa');
-        visaContainer.innerHTML = ''; // Очистить контейнер
-        if (visaContainer) {
-            visaContainer.innerHTML = '';
-            visa.forEach(field => {
-                const block = document.createElement('div');
-                block.className = 'ac-hub__info';
-                block.innerHTML = `
-                    <div class="ac-hub__info-icon">
-                        <div class="b-embed w-embed">
-                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M14.6337 7.07C14.5803 7.28934 14.4646 7.4885 14.3003 7.64334L12.1003 9.79001C12.0778 9.81322 12.0598 9.84033 12.047 9.87001C12.0396 9.90068 12.0396 9.93266 12.047 9.96334L12.567 13.0033C12.6103 13.2273 12.587 13.4593 12.5003 13.67C12.42 13.8784 12.2782 14.0575 12.0937 14.1833C11.9144 14.3157 11.7022 14.3964 11.4803 14.4167H11.3937C11.1984 14.4163 11.0062 14.3682 10.8337 14.2767L8.10033 12.85C8.07195 12.8336 8.03976 12.825 8.00699 12.825C7.97423 12.825 7.94204 12.8336 7.91366 12.85L5.18033 14.2833C4.97506 14.39 4.7445 14.4384 4.51366 14.4233C4.28943 14.4042 4.07485 14.3235 3.89366 14.19C3.71087 14.0594 3.56966 13.8789 3.48699 13.67C3.40193 13.4586 3.3788 13.2274 3.42033 13.0033L3.94033 9.97001C3.95002 9.93965 3.95002 9.90703 3.94033 9.87667C3.92956 9.84749 3.91376 9.82041 3.89366 9.79667L1.69366 7.63667C1.5344 7.48168 1.42131 7.2855 1.36699 7.07C1.30215 6.85251 1.30215 6.62083 1.36699 6.40334C1.44028 6.18927 1.57228 6.00013 1.74793 5.85749C1.92357 5.71485 2.13578 5.62448 2.36033 5.59667L5.36033 5.15667C5.39021 5.15591 5.41874 5.14403 5.44033 5.12334C5.46591 5.10405 5.48649 5.0789 5.50033 5.05L6.90033 2.26334C6.99566 2.06334 7.14633 1.89467 7.33366 1.77667C7.47605 1.68675 7.63587 1.62799 7.80259 1.60425C7.96932 1.58051 8.13918 1.59232 8.30101 1.63892C8.46285 1.68552 8.61298 1.76584 8.74156 1.87461C8.87013 1.98338 8.97422 2.11813 9.04699 2.27L10.4337 5.04334C10.4504 5.07413 10.4731 5.10131 10.5003 5.12334C10.5243 5.14447 10.555 5.1563 10.587 5.15667L13.6337 5.59667C13.855 5.63001 14.063 5.72467 14.2337 5.87001C14.401 6.01467 14.5277 6.20067 14.6003 6.41001C14.671 6.62334 14.683 6.85134 14.6337 7.07Z" fill="white"></path>
-                            </svg>
-                        </div>
-                    </div>
-                    <div class="ac-hub__info-content">
-                        <div class="b-table__text">${field.name}</div>
-                        <div class="b-text-bold">${field.value}</div>
-                    </div>
-                `;
-                visaContainer.appendChild(block);
-            });
-
-        }
+        this.log.debug(`Rendered ${links.length} useful links`);
     }
 
     renderCountryInputs() {
@@ -1463,6 +1526,28 @@ class Migroot {
             // drawer closing logic end ///
         }
     };
+
+    #openTaskFromUrl() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const taskId = urlParams.get('taskId');
+
+        if (!taskId) {
+            this.log.debug('No taskId in URL');
+            return;
+        }
+
+        this.log.debug(`Opening task from URL: ${taskId}`);
+
+        // Find task in this.cards
+        const task = this.cards.find(t => String(t.clientTaskId) === taskId);
+
+        if (task) {
+            // Use existing method to open drawer
+            this.#handleCardClick(task);
+        } else {
+            this.log.warning(`Task with ID ${taskId} not found in cards`);
+        }
+    }
 
     isModalOpen(id = 'paid') {
       const el = document.getElementById(id);
