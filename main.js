@@ -871,6 +871,66 @@ class Migroot {
             countrySpan.textContent = ` → ${countryKey}`;
             progressTitle.appendChild(countrySpan);
         }
+
+        // 6. Personalize welcome message
+        this.renderHubWelcome();
+
+        // 7. Update progress bar and counters
+        this.renderHubProgress();
+    }
+
+    renderHubWelcome() {
+        const firstName = this.currentUser?.firstName || 'nomad';
+        const heading = document.querySelector('.ac-hub__heading');
+        if (heading) {
+            heading.textContent = `Welcome back, ${firstName}! 👋`;
+        }
+        this.log.debug(`Hub welcome personalized: ${firstName}`);
+    }
+
+    renderHubProgress() {
+        // 1. Since date
+        const createdDate = this.board?.createdAt;
+        if (createdDate) {
+            const dateEl = document.getElementById('created-date');
+            if (dateEl) {
+                const formatted = new Date(createdDate).toLocaleDateString('en-US', {
+                    day: 'numeric',
+                    month: 'short',
+                    year: 'numeric'
+                });
+                dateEl.textContent = `Since ${formatted}`;
+            }
+        }
+
+        // 2. Task counters
+        const allTasks = this.cards.length;
+        const completedTasks = this.cards.filter(t => t.status === 'READY').length;
+        const requiredTasks = this.cards.filter(t => t.documentRequired).length;
+        const completedRequired = this.cards.filter(t => t.documentRequired && t.status === 'READY').length;
+
+        // 3. Update counter text
+        const agendaNotes = document.querySelectorAll('.ac-progress__agenda .ac-progress__note');
+        if (agendaNotes[0]) {
+            const texts = agendaNotes[0].querySelectorAll('.b-text-medium');
+            if (texts[1]) texts[1].textContent = `${completedRequired} of ${requiredTasks}`;
+        }
+        if (agendaNotes[1]) {
+            const texts = agendaNotes[1].querySelectorAll('.b-text-medium');
+            if (texts[1]) texts[1].textContent = `${completedTasks} of ${allTasks}`;
+        }
+
+        // 4. Fill progress bar
+        const allPercent = allTasks > 0 ? (completedTasks / allTasks) * 100 : 0;
+        const requiredPercent = requiredTasks > 0 ? (completedRequired / requiredTasks) * 100 : 0;
+
+        const doneFill = document.querySelector('#done-bar-fill.ac-progress__filled');
+        const progressFill = document.querySelector('#progress-bar-fill.ac-progress__filled_required');
+
+        if (doneFill) doneFill.style.width = `${allPercent}%`;
+        if (progressFill) progressFill.style.width = `${requiredPercent}%`;
+
+        this.log.debug(`Hub progress updated: ${completedTasks}/${allTasks} all, ${completedRequired}/${requiredTasks} required`);
     }
 
     #renderVisaRequirements(requirements) {
@@ -925,7 +985,7 @@ class Migroot {
                     <div class="b-text-medium">${task.shortDescription || ''}</div>
                 </div>
                 <div data-task="points" class="t-mark t-mark_hub-points">
-                    <img loading="lazy" alt="" src="https://cdn.prod.website-files.com/679bc8f10611c9a0d94a0caa/66f86606b96e68570977c7da_Point.svg" class="t-mark__avatar">
+                    <img loading="lazy" alt="" src="https://cdn.prod.website-files.com/679bc8f10611c9a0d94a0caa/679bc8f10611c9a0d94a0d1e_Point.svg" class="t-mark__avatar">
                     <div class="t-mark__label">${task.points || 0}</div>
                 </div>
             `;
@@ -989,7 +1049,7 @@ class Migroot {
             block.className = 'ln-post ac-hub__post w-inline-block';
             block.innerHTML = `
                 <div class="ln-post__preview ac-hu_post-preview">
-                    <img src="${guide.image || ''}" alt="${guide.title}" loading="lazy" class="ln-post__image">
+                    <img sizes="100vw" srcset="${guide.image}" src="${guide.image}" alt="${guide.title}" loading="lazy" class="ln-post__image">
                 </div>
                 <div class="ln-post__content">
                     <p class="ac-hub__post-title">${guide.title}</p>
