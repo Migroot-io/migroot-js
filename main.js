@@ -899,6 +899,14 @@ class Migroot {
         if (heading) {
             heading.textContent = `Welcome back, ${firstName}! 👋`;
         }
+
+        // Update user avatar in welcome block
+        const avatarImg = document.querySelector('.ac-hub__welcome .ac-hub__migroot');
+        if (avatarImg && this.currentUser?.ProfileImageS3Url) {
+            avatarImg.src = this.currentUser.ProfileImageS3Url;
+            avatarImg.alt = `${firstName}'s profile picture`;
+        }
+
         this.log.debug(`Hub welcome personalized: ${firstName}`);
     }
 
