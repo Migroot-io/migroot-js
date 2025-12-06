@@ -573,6 +573,9 @@ class Migroot {
                         // Render hub fields even without board (shows ?, Mystery Country, random guides)
                         this.renderHubFields();
 
+                        // Render user UI (points, nav, etc.) even without board
+                        this.renderUserFields();
+
                         // Hide preloader when no board exists on HUB page
                         if (typeof preloaderFinish === 'function') {
                             preloaderFinish();
@@ -1335,7 +1338,7 @@ class Migroot {
             return;
         }
 
-        const el = this.config.user.pointsContainerId;
+        const el = document.getElementById(this.config.user.pointsContainerId);
         if (!el) {
             this.log.debug(`Element with id ${this.config.user.pointsContainerId} not found`);
             return;
