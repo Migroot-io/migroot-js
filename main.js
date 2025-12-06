@@ -857,12 +857,11 @@ class Migroot {
         // Update progress bar and counters
         this.renderHubProgress();
 
-        // Always render random guides (even when no country/board)
-        this.#renderRandomGuides();
-
         // If no country selected, can't render country-specific data
         if (!countryKey) {
             this.log.debug('No country selected in localStorage');
+            // No country - render random guides from all countries
+            this.#renderRandomGuides();
             return;
         }
 
@@ -886,6 +885,9 @@ class Migroot {
 
         // 3. Render Useful Links
         this.#renderUsefulLinks(hubData.links || []);
+
+        // 4. Render Guides for current country
+        this.#renderGuides(hubData.guides || []);
     }
 
     renderHubWelcome() {
@@ -898,51 +900,7 @@ class Migroot {
     }
 
     renderHubProgress() {
-        // 1. Since date
-        const createdDate = this.board?.createdAt;
-        if (createdDate) {
-            const dateEl = document.getElementById('created-date');
-            if (dateEl) {
-                const formatted = new Date(createdDate).toLocaleDateString('en-US', {
-                    day: 'numeric',
-                    month: 'short',
-                    year: 'numeric'
-                });
-                dateEl.textContent = `Since ${formatted}`;
-            }
-        }
-
-        // Check if board exists
-        const hasBoard = this.cards && this.cards.length > 0;
-
-        // 2. Task counters
-        const allTasks = hasBoard ? this.cards.length : '?';
-        const completedTasks = hasBoard ? this.cards.filter(t => t.status === 'READY').length : '?';
-        const requiredTasks = hasBoard ? this.cards.filter(t => t.documentRequired).length : '?';
-        const completedRequired = hasBoard ? this.cards.filter(t => t.documentRequired && t.status === 'READY').length : '?';
-
-        // 3. Update counter text
-        const agendaNotes = document.querySelectorAll('.ac-progress__agenda .ac-progress__note');
-        if (agendaNotes[0]) {
-            const texts = agendaNotes[0].querySelectorAll('.b-text-medium');
-            if (texts[1]) texts[1].textContent = `${completedRequired} of ${requiredTasks}`;
-        }
-        if (agendaNotes[1]) {
-            const texts = agendaNotes[1].querySelectorAll('.b-text-medium');
-            if (texts[1]) texts[1].textContent = `${completedTasks} of ${allTasks}`;
-        }
-
-        // 4. Fill progress bar
-        const allPercent = (hasBoard && allTasks > 0) ? (completedTasks / allTasks) * 100 : 0;
-        const requiredPercent = (hasBoard && requiredTasks > 0) ? (completedRequired / requiredTasks) * 100 : 0;
-
-        const doneFill = document.querySelector('#done-bar-fill.ac-progress__filled');
-        const progressFill = document.querySelector('#progress-bar-fill.ac-progress__filled_required');
-
-        if (doneFill) doneFill.style.width = `${allPercent}%`;
-        if (progressFill) progressFill.style.width = `${requiredPercent}%`;
-
-        this.log.debug(`Hub progress updated: ${completedTasks}/${allTasks} all, ${completedRequired}/${requiredTasks} required`);
+        this.updateProgress();
     }
 
     #renderVisaRequirements(requirements) {
@@ -976,10 +934,10 @@ class Migroot {
 
         container.innerHTML = '';
 
-        // Get top 3 NOT_STARTED tasks by priority
+        // Get top 3 NOT_STARTED tasks by priority (highest first)
         const topTasks = [...this.cards]
             .filter(task => task.status === 'NOT_STARTED')
-            .sort((a, b) => a.priority - b.priority)
+            .sort((a, b) => b.priority - a.priority)
             .slice(0, 3);
 
         if (topTasks.length === 0) {
@@ -1274,26 +1232,73 @@ class Migroot {
     }
 
     updateProgress() {
-        const goal = parseInt(localStorage.getItem(LOCALSTORAGE_KEYS.GOAL), 10) || 0;
-        const done = parseInt(localStorage.getItem(LOCALSTORAGE_KEYS.DONE), 10) || 0;
-        const inProgress = parseInt(localStorage.getItem(LOCALSTORAGE_KEYS.IN_PROGRESS), 10) || 0;
-        const effectiveDone = done + inProgress * 0.5;
-        const inProgressPercent = goal > 0 ? Math.round((inProgress * 0.5 / goal) * 100) : 0;
+        // Try to get data from this.board.tasks first (live data), fallback to localStorage
+        const tasks = this.board?.tasks || [];
+        const hasBoard = tasks.length > 0;
 
-        const totalPercent = goal > 0 ? Math.round((effectiveDone / goal) * 100) : 0;
+        let allTasks, completedTasks, requiredTasks, completedRequired, inProgressTasks;
+
+        if (hasBoard) {
+            // Use live data from this.board.tasks
+            allTasks = tasks.length;
+            completedTasks = tasks.filter(t => t.status === 'READY').length;
+            requiredTasks = tasks.filter(t => t.documentRequired).length;
+            completedRequired = tasks.filter(t => t.documentRequired && t.status === 'READY').length;
+            inProgressTasks = tasks.filter(t => t.status !== 'READY' && t.status !== 'NOT_STARTED' && t.documentRequired).length;
+        } else {
+            // Fallback to localStorage (for pages without board loaded)
+            allTasks = '?';
+            completedTasks = '?';
+            requiredTasks = parseInt(localStorage.getItem(LOCALSTORAGE_KEYS.GOAL), 10) || 0;
+            completedRequired = parseInt(localStorage.getItem(LOCALSTORAGE_KEYS.DONE), 10) || 0;
+            inProgressTasks = parseInt(localStorage.getItem(LOCALSTORAGE_KEYS.IN_PROGRESS), 10) || 0;
+        }
+
+        // Update HUB-specific elements (counter text)
+        const agendaNotes = document.querySelectorAll('.ac-progress__agenda .ac-progress__note');
+        if (agendaNotes[0]) {
+            const texts = agendaNotes[0].querySelectorAll('.b-text-medium');
+            if (texts[1]) texts[1].textContent = `${completedRequired} of ${requiredTasks}`;
+        }
+        if (agendaNotes[1]) {
+            const texts = agendaNotes[1].querySelectorAll('.b-text-medium');
+            if (texts[1]) texts[1].textContent = `${completedTasks} of ${allTasks}`;
+        }
+
+        // Calculate percentages
+        const effectiveDone = (hasBoard ? completedRequired : completedRequired) + (hasBoard ? 0 : inProgressTasks * 0.5);
+        const inProgressPercent = requiredTasks > 0 ? Math.round((inProgressTasks * 0.5 / requiredTasks) * 100) : 0;
+        const totalPercent = requiredTasks > 0 ? Math.round((effectiveDone / requiredTasks) * 100) : 0;
+
+        // For all tasks percent (HUB page)
+        const allPercent = (hasBoard && allTasks > 0) ? Math.round((completedTasks / allTasks) * 100) : 0;
+        const requiredPercent = (hasBoard && requiredTasks > 0) ? Math.round((completedRequired / requiredTasks) * 100) : 0;
+
+        // Update TODO/DOCS page elements
         const countEl = document.getElementById('progress-bar-count');
-        const progressFillEl = document.getElementById('progress-bar-fill');
-        const doneFillEl = document.getElementById('done-bar-fill');
         if (countEl) {
             countEl.textContent = `Your relocation progress: ${totalPercent} %`;
         }
 
-        if (progressFillEl) {
+        // Update progress bars (works for both HUB and TODO/DOCS)
+        const progressFillEl = document.querySelector('#progress-bar-fill');
+        const doneFillEl = document.querySelector('#done-bar-fill');
+
+        // HUB page has different selector
+        const progressFillHubEl = document.querySelector('#progress-bar-fill.ac-progress__filled_required');
+        const doneFillHubEl = document.querySelector('#done-bar-fill.ac-progress__filled');
+
+        if (progressFillHubEl && doneFillHubEl) {
+            // HUB page
+            doneFillHubEl.style.width = `${allPercent}%`;
+            progressFillHubEl.style.width = `${requiredPercent}%`;
+        } else if (progressFillEl && doneFillEl) {
+            // TODO/DOCS page
             progressFillEl.style.width = `${inProgressPercent}%`;
-        }
-        if (doneFillEl) {
             doneFillEl.style.width = `${totalPercent}%`;
         }
+
+        this.log.debug(`Progress updated: ${completedTasks}/${allTasks} all, ${completedRequired}/${requiredTasks} required`);
     }
 
 
@@ -2099,7 +2104,7 @@ class Migroot {
                 await new Promise(resolve => setTimeout(resolve, 2000));
                 // The overlay remains until redirect.
 
-                window.location.href = `${this.appPrefix()}/todo?boardId=${createdBoard.boardId}`;
+                window.location.href = `${this.appPrefix()}/hub?boardId=${createdBoard.boardId}`;
             } else {
                 this.log.error('Invalid response: boardId or status missing', createdBoard);
             }
