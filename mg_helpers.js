@@ -498,15 +498,13 @@ class OnboardingManager {
         const trigger = document.getElementById('onboarding_trigger');
         const onboardingPassed = this.migroot.currentUser?.onboardingPassed
 
-        if (hasCardsWithFiles || onboardingPassed) {
-            this.migroot.onboarding.finishTour(false, 'general');
-          }
-
-        if (
-            !this.migroot.onboarding || !hasOnboardingTask
-        ) {
+        if (!this.migroot.onboarding || !hasOnboardingTask) {
             if (trigger) trigger.remove();
             return;
+        }
+
+        if (hasCardsWithFiles || onboardingPassed) {
+            this.migroot.onboarding.finishTour(false, 'general');
         }
 
         this.setupSteps();
