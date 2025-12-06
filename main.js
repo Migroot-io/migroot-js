@@ -1338,7 +1338,7 @@ class Migroot {
             return;
         }
 
-        const el = document.getElementById(this.config.user.pointsContainerId);
+        const el = this.config.user.pointsContainerId;
         if (!el) {
             this.log.debug(`Element with id ${this.config.user.pointsContainerId} not found`);
             return;
@@ -1351,7 +1351,7 @@ class Migroot {
         }
 
         el.textContent = points;
-        this.log.debug(`User points rendered into #${this.config.user.pointsContainerId}: ${points}`);
+        this.log.debug(`User points rendered: ${points}`);
     }
 
     updateUserPoints(diff) {
