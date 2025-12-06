@@ -569,6 +569,10 @@ class Migroot {
                         if (createAccountDiv) {
                             createAccountDiv.style.display = 'inline-flex';
                         }
+
+                        // Render hub fields even without board (shows ?, Mystery Country, random guides)
+                        this.renderHubFields();
+
                         // Hide preloader when no board exists on HUB page
                         if (typeof preloaderFinish === 'function') {
                             preloaderFinish();
@@ -853,6 +857,9 @@ class Migroot {
         // Update progress bar and counters
         this.renderHubProgress();
 
+        // Always render random guides (even when no country/board)
+        this.#renderRandomGuides();
+
         // If no country selected, can't render country-specific data
         if (!countryKey) {
             this.log.debug('No country selected in localStorage');
@@ -879,9 +886,6 @@ class Migroot {
 
         // 3. Render Useful Links
         this.#renderUsefulLinks(hubData.links || []);
-
-        // 4. Render Guides (random 3 from all countries)
-        this.#renderRandomGuides();
     }
 
     renderHubWelcome() {
