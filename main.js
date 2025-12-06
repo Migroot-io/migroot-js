@@ -556,8 +556,8 @@ class Migroot {
 
                     if (!hubResult.hasBoard) {
                         if (hubResult.isBuddy) {
-                            window.location.href = `${this.appPrefix()}/admin`;
-                            return;
+                            // window.location.href = `${this.appPrefix()}/admin`;
+                            // return;
                         }
                         // No board - remove previous sibling for each empty state div
                         emptyStateDivs.forEach(div => {
