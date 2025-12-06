@@ -569,7 +569,10 @@ class Migroot {
                         if (createAccountDiv) {
                             createAccountDiv.style.display = 'inline-flex';
                         }
-                        this.#showCreateButton();
+                        // Hide preloader when no board exists on HUB page
+                        if (typeof preloaderFinish === 'function') {
+                            preloaderFinish();
+                        }
                         return;
                     }
 
@@ -833,6 +836,24 @@ class Migroot {
 
     renderHubFields() {
         const countryKey = localStorage.getItem(LOCALSTORAGE_KEYS.COUNTRY);
+
+        // Always display country in "Your progress" header (even if unknown)
+        const progressTitle = document.querySelector('.ac-hub__card .ac-hub__title-1');
+        if (progressTitle && progressTitle.textContent.trim() === 'Your progress') {
+            const countrySpan = document.createElement('span');
+            countrySpan.style.fontWeight = 'normal';
+            countrySpan.style.color = '#888';
+            countrySpan.textContent = ` → ${countryKey || 'Mystery Country'}`;
+            progressTitle.appendChild(countrySpan);
+        }
+
+        // Personalize welcome message
+        this.renderHubWelcome();
+
+        // Update progress bar and counters
+        this.renderHubProgress();
+
+        // If no country selected, can't render country-specific data
         if (!countryKey) {
             this.log.debug('No country selected in localStorage');
             return;
@@ -859,24 +880,8 @@ class Migroot {
         // 3. Render Useful Links
         this.#renderUsefulLinks(hubData.links || []);
 
-        // 4. Render Guides
-        this.#renderGuides(hubData.guides || []);
-
-        // 5. Display country in "Your progress" header
-        const progressTitle = document.querySelector('.ac-hub__card .ac-hub__title-1');
-        if (progressTitle && progressTitle.textContent.trim() === 'Your progress') {
-            const countrySpan = document.createElement('span');
-            countrySpan.style.fontWeight = 'normal';
-            countrySpan.style.color = '#888';
-            countrySpan.textContent = ` → ${countryKey}`;
-            progressTitle.appendChild(countrySpan);
-        }
-
-        // 6. Personalize welcome message
-        this.renderHubWelcome();
-
-        // 7. Update progress bar and counters
-        this.renderHubProgress();
+        // 4. Render Guides (random 3 from all countries)
+        this.#renderRandomGuides();
     }
 
     renderHubWelcome() {
@@ -903,11 +908,14 @@ class Migroot {
             }
         }
 
+        // Check if board exists
+        const hasBoard = this.cards && this.cards.length > 0;
+
         // 2. Task counters
-        const allTasks = this.cards.length;
-        const completedTasks = this.cards.filter(t => t.status === 'READY').length;
-        const requiredTasks = this.cards.filter(t => t.documentRequired).length;
-        const completedRequired = this.cards.filter(t => t.documentRequired && t.status === 'READY').length;
+        const allTasks = hasBoard ? this.cards.length : '?';
+        const completedTasks = hasBoard ? this.cards.filter(t => t.status === 'READY').length : '?';
+        const requiredTasks = hasBoard ? this.cards.filter(t => t.documentRequired).length : '?';
+        const completedRequired = hasBoard ? this.cards.filter(t => t.documentRequired && t.status === 'READY').length : '?';
 
         // 3. Update counter text
         const agendaNotes = document.querySelectorAll('.ac-progress__agenda .ac-progress__note');
@@ -921,8 +929,8 @@ class Migroot {
         }
 
         // 4. Fill progress bar
-        const allPercent = allTasks > 0 ? (completedTasks / allTasks) * 100 : 0;
-        const requiredPercent = requiredTasks > 0 ? (completedRequired / requiredTasks) * 100 : 0;
+        const allPercent = (hasBoard && allTasks > 0) ? (completedTasks / allTasks) * 100 : 0;
+        const requiredPercent = (hasBoard && requiredTasks > 0) ? (completedRequired / requiredTasks) * 100 : 0;
 
         const doneFill = document.querySelector('#done-bar-fill.ac-progress__filled');
         const progressFill = document.querySelector('#progress-bar-fill.ac-progress__filled_required');
@@ -1066,6 +1074,33 @@ class Migroot {
         });
 
         this.log.debug(`Rendered ${guides.length} guides`);
+    }
+
+    #renderRandomGuides() {
+        // Get all guides from all countries in HUB_CONFIG
+        if (typeof HUB_CONFIG === 'undefined') {
+            this.log.warning('HUB_CONFIG is not defined');
+            return;
+        }
+
+        const allGuides = [];
+        Object.values(HUB_CONFIG).forEach(countryData => {
+            if (countryData.guides && Array.isArray(countryData.guides)) {
+                allGuides.push(...countryData.guides);
+            }
+        });
+
+        if (allGuides.length === 0) {
+            this.log.debug('No guides found in HUB_CONFIG');
+            return;
+        }
+
+        // Shuffle array and pick first 3
+        const shuffled = allGuides.sort(() => 0.5 - Math.random());
+        const selectedGuides = shuffled.slice(0, 3);
+
+        this.#renderGuides(selectedGuides);
+        this.log.debug(`Rendered ${selectedGuides.length} random guides from ${allGuides.length} total`);
     }
 
     renderCountryInputs() {
