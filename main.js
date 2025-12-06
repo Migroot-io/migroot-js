@@ -1088,9 +1088,17 @@ class Migroot {
         }
 
         const allGuides = [];
+        const seenUrls = new Set();
+
         Object.values(HUB_CONFIG).forEach(countryData => {
             if (countryData.guides && Array.isArray(countryData.guides)) {
-                allGuides.push(...countryData.guides);
+                countryData.guides.forEach(guide => {
+                    // Only add unique guides (check by URL)
+                    if (!seenUrls.has(guide.url)) {
+                        seenUrls.add(guide.url);
+                        allGuides.push(guide);
+                    }
+                });
             }
         });
 
@@ -1104,7 +1112,7 @@ class Migroot {
         const selectedGuides = shuffled.slice(0, 3);
 
         this.#renderGuides(selectedGuides);
-        this.log.debug(`Rendered ${selectedGuides.length} random guides from ${allGuides.length} total`);
+        this.log.debug(`Rendered ${selectedGuides.length} random unique guides from ${allGuides.length} total unique`);
     }
 
     renderCountryInputs() {
