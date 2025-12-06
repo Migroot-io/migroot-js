@@ -1265,14 +1265,27 @@ class Migroot {
             if (texts[1]) texts[1].textContent = `${completedTasks} of ${allTasks}`;
         }
 
-        // Calculate percentages
-        const effectiveDone = (hasBoard ? completedRequired : completedRequired) + (hasBoard ? 0 : inProgressTasks * 0.5);
+        // Calculate percentages for HUB page
+        // requiredPercent = dark green bar (required tasks only)
+        const requiredPercent = (hasBoard && requiredTasks > 0) ? Math.round((completedRequired / requiredTasks) * 100) : 0;
+
+        // allPercent = light green bar (weighted: 80% required + 20% optional)
+        let allPercent = 0;
+        if (hasBoard && allTasks > 0) {
+            const optionalTasks = allTasks - requiredTasks;
+            const completedOptional = completedTasks - completedRequired;
+
+            const requiredProgress = requiredTasks > 0 ? (completedRequired / requiredTasks) : 0;
+            const optionalProgress = optionalTasks > 0 ? (completedOptional / optionalTasks) : 0;
+
+            // Weighted formula: 80% required + 20% optional
+            allPercent = Math.round((requiredProgress * 0.8 + optionalProgress * 0.2) * 100);
+        }
+
+        // Calculate percentages for TODO/DOCS page (with inProgress weighting)
+        const effectiveDone = completedRequired + inProgressTasks * 0.5;
         const inProgressPercent = requiredTasks > 0 ? Math.round((inProgressTasks * 0.5 / requiredTasks) * 100) : 0;
         const totalPercent = requiredTasks > 0 ? Math.round((effectiveDone / requiredTasks) * 100) : 0;
-
-        // For all tasks percent (HUB page)
-        const allPercent = (hasBoard && allTasks > 0) ? Math.round((completedTasks / allTasks) * 100) : 0;
-        const requiredPercent = (hasBoard && requiredTasks > 0) ? Math.round((completedRequired / requiredTasks) * 100) : 0;
 
         // Update TODO/DOCS page elements
         const countEl = document.getElementById('progress-bar-count');
