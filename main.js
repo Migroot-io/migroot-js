@@ -552,6 +552,7 @@ class Migroot {
                     const hubResult = await this.fetchBoard(finalBoardId);
 
                     const emptyStateDivs = document.querySelectorAll('.ac-hub__empty-state');
+                    const createAccountDiv = document.querySelector('.ac-hub__create-account');
 
                     if (!hubResult.hasBoard) {
                         if (hubResult.isBuddy) {
@@ -564,12 +565,20 @@ class Migroot {
                                 div.previousElementSibling.remove();
                             }
                         });
+                        // No board - show create account div
+                        if (createAccountDiv) {
+                            createAccountDiv.style.display = 'inline-flex';
+                        }
                         this.#showCreateButton();
                         return;
                     }
 
                     // Has board - remove all empty state divs
                     emptyStateDivs.forEach(div => div.remove());
+                    // Has board - remove create account div
+                    if (createAccountDiv) {
+                        createAccountDiv.remove();
+                    }
 
                     this.#appendBoardIdToLinks(this.boardId);
                     this.renderHubFields();
