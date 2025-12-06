@@ -551,25 +551,25 @@ class Migroot {
                     // Страница HUB: показываем инфу по стране и прогресс релокации
                     const hubResult = await this.fetchBoard(finalBoardId);
 
-                    const emptyStateDiv = document.querySelector('.ac-hub__empty-state');
+                    const emptyStateDivs = document.querySelectorAll('.ac-hub__empty-state');
 
                     if (!hubResult.hasBoard) {
                         if (hubResult.isBuddy) {
                             window.location.href = `${this.appPrefix()}/admin`;
                             return;
                         }
-                        // No board - remove previous sibling of empty state div
-                        if (emptyStateDiv && emptyStateDiv.previousElementSibling) {
-                            emptyStateDiv.previousElementSibling.remove();
-                        }
+                        // No board - remove previous sibling for each empty state div
+                        emptyStateDivs.forEach(div => {
+                            if (div.previousElementSibling) {
+                                div.previousElementSibling.remove();
+                            }
+                        });
                         this.#showCreateButton();
                         return;
                     }
 
-                    // Has board - remove empty state div
-                    if (emptyStateDiv) {
-                        emptyStateDiv.remove();
-                    }
+                    // Has board - remove all empty state divs
+                    emptyStateDivs.forEach(div => div.remove());
 
                     this.#appendBoardIdToLinks(this.boardId);
                     this.renderHubFields();
@@ -822,7 +822,7 @@ class Migroot {
     renderHubFields() {
         const countryKey = localStorage.getItem(LOCALSTORAGE_KEYS.COUNTRY);
         if (!countryKey) {
-            this.log.warning('No country selected in localStorage');
+            this.log.debug('No country selected in localStorage');
             return;
         }
 
@@ -830,7 +830,7 @@ class Migroot {
         const visa = this.config?.hub?.[countryKey]?.visa || [];
         const hubLinksContainer = document.getElementById('hub-links');
         if (!hubLinksContainer) {
-            this.log.warning('No element with id "hub-links" found');
+            this.log.debug('No element with id "hub-links" found');
             return;
         }
 
@@ -1080,18 +1080,18 @@ class Migroot {
     renderUserPoints() {
         var points = 0
         if (!this.config?.user?.pointsContainerId) {
-            this.log.warning('config.user.pointsContainerId is not defined');
+            this.log.debug('config.user.pointsContainerId is not defined');
             return;
         }
 
         const el = this.config.user.pointsContainerId;
         if (!el) {
-            this.log.warning(`Element with id ${this.config.user.pointsContainerId} not found`);
+            this.log.debug(`Element with id ${this.config.user.pointsContainerId} not found`);
             return;
         }
 
         if (!this.currentUser || typeof this.currentUser.points !== 'number') {
-            this.log.warning('currentUser or points not set');
+            this.log.debug('currentUser or points not set');
         } else {
             points = this.currentUser.points || 0
         }
