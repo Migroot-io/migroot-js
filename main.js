@@ -858,6 +858,19 @@ class Migroot {
 
         // 3. Render Useful Links
         this.#renderUsefulLinks(hubData.links || []);
+
+        // 4. Render Guides
+        this.#renderGuides(hubData.guides || []);
+
+        // 5. Display country in "Your progress" header
+        const progressTitle = document.querySelector('.ac-hub__card .ac-hub__title-1');
+        if (progressTitle && progressTitle.textContent.trim() === 'Your progress') {
+            const countrySpan = document.createElement('span');
+            countrySpan.style.fontWeight = 'normal';
+            countrySpan.style.color = '#888';
+            countrySpan.textContent = ` → ${countryKey}`;
+            progressTitle.appendChild(countrySpan);
+        }
     }
 
     #renderVisaRequirements(requirements) {
@@ -891,8 +904,9 @@ class Migroot {
 
         container.innerHTML = '';
 
-        // Get top 3 tasks by priority
+        // Get top 3 NOT_STARTED tasks by priority
         const topTasks = [...this.cards]
+            .filter(task => task.status === 'NOT_STARTED')
             .sort((a, b) => a.priority - b.priority)
             .slice(0, 3);
 
@@ -952,6 +966,46 @@ class Migroot {
         });
 
         this.log.debug(`Rendered ${links.length} useful links`);
+    }
+
+    #renderGuides(guides) {
+        const container = document.querySelector('.ac-hub__guides');
+        if (!container) {
+            this.log.debug('Guides container not found');
+            return;
+        }
+
+        container.innerHTML = '';
+
+        if (!guides || guides.length === 0) {
+            this.log.debug('No guides available');
+            return;
+        }
+
+        guides.forEach(guide => {
+            const block = document.createElement('a');
+            block.href = guide.url;
+            block.target = '_blank';
+            block.className = 'ln-post ac-hub__post w-inline-block';
+            block.innerHTML = `
+                <div class="ln-post__preview ac-hu_post-preview">
+                    <img src="${guide.image || ''}" alt="${guide.title}" loading="lazy" class="ln-post__image">
+                </div>
+                <div class="ln-post__content">
+                    <p class="ac-hub__post-title">${guide.title}</p>
+                    <div class="ln-post__info">
+                        <div class="ln-post__author">
+                            <div class="ln-post__author-name">${guide.author || 'Migroot Team'}</div>
+                        </div>
+                        <div class="ln-post__sep"></div>
+                        <div class="ln-post__data">${guide.date || ''}</div>
+                    </div>
+                </div>
+            `;
+            container.appendChild(block);
+        });
+
+        this.log.debug(`Rendered ${guides.length} guides`);
     }
 
     renderCountryInputs() {
