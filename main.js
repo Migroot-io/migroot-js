@@ -900,10 +900,10 @@ class Migroot {
             heading.textContent = `Welcome back, ${firstName}! 👋`;
         }
 
-        // Update user avatar in welcome block
+        // Update user avatar in welcome block from currentUser
         const avatarImg = document.querySelector('.ac-hub__welcome .ac-hub__migroot');
-        if (avatarImg && this.currentUser?.ProfileImageS3Url) {
-            avatarImg.src = this.currentUser.ProfileImageS3Url;
+        if (avatarImg && this.currentUser?.iconUrl) {
+            avatarImg.src = this.currentUser.iconUrl;
             avatarImg.alt = `${firstName}'s profile picture`;
         }
 
