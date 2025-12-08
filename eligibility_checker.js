@@ -597,6 +597,26 @@ class MultiStepFormManager {
 
     const results = evaluateMatch(userAnswers, HUB_CONFIG);
 
+    // Save raw quiz answers to localStorage
+    const quizData = {
+      email: this.formData['contact-email'] || '',
+      timestamp: new Date().toISOString(),
+      work_type: this.formData.work_type || '',
+      remote_work: this.formData.remote_work || '',
+      move_with: normalizeToArray(this.formData.move_with),
+      work_income: userAnswers.work_income,
+      experience: normalizeToArray(this.formData.experience),
+      country: this.formData.country || '',
+      help: this.formData.help || ''
+    };
+
+    try {
+      localStorage.setItem('quiz_results', JSON.stringify(quizData));
+      console.log('Quiz results saved to localStorage:', quizData);
+    } catch (e) {
+      console.error('Failed to save to localStorage:', e);
+    }
+
     // Display results
     this.displayResults(results, userAnswers);
   }
@@ -634,6 +654,60 @@ class MultiStepFormManager {
       resultsDiv.style.display = 'block';
       this.resultsContainer = resultsDiv;
     }
+
+    // Fill and submit Webflow form
+    this.submitWebflowForm(results, userAnswers);
+  }
+
+  /**
+   * Fill and submit Webflow form with quiz data
+   * @param {Object} results - Evaluation results
+   * @param {Object} userAnswers - User answers
+   */
+  submitWebflowForm(results, userAnswers) {
+    setTimeout(() => {
+      const form = document.querySelector('#eligibility_check_form_wf form');
+      if (!form) {
+        console.error('Webflow form not found');
+        return;
+      }
+
+      // Get matched countries
+      const matchedCountries = Object.entries(results)
+        .filter(([country, data]) => data.status === 'Match')
+        .map(([country]) => country)
+        .join(', ');
+
+      // Fill form fields
+      form.querySelector('#email').value = this.formData['contact-email'] || '';
+      form.querySelector('#work_type').value = this.formData.work_type || '';
+      form.querySelector('#move_with').value = (userAnswers.move_with || []).join(', ');
+
+      // Format income as "min, max"
+      const income = userAnswers.work_income || {};
+      form.querySelector('#income').value = income.min && income.max ?
+        `${income.min}, ${income.max}` : '';
+
+      form.querySelector('#experience').value = (userAnswers.experience || []).join(', ');
+      form.querySelector('#matched_countries').value = matchedCountries;
+
+      console.log('Submitting Webflow form with data:', {
+        email: form.querySelector('#email').value,
+        workType: form.querySelector('#work_type').value,
+        moveWith: form.querySelector('#move_with').value,
+        income: form.querySelector('#income').value,
+        experience: form.querySelector('#experience').value,
+        matchedCountries: matchedCountries
+      });
+
+      // Click submit button (triggers Webflow validation and submission)
+      const submitButton = form.querySelector('input[type="submit"]');
+      if (submitButton) {
+        submitButton.click();
+      } else {
+        console.error('Submit button not found');
+      }
+    }, 100); // Small delay to ensure form is in DOM
   }
 
   /**
@@ -696,6 +770,9 @@ class MultiStepFormManager {
     });
 
     html += '</div>';
+
+    // Note: Webflow form #eligibility_check_form_wf should exist on the page
+    // We'll find and fill it in submitWebflowForm()
 
     // CTA buttons section
     html += '<div class="results-cta-section">';

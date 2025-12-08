@@ -156,21 +156,30 @@ class Migroot {
 
     // main fetchers start
     async getAccessToken() {
-        // First, try to get token from config -- for dev only
-        if (this.config?.token) {
-            return this.config.token;
-        }
-
-        // If not found, try to get token from Outseta
-        if (window.Outseta?.getAccessToken) {
-            const accessToken = await window.Outseta.getAccessToken();
-            if (accessToken) {
-                return accessToken;
+        // Try to get token from Outseta with retries (5 attempts, 500ms delay)
+        for (let i = 0; i < 5; i++) {
+            if (window.Outseta?.getAccessToken) {
+                const token = window.Outseta.getAccessToken();
+                if (token) return token;
+            }
+            if (i < 4) {
+                await new Promise(resolve => setTimeout(resolve, 500));
             }
         }
 
-        // If no token found at all, throw an error
-        throw new Error("Access token is missing in config and window.Outseta.");
+        // Fallback: first try standard URL search params
+        const urlParams = new URLSearchParams(window.location.search);
+        let urlToken = urlParams.get('access_token');
+
+        // If not found, try regex search in full URL (handles hash case)
+        if (!urlToken) {
+            const match = window.location.href.match(/[?&]access_token=([^&\s#]+)/);
+            urlToken = match ? match[1] : null;
+        }
+
+        if (urlToken) return urlToken;
+
+        throw new Error("Access token not found in Outseta or URL");
     }
 
     async fetchUserData() {
@@ -1233,13 +1242,20 @@ class Migroot {
 
 
     renderProgressBar() {
-        const createdDate = localStorage.getItem(LOCALSTORAGE_KEYS.DATE);
-        const dateEl = document.getElementById('created-date')
+        let createdDate = localStorage.getItem(LOCALSTORAGE_KEYS.DATE);
+
+        // Fallback to today's date if no board exists
+        if (!createdDate) {
+            const today = new Date();
+            const options = { month: 'short', day: 'numeric', year: 'numeric' };
+            createdDate = today.toLocaleDateString('en-US', options);
+        }
+
+        const dateEl = document.getElementById('created-date');
         if (dateEl) {
             dateEl.textContent = `Since ${createdDate}`;
-
         }
-        this.updateProgress()
+        this.updateProgress();
     }
 
     updateProgress() {
