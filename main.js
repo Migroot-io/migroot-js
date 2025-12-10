@@ -860,6 +860,75 @@ class Migroot {
     }
 
     /**
+     * Render and unlock achievements on HUB based on user progress
+     */
+    renderAchievements() {
+        const achievements = [
+            {
+                id: 'a-navigator',
+                name: 'Country Navigator',
+                check: () => !!this.board?.country
+            },
+            {
+                id: 'a-master',
+                name: 'Documents Master',
+                check: () => {
+                    const uploadedFiles = this.board?.tasks?.reduce((count, task) => {
+                        return count + (task.files?.length || 0);
+                    }, 0) || 0;
+                    return uploadedFiles >= 3;
+                }
+            },
+            {
+                id: 'a-explorer',
+                name: 'Task Explorer',
+                check: () => {
+                    const completedTasks = this.board?.tasks?.filter(t => t.status === 'READY').length || 0;
+                    return completedTasks >= 5;
+                }
+            },
+            {
+                id: 'a-strategist',
+                name: 'Relocation Strategist',
+                check: () => {
+                    const tasks = this.board?.tasks || [];
+                    if (tasks.length === 0) return false;
+                    const completedTasks = tasks.filter(t => t.status === 'READY').length;
+                    return (completedTasks / tasks.length) >= 0.5;
+                }
+            },
+            {
+                id: 'a-collector',
+                name: 'Coin Collector',
+                check: () => {
+                    const coins = this.currentUser?.points || 0;
+                    return coins >= 30;
+                }
+            }
+        ];
+
+        achievements.forEach(achievement => {
+            const element = document.getElementById(achievement.id);
+            if (!element) {
+                this.log.debug(`Achievement element not found: ${achievement.id}`);
+                return;
+            }
+
+            const isUnlocked = achievement.check();
+
+            if (isUnlocked) {
+                element.setAttribute('data-achive', 'unlock');
+                this.log.debug(`✅ Achievement unlocked: ${achievement.name}`);
+            } else {
+                element.setAttribute('data-achive', 'lock');
+                this.log.debug(`🔒 Achievement locked: ${achievement.name}`);
+            }
+        });
+
+        this.log.info('Achievements updated');
+    }
+
+    /**
      * Render eligibility labels for all countries on HUB
      * Updates Match/Maybe/No match labels based on user's questionnaire data
      */
@@ -955,6 +1024,9 @@ class Migroot {
 
         // Update country eligibility labels
         this.renderCountryEligibility();
+
+        // Update achievements
+        this.renderAchievements();
 
         // If no country selected, can't render country-specific data
         if (!countryKey) {
