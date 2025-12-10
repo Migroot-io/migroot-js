@@ -656,14 +656,33 @@ class EligibilityChecker {
 
   /**
    * Convert income range string to object with min/max
-   * @param {string} incomeRange - Income range from form (e.g. "€3,001-€5,000")
+   * @param {string|Object} incomeRange - Income range from form (JSON string, object, or text range)
    * @returns {Object} {min, max} income range in EUR
    */
   static parseIncomeRange(incomeRange) {
     if (!incomeRange) return { min: 0, max: 0 };
 
-    const cleaned = incomeRange.replace(/[€$,\s]/g, '');
+    // If already an object, return as is
+    if (typeof incomeRange === 'object' && incomeRange.min !== undefined) {
+      return incomeRange;
+    }
 
+    // Try to parse as JSON first (for new format: '{"min":0,"max":1500}')
+    if (typeof incomeRange === 'string') {
+      try {
+        const parsed = JSON.parse(incomeRange);
+        if (parsed.min !== undefined && parsed.max !== undefined) {
+          return { min: parsed.min, max: parsed.max };
+        }
+      } catch (e) {
+        // Not JSON, continue with other parsing methods
+      }
+    }
+
+    // Legacy parsing for old text formats
+    const cleaned = String(incomeRange).replace(/[€$,\s]/g, '');
+
+    // Format: "1500-3000"
     if (cleaned.includes('-')) {
       const parts = cleaned.split('-').map(v => parseInt(v.trim(), 10));
       if (parts.length === 2) {
@@ -671,14 +690,17 @@ class EligibilityChecker {
       }
     }
 
-    if (incomeRange.toLowerCase().includes('below')) {
+    // Format: "Below €1,500"
+    if (String(incomeRange).toLowerCase().includes('below')) {
       return { min: 0, max: 1500 };
     }
 
-    if (incomeRange.toLowerCase().includes('above')) {
+    // Format: "Above €10,000"
+    if (String(incomeRange).toLowerCase().includes('above')) {
       return { min: 10000, max: Infinity };
     }
 
+    // Single number
     const num = parseInt(cleaned, 10);
     if (!isNaN(num)) {
       return { min: num, max: num };
@@ -1220,7 +1242,7 @@ class MultiStepFormManager {
       work_income: userAnswers.work_income,
       experience: EligibilityChecker.normalizeToArray(this.formData.experience),
       help: this.formData.help || '',
-      opt_in: this.formData.opt_in || false,
+      opt_in: this.formData.agree || false,
       matched_countries: Object.entries(results)
         .filter(([country, data]) => data.status === 'Match')
         .map(([country]) => country),
@@ -1315,7 +1337,7 @@ class MultiStepFormManager {
       // Opt-in checkbox (if exists)
       const optInCheckbox = form.querySelector('#opt_in, input[name="opt_in"]');
       if (optInCheckbox) {
-        optInCheckbox.checked = this.formData.opt_in || false;
+        optInCheckbox.checked = this.formData.agree || false;
       }
 
       console.log('Submitting Webflow form with data:', {
@@ -1324,6 +1346,7 @@ class MultiStepFormManager {
         moveWith: form.querySelector('#move_with').value,
         income: form.querySelector('#income').value,
         experience: form.querySelector('#experience').value,
+        opt_in: this.formData.agree,
         quizResults: quizResults
       });
 

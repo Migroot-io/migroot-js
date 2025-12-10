@@ -44,9 +44,16 @@ if (typeof document !== 'undefined') {
   document.addEventListener('DOMContentLoaded', function() {
     // Check if quiz exists on page
     const quizExists = document.querySelector('.tst-question_1');
-    if (quizExists) {
-      // Wait for MultiStepFormManager to be available (loaded from mg_helpers.js)
+    if (!quizExists) return;
+
+    /**
+     * Initialize quiz with retry logic
+     * Waits for MultiStepFormManager to be loaded from mg_helpers.js
+     */
+    function initQuiz() {
       if (typeof MultiStepFormManager !== 'undefined') {
+        console.log('MultiStepFormManager loaded, initializing quiz...');
+
         const formManager = new MultiStepFormManager({
           totalSteps: 7
         });
@@ -54,9 +61,32 @@ if (typeof document !== 'undefined') {
 
         // Expose to window for debugging
         window.quizFormManager = formManager;
-      } else {
-        console.error('MultiStepFormManager is not loaded. Make sure mg_helpers.js is loaded before eligibility_checker.js');
+
+        return true;
       }
+      return false;
     }
+
+    // Try to initialize immediately
+    if (initQuiz()) return;
+
+    // If not available, retry with timeout
+    let retries = 0;
+    const maxRetries = 10; // Max 10 retries = 1 second
+    const retryInterval = 100; // Check every 100ms
+
+    console.log('MultiStepFormManager not loaded yet, waiting...');
+
+    const retryTimer = setInterval(function() {
+      retries++;
+
+      if (initQuiz()) {
+        clearInterval(retryTimer);
+        console.log(`Quiz initialized after ${retries} retries (${retries * retryInterval}ms)`);
+      } else if (retries >= maxRetries) {
+        clearInterval(retryTimer);
+        console.error('MultiStepFormManager is not loaded after 1 second. Make sure mg_helpers.js is loaded before eligibility_checker.js');
+      }
+    }, retryInterval);
   });
 }
