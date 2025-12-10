@@ -1114,9 +1114,12 @@ class MultiStepFormManager {
       }
     });
 
-    // Reset checkbox arrays for this step
+    // Reset checkbox arrays for this step (except boolean checkboxes)
+    const booleanCheckboxes = ['agree', 'opt_in', 'marketing_consent'];
     checkboxNames.forEach(name => {
-      this.formData[name] = [];
+      if (!booleanCheckboxes.includes(name)) {
+        this.formData[name] = [];
+      }
     });
 
     const inputs = stepElement.querySelectorAll('input, select, textarea');
