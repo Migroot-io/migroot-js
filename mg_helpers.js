@@ -1137,7 +1137,7 @@ class MultiStepFormManager {
     });
 
     // Reset checkbox arrays for this step (except boolean checkboxes)
-    const booleanCheckboxes = ['agree', 'opt_in', 'marketing_consent'];
+    const booleanCheckboxes = ['opt_in', 'marketing_consent'];
     checkboxNames.forEach(name => {
       if (!booleanCheckboxes.includes(name)) {
         this.formData[name] = [];
@@ -1150,7 +1150,7 @@ class MultiStepFormManager {
 
       if (input.type === 'checkbox') {
         // Special handling for opt-in checkbox (single boolean value)
-        if (fieldName === 'agree' || fieldName === 'opt_in' || fieldName === 'marketing_consent') {
+        if (fieldName === 'opt_in' || fieldName === 'marketing_consent') {
           this.formData[fieldName] = input.checked; // boolean, not array
         } else if (input.checked) {
           this.formData[fieldName].push(input.value);
@@ -1242,7 +1242,7 @@ class MultiStepFormManager {
       work_income: userAnswers.work_income,
       experience: EligibilityChecker.normalizeToArray(this.formData.experience),
       help: this.formData.help || '',
-      opt_in: this.formData.agree || false,
+      opt_in: this.formData.opt_in || false,
       matched_countries: Object.entries(results)
         .filter(([country, data]) => data.status === 'Match')
         .map(([country]) => country),
@@ -1322,10 +1322,10 @@ class MultiStepFormManager {
       form.querySelector('#work_type').value = this.formData.work_type || '';
       form.querySelector('#move_with').value = (userAnswers.move_with || []).join(', ');
 
-      // Format income as "min, max"
+      // Format income as "min-max"
       const income = userAnswers.work_income || {};
-      form.querySelector('#income').value = income.min && income.max ?
-        `${income.min}, ${income.max}` : '';
+      form.querySelector('#income').value = income.min !== undefined && income.max !== undefined ?
+        `${income.min}-${income.max}` : '';
 
       form.querySelector('#experience').value = (userAnswers.experience || []).join(', ');
       form.querySelector('#quiz_results').value = JSON.stringify(quizResults);
@@ -1337,7 +1337,7 @@ class MultiStepFormManager {
       // Opt-in checkbox (if exists)
       const optInCheckbox = form.querySelector('#opt_in, input[name="opt_in"]');
       if (optInCheckbox) {
-        optInCheckbox.checked = this.formData.agree || false;
+        optInCheckbox.checked = this.formData.opt_in || false;
       }
 
       console.log('Submitting Webflow form with data:', {
@@ -1346,7 +1346,7 @@ class MultiStepFormManager {
         moveWith: form.querySelector('#move_with').value,
         income: form.querySelector('#income').value,
         experience: form.querySelector('#experience').value,
-        opt_in: this.formData.agree,
+        opt_in: this.formData.opt_in,
         quizResults: quizResults
       });
 
