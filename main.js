@@ -837,6 +837,103 @@ class Migroot {
 }
 
 
+    /**
+     * Get eligibility data from board questionnaire with backward compatibility
+     * Supports old and new questionnaire formats
+     */
+    getEligibilityDataFromBoard() {
+        if (!this.board?.questionnaire) {
+            return null;
+        }
+
+        const q = this.board.questionnaire;
+
+        return {
+            work_type: q.work_type,
+            remote_work: q.remote_work || q.work_remote, // Support both formats
+            move_with: Array.isArray(q['move_with[]']) ? q['move_with[]'] :
+                       (q.move_with ? [q.move_with] : []),
+            work_income: this.normalizeWorkIncome(q.work_income),
+            experience: Array.isArray(q.experience) ? q.experience :
+                        (q.experience ? [q.experience] : ["degree", "experience"]) // Fallback for old users
+        };
+    }
+
+    /**
+     * Render eligibility labels for all countries on HUB
+     * Updates Match/Maybe/No match labels based on user's questionnaire data
+     */
+    renderCountryEligibility() {
+        // Check if EligibilityChecker is available
+        if (typeof EligibilityChecker === 'undefined') {
+            this.log.warning('EligibilityChecker not available');
+            return;
+        }
+
+        // Get user eligibility data from board
+        const userData = this.getEligibilityDataFromBoard();
+        if (!userData) {
+            this.log.debug('No questionnaire data available for eligibility check');
+            return;
+        }
+
+        this.log.debug('Checking eligibility for all countries with user data:', userData);
+
+        // Find all country blocks
+        const countryBlocks = document.querySelectorAll('.ac-hub__countries .ac-hub__country');
+        if (countryBlocks.length === 0) {
+            this.log.debug('No country blocks found on HUB');
+            return;
+        }
+
+        countryBlocks.forEach(block => {
+            // Get country name from block
+            const countryNameEl = block.querySelector('.ac-hub__country-name');
+            if (!countryNameEl) return;
+
+            const countryName = countryNameEl.textContent.trim();
+
+            // Check if country has config in HUB_CONFIG
+            if (typeof HUB_CONFIG === 'undefined' || !HUB_CONFIG[countryName]) {
+                this.log.debug(`No HUB_CONFIG found for country: ${countryName}`);
+                return;
+            }
+
+            // Get visa requirements for this country
+            const visaRequirements = HUB_CONFIG[countryName].visaRequirements;
+            if (!visaRequirements) {
+                this.log.debug(`No visa requirements for country: ${countryName}`);
+                return;
+            }
+
+            // Check eligibility
+            const result = EligibilityChecker.evaluateMatch(userData, visaRequirements);
+
+            // Find label element
+            const labelEl = block.querySelector('.ac-hub__label');
+            if (!labelEl) return;
+
+            // Update label based on status
+            labelEl.textContent = result.status;
+
+            // Remove old status classes
+            labelEl.classList.remove('ac-hub__label_match', 'ac-hub__label_maybe', 'ac-hub__label_no-match');
+
+            // Add new status class
+            if (result.status === 'Match') {
+                labelEl.classList.add('ac-hub__label_match');
+            } else if (result.status === 'Maybe') {
+                labelEl.classList.add('ac-hub__label_maybe');
+            } else {
+                labelEl.classList.add('ac-hub__label_no-match');
+            }
+
+            this.log.debug(`${countryName}: ${result.status}`, result.reasons);
+        });
+
+        this.log.info('Country eligibility labels updated');
+    }
+
     renderHubFields() {
         const countryKey = this.board?.country;
 
@@ -855,6 +952,9 @@ class Migroot {
 
         // Update progress bar and counters
         this.renderHubProgress();
+
+        // Update country eligibility labels
+        this.renderCountryEligibility();
 
         // If no country selected, can't render country-specific data
         if (!countryKey) {
@@ -2451,6 +2551,47 @@ class Migroot {
     }
 
     /**
+     * Normalize work_income to object format {min, max}
+     * Supports 3 formats:
+     * 1. Object: {min: 3001, max: 5000}
+     * 2. JSON string: "{\"min\":3001,\"max\":5000}"
+     * 3. Old text format: "€3,001 - €5,000"
+     */
+    normalizeWorkIncome(income) {
+        // Already an object - return as is
+        if (typeof income === 'object' && income !== null) {
+            return income;
+        }
+
+        // JSON string - parse it
+        if (typeof income === 'string' && income.startsWith('{')) {
+            try {
+                return JSON.parse(income);
+            } catch (e) {
+                this.log.warning('Failed to parse work_income JSON string:', income);
+                return {min: 0, max: 0};
+            }
+        }
+
+        // Old text format - convert using mapping
+        return this.parseOldIncomeFormat(income);
+    }
+
+    /**
+     * Convert old text format income to {min, max} object
+     */
+    parseOldIncomeFormat(incomeString) {
+        const mapping = {
+            "Below €1,500": {min: 0, max: 1500},
+            "€1,501 - €3,000": {min: 1501, max: 3000},
+            "€3,001 - €5,000": {min: 3001, max: 5000},
+            "€5,001 - €10,000": {min: 5001, max: 10000},
+            "Above €10,000": {min: 10001, max: 999999}
+        };
+        return mapping[incomeString] || {min: 0, max: 0};
+    }
+
+    /**
      * Auto-fill create board form from quiz results in localStorage
      */
     autoFillCreateBoardForm() {
@@ -2500,6 +2641,16 @@ class Migroot {
             if (incomeRadio) {
                 incomeRadio.checked = true;
             }
+        }
+
+        // Fill experience (checkboxes)
+        if (quizData.experience && Array.isArray(quizData.experience)) {
+            quizData.experience.forEach(value => {
+                const checkbox = form.querySelector(`input[name="experience[]"][value="${value}"]`);
+                if (checkbox) {
+                    checkbox.checked = true;
+                }
+            });
         }
 
         // Pre-select destination country from matched_countries (if only one match)
