@@ -305,7 +305,7 @@ class MultiStepFormManager {
 
       if (input.type === 'checkbox') {
         // Special handling for opt-in checkbox (single boolean value)
-        if (fieldName === 'opt_in' || fieldName === 'marketing_consent') {
+        if (fieldName === 'agree' || fieldName === 'opt_in' || fieldName === 'marketing_consent') {
           this.formData[fieldName] = input.checked; // boolean, not array
         } else if (input.checked) {
           this.formData[fieldName].push(input.value);
@@ -709,7 +709,7 @@ if (typeof document !== 'undefined') {
     const quizExists = document.querySelector('.tst-question_1');
     if (quizExists) {
       const formManager = new MultiStepFormManager({
-        totalSteps: 8
+        totalSteps: 7
       });
       formManager.init();
 
