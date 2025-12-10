@@ -2460,11 +2460,11 @@ class Migroot {
         // Get quiz results from localStorage
         const quizData = EligibilityChecker.getStoredQuizResults();
         if (!quizData) {
-            this.log('No quiz data found in localStorage for auto-fill');
+            this.log.info('No quiz data found in localStorage for auto-fill');
             return;
         }
 
-        this.log('Auto-filling create board form with quiz data:', quizData);
+        this.log.info('Auto-filling create board form with quiz data:', quizData);
 
         // Fill work_type (radio buttons)
         if (quizData.work_type) {
@@ -2527,7 +2527,7 @@ class Migroot {
             }
         }
 
-        this.log('Create board form auto-filled successfully');
+        this.log.info('Create board form auto-filled successfully');
     }
 }
 
