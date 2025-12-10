@@ -310,9 +310,14 @@ class AnalyticsHelper {
             ? 'app_interaction'
             : 'site_interaction';
 
-        // Set pre_activation category for app_interaction events when user has no board
+        // Set pre_activation category ONLY for activation events when user has no board
+        // Do NOT override initialization or conversion categories
         if (defaultEvent === 'app_interaction' && !this.hasBoard) {
-            params.event_category = 'pre_activation';
+            // Only override category if it's 'activation' or '(not_set)'
+            if (params.event_category === 'activation' || params.event_category === '(not_set)') {
+                params.event_category = 'pre_activation';
+            }
+            // Preserve other categories: initialization, conversion, navigation, etc.
         }
 
         try {

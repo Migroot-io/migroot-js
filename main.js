@@ -60,13 +60,10 @@ const STATUS_FLOW_NO_SUBSCRIPTION = Object.freeze({
 });
 
 const LOCALSTORAGE_KEYS = Object.freeze({
-    COUNTRY: 'defaultCountry',
+    // Analytics data (needed before backend loads)
     BOARD_ID: 'defaultBoardId',
-    GOAL: 'defaultBoardGoalTasks',
-    DONE: 'defaultBoardDoneTasks',
-    IN_PROGRESS: 'defaultBoardInProgressTasks',
-    DATE: 'defaultBoardDate',
-    EMAIL: 'defaultBoardEmail'
+    USER_TYPE: 'defaultUserType',
+    SUBSCRIPTION_PLAN: 'defaultSubscriptionPlan'
 });
 
 const USER_CONTROL_IDS = ['hubLink', 'todoLink', 'docsLink']
@@ -476,6 +473,10 @@ class Migroot {
                 // Определяем план подписки (Free/Paid)
                 this.ga.setSenderPlan(this.currentUser?.subscriptionPlan);
 
+                // Сохраняем данные аналитики в localStorage для быстрой инициализации в следующей сессии
+                localStorage.setItem(LOCALSTORAGE_KEYS.USER_TYPE, this.currentUser?.type || 'USER');
+                localStorage.setItem(LOCALSTORAGE_KEYS.SUBSCRIPTION_PLAN, this.currentUser?.subscriptionPlan || 'Free');
+
                 // Запоминаем, что пользователь залогинен (для отслеживания logout)
                 sessionStorage.setItem('wasLogged', 'true');
 
@@ -762,30 +763,15 @@ class Migroot {
     }
 
     #updateLocalStorage(board) {
-        if (!board || !Array.isArray(board.tasks)) {
-            this.log.debug('Board data in local storage is missing or malformed');
+        if (!board?.boardId) {
+            this.log.debug('Board ID is missing, cannot update localStorage');
             return;
         }
-        if (board.createdDate) {
-            const isoDate = board.createdDate;
-            const date = new Date(isoDate);
-            var readableDate = date.toLocaleString('en-GB', {
-                day: 'numeric', month: 'short', year: 'numeric',
-            });
-        }
 
-        const goalTasks = board.tasks.filter(task => task.documentRequired).length;
-        const doneTasks = board.tasks.filter(task => task.status === 'READY' && task.documentRequired).length;
-        const inProgressTasks = board.tasks.filter(task => task.status !== 'READY' && task.status !== 'NOT_STARTED' &&  task.documentRequired).length;
+        // Save only boardId for analytics (to determine hasBoard status)
+        localStorage.setItem(LOCALSTORAGE_KEYS.BOARD_ID, board.boardId);
 
-        localStorage.setItem(LOCALSTORAGE_KEYS.COUNTRY, board.country || '');
-        localStorage.setItem(LOCALSTORAGE_KEYS.BOARD_ID, board.boardId || '');
-        localStorage.setItem(LOCALSTORAGE_KEYS.GOAL, String(goalTasks));
-        localStorage.setItem(LOCALSTORAGE_KEYS.IN_PROGRESS, String(inProgressTasks));
-        localStorage.setItem(LOCALSTORAGE_KEYS.DONE, String(doneTasks));
-        localStorage.setItem(LOCALSTORAGE_KEYS.DATE, readableDate || '')
-        localStorage.setItem(LOCALSTORAGE_KEYS.EMAIL, board.owner.email || '')
-
+        // UI data (country, date, email, task counts) is read directly from this.board
     }
 
     #renderCards(cardType) {
@@ -851,7 +837,7 @@ class Migroot {
 
 
     renderHubFields() {
-        const countryKey = localStorage.getItem(LOCALSTORAGE_KEYS.COUNTRY);
+        const countryKey = this.board?.country;
 
         // Always display country in "Your progress" header (even if unknown)
         const progressTitle = document.querySelector('.ac-hub__card .ac-hub__title-1');
@@ -954,9 +940,9 @@ class Migroot {
 
         container.innerHTML = '';
 
-        // Get top 3 NOT_STARTED tasks by priority (highest first)
-        const topTasks = [...this.cards]
-            .filter(task => task.status === 'NOT_STARTED')
+        // Get top 3 NOT_STARTED required tasks by priority (highest first)
+        const topTasks = (this.board?.tasks || [])
+            .filter(task => task.status === 'NOT_STARTED' && task.documentRequired)
             .sort((a, b) => b.priority - a.priority)
             .slice(0, 3);
 
@@ -982,8 +968,7 @@ class Migroot {
 
             // Add click handler to redirect to TODO page with taskId
             block.onclick = () => {
-                const boardId = this.boardId || localStorage.getItem(LOCALSTORAGE_KEYS.BOARD_ID);
-                const url = `${this.appPrefix()}/todo?boardId=${boardId}&taskId=${task.clientTaskId}`;
+                const url = `${this.appPrefix()}/todo?boardId=${this.boardId}&taskId=${task.clientTaskId}`;
                 this.log.debug(`Redirecting to: ${url}`);
                 window.location.href = url;
             };
@@ -1159,7 +1144,7 @@ class Migroot {
             if (adminLink) {
                 adminLink.style.display = 'flex';
             }
-            const boardEmail = localStorage.getItem(LOCALSTORAGE_KEYS.EMAIL);
+            const boardEmail = this.board?.owner?.email;
             if (boardEmail) {
                 const buddyEl = document.getElementById('buddy-info')
                 if (buddyEl) {
@@ -1242,10 +1227,15 @@ class Migroot {
 
 
     renderProgressBar() {
-        let createdDate = localStorage.getItem(LOCALSTORAGE_KEYS.DATE);
+        let createdDate = null;
 
-        // Fallback to today's date if no board exists
-        if (!createdDate) {
+        // Get date from board if available
+        if (this.board?.createdDate) {
+            const date = new Date(this.board.createdDate);
+            const options = { month: 'short', day: 'numeric', year: 'numeric' };
+            createdDate = date.toLocaleDateString('en-US', options);
+        } else {
+            // Fallback to today's date if no board exists
             const today = new Date();
             const options = { month: 'short', day: 'numeric', year: 'numeric' };
             createdDate = today.toLocaleDateString('en-US', options);
@@ -1273,12 +1263,12 @@ class Migroot {
             completedRequired = tasks.filter(t => t.documentRequired && t.status === 'READY').length;
             inProgressTasks = tasks.filter(t => t.status !== 'READY' && t.status !== 'NOT_STARTED' && t.documentRequired).length;
         } else {
-            // Fallback to localStorage (for pages without board loaded)
-            allTasks = '?';
-            completedTasks = '?';
-            requiredTasks = parseInt(localStorage.getItem(LOCALSTORAGE_KEYS.GOAL), 10) || 0;
-            completedRequired = parseInt(localStorage.getItem(LOCALSTORAGE_KEYS.DONE), 10) || 0;
-            inProgressTasks = parseInt(localStorage.getItem(LOCALSTORAGE_KEYS.IN_PROGRESS), 10) || 0;
+            // No board loaded - show zeros
+            allTasks = 0;
+            completedTasks = 0;
+            requiredTasks = 0;
+            completedRequired = 0;
+            inProgressTasks = 0;
         }
 
         // Update HUB-specific elements (counter text)
