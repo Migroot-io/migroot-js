@@ -555,6 +555,7 @@ class Migroot {
                     // У пользователя еще НЕТ борды - он ее только создает
                     await this.fetchCountryList();
                     this.renderCountryInputs();
+                    this.autoFillCreateBoardForm();
                     break;
 
                 case PAGE_TYPES.HUB:
@@ -2447,6 +2448,86 @@ class Migroot {
      */
     event(eventAction, params = {}) {
         this.ga.send_event(eventAction, params);
+    }
+
+    /**
+     * Auto-fill create board form from quiz results in localStorage
+     */
+    autoFillCreateBoardForm() {
+        const form = document.querySelector('#createBoard');
+        if (!form) return;
+
+        // Get quiz results from localStorage
+        const quizData = EligibilityChecker.getStoredQuizResults();
+        if (!quizData) {
+            this.log('No quiz data found in localStorage for auto-fill');
+            return;
+        }
+
+        this.log('Auto-filling create board form with quiz data:', quizData);
+
+        // Fill work_type (radio buttons)
+        if (quizData.work_type) {
+            const workTypeRadio = form.querySelector(`input[name="work_type"][value="${quizData.work_type}"]`);
+            if (workTypeRadio) {
+                workTypeRadio.checked = true;
+            }
+        }
+
+        // Fill remote_work (radio buttons)
+        if (quizData.remote_work) {
+            const remoteWorkRadio = form.querySelector(`input[name="remote_work"][value="${quizData.remote_work}"]`);
+            if (remoteWorkRadio) {
+                remoteWorkRadio.checked = true;
+            }
+        }
+
+        // Fill move_with (checkboxes)
+        if (quizData.move_with && Array.isArray(quizData.move_with)) {
+            quizData.move_with.forEach(value => {
+                const checkbox = form.querySelector(`input[name="move_with[]"][value="${value}"]`);
+                if (checkbox) {
+                    checkbox.checked = true;
+                }
+            });
+        }
+
+        // Fill work_income (radio buttons)
+        // Convert {min, max} back to text format that matches radio button values
+        if (quizData.work_income) {
+            const income = quizData.work_income;
+            let incomeValue = '';
+
+            // Match income range to radio button values
+            if (income.max <= 1500) {
+                incomeValue = 'Below €1,500';
+            } else if (income.min >= 1501 && income.max <= 3000) {
+                incomeValue = '€1,501 - €3,000';
+            } else if (income.min >= 3001 && income.max <= 5000) {
+                incomeValue = '€3,001 - €5,000';
+            } else if (income.min >= 5001 && income.max <= 10000) {
+                incomeValue = '€5,001 - €10,000';
+            } else if (income.min >= 10001) {
+                incomeValue = 'Above €10,000';
+            }
+
+            if (incomeValue) {
+                const incomeRadio = form.querySelector(`input[name="work_income"][value="${incomeValue}"]`);
+                if (incomeRadio) {
+                    incomeRadio.checked = true;
+                }
+            }
+        }
+
+        // Pre-select destination country from matched_countries (if only one match)
+        if (quizData.matched_countries && quizData.matched_countries.length === 1) {
+            const destinationInput = form.querySelector('input[name="COUNTRY_OF_DESTINATION"]');
+            if (destinationInput) {
+                destinationInput.value = quizData.matched_countries[0];
+            }
+        }
+
+        this.log('Create board form auto-filled successfully');
     }
 }
 
