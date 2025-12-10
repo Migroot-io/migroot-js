@@ -2493,29 +2493,12 @@ class Migroot {
         }
 
         // Fill work_income (radio buttons)
-        // Convert {min, max} back to text format that matches radio button values
+        // work_income is already in JSON format: {"min": 0, "max": 1500}
         if (quizData.work_income) {
-            const income = quizData.work_income;
-            let incomeValue = '';
-
-            // Match income range to radio button values
-            if (income.max <= 1500) {
-                incomeValue = 'Below €1,500';
-            } else if (income.min >= 1501 && income.max <= 3000) {
-                incomeValue = '€1,501 - €3,000';
-            } else if (income.min >= 3001 && income.max <= 5000) {
-                incomeValue = '€3,001 - €5,000';
-            } else if (income.min >= 5001 && income.max <= 10000) {
-                incomeValue = '€5,001 - €10,000';
-            } else if (income.min >= 10001) {
-                incomeValue = 'Above €10,000';
-            }
-
-            if (incomeValue) {
-                const incomeRadio = form.querySelector(`input[name="work_income"][value="${incomeValue}"]`);
-                if (incomeRadio) {
-                    incomeRadio.checked = true;
-                }
+            const incomeValue = JSON.stringify(quizData.work_income);
+            const incomeRadio = form.querySelector(`input[name="work_income"][value='${incomeValue}']`);
+            if (incomeRadio) {
+                incomeRadio.checked = true;
             }
         }
 
