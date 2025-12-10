@@ -1,221 +1,8 @@
 // Eligibility Checker for Digital Nomad Visas
-// Matches user answers from quiz with visa requirements
+// UI logic for quiz form - uses EligibilityChecker from mg_helpers.js for evaluation
 
-/**
- * Calculate required income based on family composition
- * @param {number} baseIncome - Base minimum income for the country
- * @param {Object} multipliers - Income multipliers for spouse/children/pets
- * @param {Array} moveWith - Array of who's moving with user
- * @returns {number} Required income in EUR
- */
-function calculateRequiredIncome(baseIncome, multipliers = {}, moveWith = []) {
-  if (!baseIncome || baseIncome <= 0) {
-    return 0; // No income requirement (e.g. Thailand DTV)
-  }
-
-  let factor = 1;
-
-  moveWith.forEach(role => {
-    if (role === "alone") return;
-    if (multipliers[role] != null) {
-      factor += multipliers[role]; // add spouse/children/pets ratio
-    }
-  });
-
-  return Math.round(baseIncome * factor);
-}
-
-/**
- * Normalize value to array
- * @param {*} value - Any value
- * @returns {Array} Array representation
- */
-function normalizeToArray(value) {
-  if (Array.isArray(value)) return value;
-  if (!value) return [];
-  return [value];
-}
-
-/**
- * Convert income range string to object with min/max
- * @param {string} incomeRange - Income range from form (e.g. "€3,001-€5,000")
- * @returns {Object} {min, max} income range in EUR
- */
-function parseIncomeRange(incomeRange) {
-  if (!incomeRange) return { min: 0, max: 0 };
-
-  // Remove currency symbols and commas
-  const cleaned = incomeRange.replace(/[€$,\s]/g, '');
-
-  // Handle ranges like "1501-3000"
-  if (cleaned.includes('-')) {
-    const parts = cleaned.split('-').map(v => parseInt(v.trim(), 10));
-    if (parts.length === 2) {
-      return { min: parts[0], max: parts[1] };
-    }
-  }
-
-  // Handle "Below €1,500"
-  if (incomeRange.toLowerCase().includes('below')) {
-    return { min: 0, max: 1500 };
-  }
-
-  // Handle "Above €10,000"
-  if (incomeRange.toLowerCase().includes('above')) {
-    return { min: 10000, max: Infinity };
-  }
-
-  // Try to parse as single number
-  const num = parseInt(cleaned, 10);
-  if (!isNaN(num)) {
-    return { min: num, max: num };
-  }
-
-  return { min: 0, max: 0 };
-}
-
-/**
- * Evaluate user eligibility for all countries
- * @param {Object} userAnswers - User answers from quiz
- * @param {Object} visaRequirements - Visa requirements config (HUB_CONFIG)
- * @returns {Object} Results object with country details
- */
-function evaluateMatch(userAnswers, visaRequirements) {
-  const results = {};
-
-  Object.keys(visaRequirements).forEach(country => {
-    const { test } = visaRequirements[country];
-
-    if (!test) {
-      // No test config for this country - skip
-      return;
-    }
-
-    let issues = 0;
-    let fail = false;
-    const reasons = []; // Track reasons for not matching
-
-    const userWorkType = userAnswers.work_type;
-    const userCanRemote = userAnswers.remote_work;
-    const userMoveWith = normalizeToArray(userAnswers.move_with);
-    const userIncomeRange = userAnswers.work_income || { min: 0, max: 0 };
-    const userExperience = normalizeToArray(userAnswers.experience);
-
-    // Critical: work type mismatch
-    if (!test.work_type.includes(userWorkType)) {
-      fail = true;
-      reasons.push('Work type not supported');
-    }
-
-    // Critical: remote work required but user can't
-    if (test.remote_work) {
-      if (userCanRemote === "no") {
-        fail = true;
-        reasons.push('Remote work required');
-      } else if (userCanRemote === "not_sure") {
-        issues++;
-        reasons.push('Remote work capability unclear');
-      }
-    }
-
-    // Family mismatch (non-critical)
-    if (userMoveWith.length > 0) {
-      const allowed = userMoveWith.every(r => test.move_with.includes(r));
-      if (!allowed) {
-        issues++;
-        reasons.push('Some family members not supported');
-      }
-    }
-
-    // Income calculation with range logic
-    const requiredIncome = calculateRequiredIncome(
-      test.min_work_income,
-      test.income_multipliers,
-      userMoveWith
-    );
-
-    let incomeShortfall = 0;
-    if (requiredIncome > 0) {
-      // Logic:
-      // - If max income >= required → Match (definitely OK)
-      // - If min income < required but max >= required → Maybe (within range)
-      // - If max income < required → Not match (too low)
-
-      if (userIncomeRange.max >= requiredIncome) {
-        // Max income meets requirement - could be OK
-        if (userIncomeRange.min < requiredIncome) {
-          // But min is below - uncertain, so "Maybe"
-          issues++;
-          incomeShortfall = requiredIncome - userIncomeRange.min;
-          reasons.push(`Income range unclear (need €${requiredIncome.toLocaleString()}/month, your range: €${userIncomeRange.min.toLocaleString()}-€${userIncomeRange.max === Infinity ? '10,000+' : userIncomeRange.max.toLocaleString()})`);
-        }
-        // else: min >= required → perfect match, no issues
-      } else {
-        // Max income below requirement - definitely too low
-        fail = true;
-        incomeShortfall = requiredIncome - userIncomeRange.max;
-        reasons.push(`Income too low (need €${requiredIncome.toLocaleString()}/month, you earn up to €${userIncomeRange.max.toLocaleString()}/month)`);
-      }
-    }
-
-    // Experience check (non-critical)
-    if (test.experience && test.experience.length > 0) {
-      const expOK = userExperience.some(exp => test.experience.includes(exp));
-      if (!expOK) {
-        issues++;
-        reasons.push('Experience/degree requirement not met');
-      }
-    }
-
-    // Final decision
-    let status;
-    if (fail) status = "Not match";
-    else if (issues >= 2) status = "Maybe";
-    else status = "Match";
-
-    results[country] = {
-      status,
-      reasons,
-      requiredIncome,
-      userIncomeRange,
-      incomeShortfall
-    };
-  });
-
-  return results;
-}
-
-/**
- * Handle form submission from /check-eligibility page
- * @param {HTMLFormElement} formElement - The form element
- * @returns {Object} Evaluation results
- */
-function handleEligibilityForm(formElement) {
-  const formData = new FormData(formElement);
-
-  // Parse form data into userAnswers format
-  const userAnswers = {
-    work_type: formData.get('work_type') || '',
-    can_remote: formData.get('can_remote') || '',
-    move_with: formData.getAll('move_with') || [],
-    income: parseIncomeRange(formData.get('income')),
-    experience: formData.getAll('experience') || []
-  };
-
-  // If HUB_CONFIG is not defined, can't evaluate
-  if (typeof HUB_CONFIG === 'undefined') {
-    console.error('HUB_CONFIG is not defined');
-    return null;
-  }
-
-  // Evaluate match
-  const results = evaluateMatch(userAnswers, HUB_CONFIG);
-
-  return {
-    userAnswers,
-    results
-  };
-}
+// Note: Core evaluation functions (calculateRequiredIncome, normalizeToArray,
+// parseIncomeRange, evaluateMatch) are now in mg_helpers.js as EligibilityChecker class
 
 // ============================================================================
 // Multi-Step Form Navigation
@@ -517,14 +304,17 @@ class MultiStepFormManager {
       const fieldName = cleanFieldName(input.name);
 
       if (input.type === 'checkbox') {
-        if (input.checked) {
+        // Special handling for opt-in checkbox (single boolean value)
+        if (fieldName === 'opt_in' || fieldName === 'marketing_consent') {
+          this.formData[fieldName] = input.checked; // boolean, not array
+        } else if (input.checked) {
           this.formData[fieldName].push(input.value);
         }
       } else if (input.type === 'radio') {
         if (input.checked) {
           // Special handling for income fields - convert range to object
           if (fieldName === 'income' || fieldName === 'work_income') {
-            this.formData[fieldName] = parseIncomeRange(input.value);
+            this.formData[fieldName] = EligibilityChecker.parseIncomeRange(input.value);
           } else {
             this.formData[fieldName] = input.value;
           }
@@ -532,7 +322,7 @@ class MultiStepFormManager {
       } else if (input.type === 'select-one' || input.tagName.toLowerCase() === 'select') {
         // Special handling for income fields - convert range to object
         if (fieldName === 'income' || fieldName === 'work_income') {
-          this.formData[fieldName] = parseIncomeRange(input.value);
+          this.formData[fieldName] = EligibilityChecker.parseIncomeRange(input.value);
         } else {
           this.formData[fieldName] = input.value;
         }
@@ -578,12 +368,12 @@ class MultiStepFormManager {
     const userAnswers = {
       work_type: this.formData.work_type || '',
       remote_work: this.formData.remote_work || '',
-      move_with: normalizeToArray(this.formData.move_with),
+      move_with: EligibilityChecker.normalizeToArray(this.formData.move_with),
       // Income should already be parsed as {min, max} object from collectStepData
       work_income: (this.formData.work_income && typeof this.formData.work_income === 'object') ?
                    this.formData.work_income :
-                   parseIncomeRange(this.formData.work_income || ''),
-      experience: normalizeToArray(this.formData.experience)
+                   EligibilityChecker.parseIncomeRange(this.formData.work_income || ''),
+      experience: EligibilityChecker.normalizeToArray(this.formData.experience)
     };
 
     console.log('User answers:', userAnswers); // Debug log
@@ -595,7 +385,7 @@ class MultiStepFormManager {
       return;
     }
 
-    const results = evaluateMatch(userAnswers, HUB_CONFIG);
+    const results = EligibilityChecker.evaluateMatch(userAnswers, HUB_CONFIG);
 
     // Save raw quiz answers to localStorage
     const quizData = {
@@ -603,11 +393,15 @@ class MultiStepFormManager {
       timestamp: new Date().toISOString(),
       work_type: this.formData.work_type || '',
       remote_work: this.formData.remote_work || '',
-      move_with: normalizeToArray(this.formData.move_with),
+      move_with: EligibilityChecker.normalizeToArray(this.formData.move_with),
       work_income: userAnswers.work_income,
-      experience: normalizeToArray(this.formData.experience),
-      country: this.formData.country || '',
-      help: this.formData.help || ''
+      experience: EligibilityChecker.normalizeToArray(this.formData.experience),
+      help: this.formData.help || '',
+      opt_in: this.formData.opt_in || false,
+      matched_countries: Object.entries(results)
+        .filter(([country, data]) => data.status === 'Match')
+        .map(([country]) => country),
+      evaluation_results: results
     };
 
     try {
@@ -672,11 +466,11 @@ class MultiStepFormManager {
         return;
       }
 
-      // Get matched countries
-      const matchedCountries = Object.entries(results)
-        .filter(([country, data]) => data.status === 'Match')
-        .map(([country]) => country)
-        .join(', ');
+      // Convert results to simple object {country: status}
+      const quizResults = {};
+      Object.entries(results).forEach(([country, data]) => {
+        quizResults[country] = data.status;
+      });
 
       // Fill form fields
       form.querySelector('#email').value = this.formData['contact-email'] || '';
@@ -689,7 +483,17 @@ class MultiStepFormManager {
         `${income.min}, ${income.max}` : '';
 
       form.querySelector('#experience').value = (userAnswers.experience || []).join(', ');
-      form.querySelector('#matched_countries').value = matchedCountries;
+      form.querySelector('#quiz_results').value = JSON.stringify(quizResults);
+
+      // Add missing fields
+      form.querySelector('#remote_work').value = this.formData.remote_work || '';
+      form.querySelector('#help').value = this.formData.help || '';
+
+      // Opt-in checkbox (if exists)
+      const optInCheckbox = form.querySelector('#opt_in, input[name="opt_in"]');
+      if (optInCheckbox) {
+        optInCheckbox.checked = this.formData.opt_in || false;
+      }
 
       console.log('Submitting Webflow form with data:', {
         email: form.querySelector('#email').value,
@@ -697,7 +501,7 @@ class MultiStepFormManager {
         moveWith: form.querySelector('#move_with').value,
         income: form.querySelector('#income').value,
         experience: form.querySelector('#experience').value,
-        matchedCountries: matchedCountries
+        quizResults: quizResults
       });
 
       // Click submit button (triggers Webflow validation and submission)

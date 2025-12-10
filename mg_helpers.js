@@ -614,3 +614,212 @@ class OnboardingManager {
       };
 
 }
+
+// ============================================================================
+// Eligibility Checker
+// ============================================================================
+
+class EligibilityChecker {
+  /**
+   * Calculate required income based on family composition
+   * @param {number} baseIncome - Base minimum income for the country
+   * @param {Object} multipliers - Income multipliers for spouse/children/pets
+   * @param {Array} moveWith - Array of who's moving with user
+   * @returns {number} Required income in EUR
+   */
+  static calculateRequiredIncome(baseIncome, multipliers = {}, moveWith = []) {
+    if (!baseIncome || baseIncome <= 0) {
+      return 0;
+    }
+
+    let factor = 1;
+    moveWith.forEach(role => {
+      if (role === "alone" || role === "solo") return;
+      if (multipliers[role] != null) {
+        factor += multipliers[role];
+      }
+    });
+
+    return Math.round(baseIncome * factor);
+  }
+
+  /**
+   * Normalize value to array
+   * @param {*} value - Any value
+   * @returns {Array} Array representation
+   */
+  static normalizeToArray(value) {
+    if (Array.isArray(value)) return value;
+    if (!value) return [];
+    return [value];
+  }
+
+  /**
+   * Convert income range string to object with min/max
+   * @param {string} incomeRange - Income range from form (e.g. "€3,001-€5,000")
+   * @returns {Object} {min, max} income range in EUR
+   */
+  static parseIncomeRange(incomeRange) {
+    if (!incomeRange) return { min: 0, max: 0 };
+
+    const cleaned = incomeRange.replace(/[€$,\s]/g, '');
+
+    if (cleaned.includes('-')) {
+      const parts = cleaned.split('-').map(v => parseInt(v.trim(), 10));
+      if (parts.length === 2) {
+        return { min: parts[0], max: parts[1] };
+      }
+    }
+
+    if (incomeRange.toLowerCase().includes('below')) {
+      return { min: 0, max: 1500 };
+    }
+
+    if (incomeRange.toLowerCase().includes('above')) {
+      return { min: 10000, max: Infinity };
+    }
+
+    const num = parseInt(cleaned, 10);
+    if (!isNaN(num)) {
+      return { min: num, max: num };
+    }
+
+    return { min: 0, max: 0 };
+  }
+
+  /**
+   * Evaluate user eligibility for all countries
+   * @param {Object} userAnswers - User answers from quiz
+   * @param {Object} visaRequirements - Visa requirements config (HUB_CONFIG)
+   * @returns {Object} Results object with country details
+   */
+  static evaluateMatch(userAnswers, visaRequirements) {
+    const results = {};
+
+    Object.keys(visaRequirements).forEach(country => {
+      const { test } = visaRequirements[country];
+
+      if (!test) {
+        return;
+      }
+
+      let issues = 0;
+      let fail = false;
+      const reasons = [];
+
+      const userWorkType = userAnswers.work_type;
+      const userCanRemote = userAnswers.remote_work;
+      const userMoveWith = this.normalizeToArray(userAnswers.move_with);
+      const userIncomeRange = userAnswers.work_income || { min: 0, max: 0 };
+      const userExperience = this.normalizeToArray(userAnswers.experience);
+
+      // Work type check
+      if (!test.work_type.includes(userWorkType)) {
+        fail = true;
+        reasons.push('Work type not supported');
+      }
+
+      // Remote work check
+      if (test.remote_work) {
+        if (userCanRemote === "no") {
+          fail = true;
+          reasons.push('Remote work required');
+        } else if (userCanRemote === "not_sure") {
+          issues++;
+          reasons.push('Remote work capability unclear');
+        }
+      }
+
+      // Family check
+      if (userMoveWith.length > 0) {
+        const allowed = userMoveWith.every(r => test.move_with.includes(r));
+        if (!allowed) {
+          issues++;
+          reasons.push('Some family members not supported');
+        }
+      }
+
+      // Income check
+      const requiredIncome = this.calculateRequiredIncome(
+        test.min_work_income,
+        test.income_multipliers,
+        userMoveWith
+      );
+
+      let incomeShortfall = 0;
+      if (requiredIncome > 0) {
+        if (userIncomeRange.max >= requiredIncome) {
+          if (userIncomeRange.min < requiredIncome) {
+            issues++;
+            incomeShortfall = requiredIncome - userIncomeRange.min;
+            reasons.push(`Income range unclear (need €${requiredIncome.toLocaleString()}/month, your range: €${userIncomeRange.min.toLocaleString()}-€${userIncomeRange.max === Infinity ? '10,000+' : userIncomeRange.max.toLocaleString()})`);
+          }
+        } else {
+          fail = true;
+          incomeShortfall = requiredIncome - userIncomeRange.max;
+          reasons.push(`Income too low (need €${requiredIncome.toLocaleString()}/month, you earn up to €${userIncomeRange.max.toLocaleString()}/month)`);
+        }
+      }
+
+      // Experience check
+      if (test.experience && test.experience.length > 0) {
+        const expOK = userExperience.some(exp => test.experience.includes(exp));
+        if (!expOK) {
+          issues++;
+          reasons.push('Experience/degree requirement not met');
+        }
+      }
+
+      // Final decision
+      let status;
+      if (fail) status = "Not match";
+      else if (issues >= 2) status = "Maybe";
+      else status = "Match";
+
+      results[country] = {
+        status,
+        reasons,
+        requiredIncome,
+        userIncomeRange,
+        incomeShortfall
+      };
+    });
+
+    return results;
+  }
+
+  /**
+   * Get stored quiz results from localStorage
+   * @returns {Object|null} Quiz data or null if not found
+   */
+  static getStoredQuizResults() {
+    try {
+      const data = localStorage.getItem('quiz_results');
+      return data ? JSON.parse(data) : null;
+    } catch (e) {
+      console.error('Failed to load quiz results from localStorage:', e);
+      return null;
+    }
+  }
+
+  /**
+   * Re-evaluate stored quiz answers with current visa requirements
+   * Useful for HUB page to show updated match status
+   * @param {Object} visaRequirements - Visa requirements config (HUB_CONFIG)
+   * @returns {Object|null} Evaluation results or null if no stored data
+   */
+  static reEvaluateStoredAnswers(visaRequirements) {
+    const quizData = this.getStoredQuizResults();
+    if (!quizData) return null;
+
+    const userAnswers = {
+      work_type: quizData.work_type,
+      remote_work: quizData.remote_work,
+      move_with: quizData.move_with,
+      work_income: quizData.work_income,
+      experience: quizData.experience
+    };
+
+    return this.evaluateMatch(userAnswers, visaRequirements);
+  }
+}
