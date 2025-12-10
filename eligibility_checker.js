@@ -45,13 +45,18 @@ if (typeof document !== 'undefined') {
     // Check if quiz exists on page
     const quizExists = document.querySelector('.tst-question_1');
     if (quizExists) {
-      const formManager = new MultiStepFormManager({
-        totalSteps: 7
-      });
-      formManager.init();
+      // Wait for MultiStepFormManager to be available (loaded from mg_helpers.js)
+      if (typeof MultiStepFormManager !== 'undefined') {
+        const formManager = new MultiStepFormManager({
+          totalSteps: 7
+        });
+        formManager.init();
 
-      // Expose to window for debugging
-      window.quizFormManager = formManager;
+        // Expose to window for debugging
+        window.quizFormManager = formManager;
+      } else {
+        console.error('MultiStepFormManager is not loaded. Make sure mg_helpers.js is loaded before eligibility_checker.js');
+      }
     }
   });
 }
