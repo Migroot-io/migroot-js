@@ -2056,13 +2056,16 @@ Could you help me understand my options?`;
     }
 
     #renderFiles(el, val) {
+        this.log.debug(`[renderFiles] Called with ${val?.length || 0} files`);
         const isBuddy = this.isBuddyUser();
         const arr = Array.isArray(val) ? val : [];
         const container = el.querySelector('.drw-uploaded .f-wrap');
         if (!container) {
+            this.log.warning('[renderFiles] Files container not found');
             el.textContent = 'Files container not found';
             return;
         }
+        this.log.debug(`[renderFiles] Container found, rendering ${arr.length} files`);
 
         if (!arr.length) {
             container.innerHTML = '<div class="drw-empty">Nothing yet...</div>';
@@ -2198,8 +2201,13 @@ Could you help me understand my options?`;
 
     #updateDrawerContent(task) {
         // # find the drawer linked and upd comments and files
+        this.log.debug(`[updateDrawerContent] Called for task ${task?.clientTaskId}`);
         const drawer = document.getElementById(`drawer-${task.clientTaskId}`);
-        if (!drawer) return;
+        if (!drawer) {
+            this.log.warning(`[updateDrawerContent] Drawer not found for task ${task?.clientTaskId}`);
+            return;
+        }
+        this.log.debug(`[updateDrawerContent] Drawer found, updating content`);
 
         // Tab 2: Comments
         const commentsPane = drawer.querySelector('.tb-pane[data-w-tab="Tab 2"]');
@@ -2207,12 +2215,14 @@ Could you help me understand my options?`;
 
         // Tab 3: Files
         const filesPane = drawer.querySelector('.tb-pane[data-w-tab="Tab 3"]');
+        this.log.debug(`[updateDrawerContent] Files pane found: ${!!filesPane}, files count: ${task.files?.length}`);
         if (filesPane) this.#renderFiles(filesPane, task.files);
 
 
         this.#setContent(drawer, task, this.#drawerOpts());
         drawer.dataset.status = task.status || '';
         this.#attachEventButtons();
+        this.log.debug(`[updateDrawerContent] Drawer content updated successfully`);
 
     }
 
