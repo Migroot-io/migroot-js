@@ -2120,17 +2120,30 @@ Could you help me understand my options?`;
         const wrapper = el.closest('.file-wrapper');
         const originalHTML = actionsContainer.innerHTML;
         actionsContainer.innerHTML = '<div class="loading-placeholder">Grooting... </div>';
+
+        // Find task and file for optimistic update
+        const drawer = el.closest('[id^="drawer-"]');
+        const taskId = drawer?.id.replace('drawer-', '');
+        const task = this.cards?.find(t => String(t.clientTaskId) === taskId);
+        const file = task?.files?.find(f => String(f.fileId) === String(fileId));
+        const previousStatus = file?.status;
+
+        // Optimistic update
+        if (file) {
+            file.status = 'APPROVED';
+            this.#updateDrawerContent(task);
+        }
+
         this.api.approveFile({}, {fileId}).then((updatedFile) => {
             this.log.info(`File ${fileId} approved`);
-            if (wrapper) {
-                const statusEl = wrapper.querySelector('.f-item__status');
-                if (statusEl) statusEl.textContent = updatedFile.status;
-                if (statusEl) statusEl.className = `f-item__status ${updatedFile.status}`;
-            }
             actionsContainer.innerHTML = originalHTML;
-            this.#updateTaskAndDrawer(updatedFile);
         }).catch(err => {
             this.log.error(`Failed to approve file ${fileId}:`, err);
+            // Revert optimistic update on error
+            if (file && previousStatus) {
+                file.status = previousStatus;
+                this.#updateDrawerContent(task);
+            }
             actionsContainer.innerHTML = originalHTML;
         });
     }
@@ -2143,17 +2156,30 @@ Could you help me understand my options?`;
         const wrapper = el.closest('.file-wrapper');
         const originalHTML = actionsContainer.innerHTML;
         actionsContainer.innerHTML = '<div class="loading-placeholder">Grooting...</div>';
+
+        // Find task and file for optimistic update
+        const drawer = el.closest('[id^="drawer-"]');
+        const taskId = drawer?.id.replace('drawer-', '');
+        const task = this.cards?.find(t => String(t.clientTaskId) === taskId);
+        const file = task?.files?.find(f => String(f.fileId) === String(fileId));
+        const previousStatus = file?.status;
+
+        // Optimistic update
+        if (file) {
+            file.status = 'REJECTED';
+            this.#updateDrawerContent(task);
+        }
+
         this.api.rejectFile({}, {fileId}).then((updatedFile) => {
             this.log.info(`File ${fileId} rejected`);
-            if (wrapper) {
-                const statusEl = wrapper.querySelector('.f-item__status');
-                if (statusEl) statusEl.textContent = updatedFile.status;
-                if (statusEl) statusEl.className = `f-item__status ${updatedFile.status}`;
-            }
             actionsContainer.innerHTML = originalHTML;
-            this.#updateTaskAndDrawer(updatedFile);
         }).catch(err => {
             this.log.error(`Failed to reject file ${fileId}:`, err);
+            // Revert optimistic update on error
+            if (file && previousStatus) {
+                file.status = previousStatus;
+                this.#updateDrawerContent(task);
+            }
             actionsContainer.innerHTML = originalHTML;
         });
     }

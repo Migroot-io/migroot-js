@@ -54,8 +54,8 @@ if (typeof document !== 'undefined') {
 
     // If not available, retry with timeout
     let retries = 0;
-    const maxRetries = 10; // Max 10 retries = 1 second
-    const retryInterval = 100; // Check every 100ms
+    const maxRetries = 20;
+    const retryInterval = 500; // Check every 500ms
 
     console.log('AutoFillHelper not loaded yet, waiting...');
 
@@ -64,10 +64,10 @@ if (typeof document !== 'undefined') {
 
       if (initAutoFill()) {
         clearInterval(retryTimer);
-        console.log(`Auto-fill initialized after ${retries} retries (${retries * retryInterval}ms)`);
+        // console.log(`Auto-fill initialized after ${retries} retries (${retries * retryInterval}ms)`);
       } else if (retries >= maxRetries) {
         clearInterval(retryTimer);
-        console.error('AutoFillHelper is not loaded after 1 second. Make sure mg_helpers.js is loaded before autofill_init.js');
+        // console.error('AutoFillHelper is not loaded after 1 second. Make sure mg_helpers.js is loaded before autofill_init.js');
       }
     }, retryInterval);
   });
