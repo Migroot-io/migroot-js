@@ -1509,8 +1509,218 @@ class MultiStepFormManager {
   }
 }
 
-// Export both classes to window
+// ============================================================================
+// AutoFillHelper - Universal auto-fill utilities
+// ============================================================================
+
+class AutoFillHelper {
+  /**
+   * Universal wait for element to be visible with callback
+   * @param {string} selector - CSS selector
+   * @param {function} callback - Function to call when element is found
+   * @param {object} options - Configuration options
+   */
+  static waitForVisible(selector, callback, options = {}) {
+    const {
+      maxAttempts = 10,
+      delay = 300,
+      timeout = 10000,
+      checkFn = null // Custom check function (e.g., check if not disabled)
+    } = options;
+
+    let attempts = 0;
+    const startTime = Date.now();
+
+    function attempt() {
+      attempts++;
+
+      // Check timeout
+      if (Date.now() - startTime > timeout) {
+        console.log(`❌ Timeout waiting for: ${selector}`);
+        return;
+      }
+
+      const element = document.querySelector(selector);
+
+      // Check if element exists and passes custom check
+      const isReady = element && (!checkFn || checkFn(element));
+
+      if (isReady) {
+        console.log(`✅ Found element: ${selector} (attempt ${attempts})`);
+        callback(element);
+        return;
+      }
+
+      if (attempts < maxAttempts) {
+        setTimeout(attempt, delay);
+      } else {
+        console.log(`❌ Max attempts reached for: ${selector}`);
+      }
+    }
+
+    attempt();
+  }
+
+  /**
+   * Click element when visible
+   */
+  static clickWhenVisible(selector, options = {}) {
+    this.waitForVisible(selector, (element) => {
+      element.click();
+      console.log(`🖱️ Clicked: ${selector}`);
+    }, options);
+  }
+
+  /**
+   * Enter text when visible
+   */
+  static enterTextWhenVisible(selector, text, options = {}) {
+    this.waitForVisible(selector, (element) => {
+      element.value = text;
+      element.dispatchEvent(new Event('input', { bubbles: true }));
+      element.dispatchEvent(new Event('change', { bubbles: true }));
+      console.log(`⌨️ Entered text in: ${selector}`);
+    }, options);
+  }
+
+  /**
+   * Initialize promo code auto-fill for Outseta discount selector
+   */
+  static initPromoCodeAutoFill() {
+    console.log('🎟️ Promo code auto-fill initialized');
+
+    const getPromoCode = () => localStorage.getItem("o-snippet.promo-code");
+
+    const applyPromoCodeWorkflow = () => {
+      const promoCode = getPromoCode();
+
+      if (!promoCode) {
+        console.log('ℹ️ No promo code found in localStorage');
+        return;
+      }
+
+      console.log('🎟️ Found promo code:', promoCode);
+
+      // Step 1: Click "Add a discount code" link (if needed)
+      this.clickWhenVisible('.o--DiscountSelector--discountSelector > a', {
+        maxAttempts: 5,
+        delay: 400,
+        timeout: 3000,
+        checkFn: () => !document.querySelector('input[placeholder="Discount code"]')
+      });
+
+      // Step 2: Wait for input to appear, then fill it
+      setTimeout(() => {
+        this.enterTextWhenVisible('input[placeholder="Discount code"]', promoCode, {
+          maxAttempts: 10,
+          delay: 300,
+          timeout: 5000,
+          checkFn: (el) => !el.value
+        });
+      }, 2000);
+
+      // Step 3: Click Apply button
+      setTimeout(() => {
+        this.waitForVisible('input[placeholder="Discount code"]', (el) => {
+          const btn = el.parentElement?.querySelector('a');
+          if (btn && btn.textContent.trim() === 'Apply' && !btn.classList.contains('o--disabled')) {
+            btn.click();
+            console.log('✅ Apply button clicked');
+          }
+        }, {
+          maxAttempts: 5,
+          delay: 500,
+          timeout: 3000
+        });
+      }, 4000);
+    };
+
+    // Watch for plan selection buttons
+    document.addEventListener('click', (e) => {
+      const planButton = e.target.closest('[data-plan-uid]');
+      if (planButton && getPromoCode()) {
+        console.log('📦 Plan selected, starting promo code workflow...');
+        setTimeout(() => applyPromoCodeWorkflow(), 500);
+      }
+    });
+  }
+
+  /**
+   * Initialize email auto-fill for sign-up page
+   */
+  static initEmailAutoFill() {
+    console.log('📧 Email auto-fill initialized');
+
+    const getEmailFromStorage = () => {
+      try {
+        const quizResults = localStorage.getItem('quiz_results');
+        if (quizResults) {
+          const data = JSON.parse(quizResults);
+          return data.email || data['contact-email'] || null;
+        }
+      } catch (e) {
+        console.warn('Failed to parse quiz results:', e);
+      }
+      return null;
+    };
+
+    const fillEmailAndOptIn = () => {
+      try {
+        const quizResults = localStorage.getItem('quiz_results');
+        if (!quizResults) {
+          console.log('ℹ️ No quiz results found in localStorage');
+          return;
+        }
+
+        const data = JSON.parse(quizResults);
+        const email = data.email || data['contact-email'];
+        const optIn = data.opt_in;
+
+        if (!email) {
+          console.log('ℹ️ No email found in quiz results');
+          return;
+        }
+
+        console.log('📧 Found email in localStorage:', email);
+        console.log('📬 Opt-in value:', optIn);
+
+        // Fill email
+        this.enterTextWhenVisible('input[type="email"][name="Person.Email"]', email, {
+          maxAttempts: 10,
+          delay: 300,
+          timeout: 5000
+        });
+
+        // Fill opt-in checkbox
+        setTimeout(() => {
+          this.waitForVisible('input[name="Person.OptInToEmailList"][type="checkbox"]', (checkbox) => {
+            checkbox.checked = !!optIn;
+            checkbox.dispatchEvent(new Event('change', { bubbles: true }));
+            console.log('✅ Opt-in checkbox set to:', !!optIn);
+          }, {
+            maxAttempts: 5,
+            delay: 300,
+            timeout: 3000
+          });
+        }, 500);
+
+      } catch (e) {
+        console.error('Failed to auto-fill form:', e);
+      }
+    };
+
+    // Start auto-fill
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', fillEmailAndOptIn);
+    } else {
+      fillEmailAndOptIn();
+    }
+  }
+}
+
+// Export classes to window
 if (typeof window !== 'undefined') {
   window.EligibilityChecker = EligibilityChecker;
   window.MultiStepFormManager = MultiStepFormManager;
+  window.AutoFillHelper = AutoFillHelper;
 }
