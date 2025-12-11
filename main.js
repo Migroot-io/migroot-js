@@ -2159,6 +2159,13 @@ Could you help me understand my options?`;
                 if (task.status !== newTaskStatus) {
                     this.log.debug(`[handleApproveFile] Task status changed from ${task.status} to ${newTaskStatus}`);
                     task.status = newTaskStatus;
+
+                    // Also update in this.board.tasks for progress calculation
+                    const boardTaskIndex = this.board.tasks?.findIndex(t => String(t.clientTaskId) === String(task.clientTaskId));
+                    if (boardTaskIndex !== -1 && this.board.tasks) {
+                        this.board.tasks[boardTaskIndex].status = newTaskStatus;
+                    }
+
                     // Move card to new column
                     this.createCard(task, {skip_drawer: true, card_type: task.card_type});
                     // Update drawer status display
@@ -2216,6 +2223,13 @@ Could you help me understand my options?`;
                 if (task.status !== newTaskStatus) {
                     this.log.debug(`[handleRejectFile] Task status changed from ${task.status} to ${newTaskStatus}`);
                     task.status = newTaskStatus;
+
+                    // Also update in this.board.tasks for progress calculation
+                    const boardTaskIndex = this.board.tasks?.findIndex(t => String(t.clientTaskId) === String(task.clientTaskId));
+                    if (boardTaskIndex !== -1 && this.board.tasks) {
+                        this.board.tasks[boardTaskIndex].status = newTaskStatus;
+                    }
+
                     // Move card to new column
                     this.createCard(task, {skip_drawer: true, card_type: task.card_type});
                     // Update drawer status display
