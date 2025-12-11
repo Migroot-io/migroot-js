@@ -2163,6 +2163,8 @@ Could you help me understand my options?`;
                     this.createCard(task, {skip_drawer: true, card_type: task.card_type});
                     // Update drawer status display
                     this.#updateDrawerContent(task);
+                    // Update progress bar
+                    this.updateProgress();
                 }
             }
 
@@ -2218,6 +2220,8 @@ Could you help me understand my options?`;
                     this.createCard(task, {skip_drawer: true, card_type: task.card_type});
                     // Update drawer status display
                     this.#updateDrawerContent(task);
+                    // Update progress bar
+                    this.updateProgress();
                 }
             }
 
