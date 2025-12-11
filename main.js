@@ -2146,7 +2146,21 @@ Could you help me understand my options?`;
         }
 
         this.api.approveFile({}, {fileId}).then((updatedFile) => {
-            this.log.info(`File ${fileId} approved`);
+            this.log.info(`File ${fileId} approved`, updatedFile);
+
+            // Update task status if it changed
+            if (updatedFile.taskRef && task) {
+                const newTaskStatus = updatedFile.taskRef.status;
+                if (task.status !== newTaskStatus) {
+                    this.log.debug(`[handleApproveFile] Task status changed from ${task.status} to ${newTaskStatus}`);
+                    task.status = newTaskStatus;
+                    // Move card to new column
+                    this.createCard(task, {skip_drawer: true, card_type: task.card_type});
+                    // Update drawer status display
+                    this.#updateDrawerContent(task);
+                }
+            }
+
             actionsContainer.innerHTML = originalHTML;
         }).catch(err => {
             this.log.error(`Failed to approve file ${fileId}:`, err);
@@ -2187,7 +2201,21 @@ Could you help me understand my options?`;
         }
 
         this.api.rejectFile({}, {fileId}).then((updatedFile) => {
-            this.log.info(`File ${fileId} rejected`);
+            this.log.info(`File ${fileId} rejected`, updatedFile);
+
+            // Update task status if it changed
+            if (updatedFile.taskRef && task) {
+                const newTaskStatus = updatedFile.taskRef.status;
+                if (task.status !== newTaskStatus) {
+                    this.log.debug(`[handleRejectFile] Task status changed from ${task.status} to ${newTaskStatus}`);
+                    task.status = newTaskStatus;
+                    // Move card to new column
+                    this.createCard(task, {skip_drawer: true, card_type: task.card_type});
+                    // Update drawer status display
+                    this.#updateDrawerContent(task);
+                }
+            }
+
             actionsContainer.innerHTML = originalHTML;
         }).catch(err => {
             this.log.error(`Failed to reject file ${fileId}:`, err);
