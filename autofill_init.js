@@ -14,22 +14,37 @@ if (typeof document !== 'undefined') {
         console.log('AutoFillHelper loaded, initializing auto-fill...');
 
         // Check which page we're on and initialize appropriate auto-fill
+        let initialized = false;
 
-        // Email auto-fill for sign-up page
-        const isSignUpPage = document.querySelector('input[type="email"][name="Person.Email"]');
+        // Email auto-fill ONLY for /sign-up page
+        const isSignUpPage = window.location.pathname.includes('/sign-up');
         if (isSignUpPage) {
           console.log('Sign-up page detected, initializing email auto-fill...');
-          AutoFillHelper.initEmailAutoFill();
+          try {
+            AutoFillHelper.initEmailAutoFill();
+            initialized = true;
+          } catch (e) {
+            console.error('Failed to initialize email auto-fill:', e);
+          }
         }
 
-        // Promo code auto-fill for pages with Outseta plans
-        const hasPlanButtons = document.querySelector('[data-plan-uid]');
-        if (hasPlanButtons) {
-          console.log('Plan selection page detected, initializing promo code auto-fill...');
-          AutoFillHelper.initPromoCodeAutoFill();
+        // Promo code auto-fill for pages with plan buttons
+        // Only initializes if promo code exists in localStorage
+        const hasPromoCode = localStorage.getItem("o-snippet.promo-code");
+        const hasPlanButtons = document.querySelector('[data-plan-uid]') ||
+                               document.querySelector('.o--DiscountSelector--discountSelector');
+
+        if (hasPromoCode && hasPlanButtons) {
+          console.log('Plan selection page detected with promo code, initializing promo code auto-fill...');
+          try {
+            AutoFillHelper.initPromoCodeAutoFill();
+            initialized = true;
+          } catch (e) {
+            console.error('Failed to initialize promo code auto-fill:', e);
+          }
         }
 
-        return true;
+        return initialized;
       }
       return false;
     }

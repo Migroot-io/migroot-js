@@ -1587,7 +1587,7 @@ class AutoFillHelper {
    * Initialize promo code auto-fill for Outseta discount selector
    */
   static initPromoCodeAutoFill() {
-    console.log('🎟️ Promo code auto-fill initialized');
+    console.log('🎟️ Promo code auto-fill initialized (waiting for plan selection)');
 
     const getPromoCode = () => localStorage.getItem("o-snippet.promo-code");
 
@@ -1693,16 +1693,16 @@ class AutoFillHelper {
 
         // Fill opt-in checkbox
         setTimeout(() => {
-          this.waitForVisible('input[name="Person.OptInToEmailList"][type="checkbox"]', (checkbox) => {
+          this.waitForVisible('input[name="Person.OptInToEmailList"]', (checkbox) => {
             checkbox.checked = !!optIn;
             checkbox.dispatchEvent(new Event('change', { bubbles: true }));
             console.log('✅ Opt-in checkbox set to:', !!optIn);
           }, {
-            maxAttempts: 5,
-            delay: 300,
-            timeout: 3000
+            maxAttempts: 10,
+            delay: 500,
+            timeout: 5000
           });
-        }, 500);
+        }, 1000);
 
       } catch (e) {
         console.error('Failed to auto-fill form:', e);
