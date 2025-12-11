@@ -988,6 +988,17 @@ class Migroot {
             // Update label based on status
             labelEl.textContent = result.status;
 
+            // Add info icon if there are reasons
+            if (result.reasons && result.reasons.length > 0) {
+                labelEl.textContent += ' ';
+                const infoIcon = document.createElement('span');
+                infoIcon.className = 'ac-hub__label-info';
+                infoIcon.textContent = 'ⓘ';
+                infoIcon.title = result.reasons.join('\n');
+                infoIcon.style.cursor = 'help';
+                labelEl.appendChild(infoIcon);
+            }
+
             // Remove old status classes
             labelEl.classList.remove('ac-hub__label_match', 'ac-hub__label_maybe', 'ac-hub__label_no-match');
 
@@ -999,6 +1010,20 @@ class Migroot {
             } else {
                 labelEl.classList.add('ac-hub__label_no-match');
             }
+
+            // Add click handler to open support with pre-filled message
+            block.style.cursor = 'pointer';
+            block.addEventListener('click', () => {
+                const subject = `Relocation to ${countryName}`;
+                const body = `Hi! I'm interested in relocating to ${countryName}.
+
+My eligibility status: ${result.status}
+${result.reasons.length > 0 ? '\nReasons:\n- ' + result.reasons.join('\n- ') : ''}
+
+Could you help me understand my options?`;
+
+                this.#openSupportWithMessage(subject, body);
+            });
 
             this.log.debug(`${countryName}: ${result.status}`, result.reasons);
         });
