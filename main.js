@@ -988,17 +988,6 @@ class Migroot {
             // Update label based on status
             labelEl.textContent = result.status;
 
-            // Add info icon if there are reasons
-            if (result.reasons && result.reasons.length > 0) {
-                labelEl.textContent += ' ';
-                const infoIcon = document.createElement('span');
-                infoIcon.className = 'ac-hub__label-info';
-                infoIcon.textContent = 'ⓘ';
-                infoIcon.title = result.reasons.join('\n');
-                infoIcon.style.cursor = 'help';
-                labelEl.appendChild(infoIcon);
-            }
-
             // Remove old status classes
             labelEl.classList.remove('ac-hub__label_match', 'ac-hub__label_maybe', 'ac-hub__label_no-match');
 
@@ -1011,14 +1000,25 @@ class Migroot {
                 labelEl.classList.add('ac-hub__label_no-match');
             }
 
+            // Update subtext under country name
+            const subtext = block.querySelector('.ac-hub__country-info .b-text-medium');
+            if (subtext) {
+                if (result.status === 'Match') {
+                    subtext.textContent = 'All requirements met ✓';
+                } else if (result.reasons && result.reasons.length > 0) {
+                    subtext.textContent = result.reasons[0];
+                }
+            }
+
             // Add click handler to open support with pre-filled message
             block.style.cursor = 'pointer';
             block.addEventListener('click', () => {
                 const subject = `Relocation to ${countryName}`;
+                const reasonsLabel = result.status === 'Match' ? 'Additional info' : 'Reasons';
                 const body = `Hi! I'm interested in relocating to ${countryName}.
 
 My eligibility status: ${result.status}
-${result.reasons.length > 0 ? '\nReasons:\n- ' + result.reasons.join('\n- ') : ''}
+${result.reasons.length > 0 ? `\n${reasonsLabel}:\n- ` + result.reasons.join('\n- ') : ''}
 
 Could you help me understand my options?`;
 
