@@ -969,7 +969,7 @@ class Migroot {
             }
 
             // Get visa requirements for this country
-            const visaRequirements = HUB_CONFIG[countryName].visaRequirements;
+            const visaRequirements = HUB_CONFIG[countryName].test;
             if (!visaRequirements) {
                 this.log.debug(`No visa requirements for country: ${countryName}`);
                 return;
