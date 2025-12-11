@@ -2128,10 +2128,15 @@ Could you help me understand my options?`;
         const file = task?.files?.find(f => String(f.fileId) === String(fileId));
         const previousStatus = file?.status;
 
+        this.log.warning(`[handleApproveFile] drawer=${drawer?.id}, taskId=${taskId}, task=${!!task}, file=${!!file}, fileId=${fileId}`);
+
         // Optimistic update
         if (file) {
             file.status = 'APPROVED';
+            this.log.warning(`[handleApproveFile] Updated file status to APPROVED, calling updateDrawerContent`);
             this.#updateDrawerContent(task);
+        } else {
+            this.log.warning(`[handleApproveFile] Could not find file or task for optimistic update`);
         }
 
         this.api.approveFile({}, {fileId}).then((updatedFile) => {
