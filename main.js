@@ -1505,12 +1505,6 @@ Could you help me understand my options?`;
         const inProgressPercent = requiredTasks > 0 ? Math.round((inProgressTasks * 0.5 / requiredTasks) * 100) : 0;
         const totalPercent = requiredTasks > 0 ? Math.round((effectiveDone / requiredTasks) * 100) : 0;
 
-        // Update TODO/DOCS page elements
-        const countEl = document.getElementById('progress-bar-count');
-        if (countEl) {
-            countEl.textContent = `Your relocation progress: ${totalPercent} %`;
-        }
-
         // Update progress bars (works for both HUB and TODO/DOCS)
         const progressFillEl = document.querySelector('#progress-bar-fill');
         const doneFillEl = document.querySelector('#done-bar-fill');
@@ -1519,14 +1513,25 @@ Could you help me understand my options?`;
         const progressFillHubEl = document.querySelector('#progress-bar-fill.ac-progress__filled_required');
         const doneFillHubEl = document.querySelector('#done-bar-fill.ac-progress__filled');
 
+        // Update text and bars based on page type
+        const countEl = document.getElementById('progress-bar-count');
+
         if (progressFillHubEl && doneFillHubEl) {
             // HUB page
             doneFillHubEl.style.width = `${allPercent}%`;
             progressFillHubEl.style.width = `${requiredPercent}%`;
+            // Update text to match HUB bar (allPercent)
+            if (countEl) {
+                countEl.textContent = `Your relocation progress: ${allPercent} %`;
+            }
         } else if (progressFillEl && doneFillEl) {
             // TODO/DOCS page
             progressFillEl.style.width = `${inProgressPercent}%`;
             doneFillEl.style.width = `${totalPercent}%`;
+            // Update text to match TODO/DOCS bar (totalPercent)
+            if (countEl) {
+                countEl.textContent = `Your relocation progress: ${totalPercent} %`;
+            }
         }
 
         this.log.debug(`Progress updated: ${completedTasks}/${allTasks} all, ${completedRequired}/${requiredTasks} required`);
