@@ -2119,19 +2119,22 @@ Could you help me understand my options?`;
     #handleApproveFile(el) {
         this.ga.send_event('click_task_approve_file')
         const fileId = el?.dataset?.fileId;
-        const actionsContainer = el.parentElement;
-        const wrapper = el.closest('.file-wrapper');
-        const originalHTML = actionsContainer.innerHTML;
-        actionsContainer.innerHTML = '<div class="loading-placeholder">Grooting... </div>';
 
-        // Find task and file for optimistic update
-        const drawer = el.closest('[id^="drawer-"]');
-        const taskId = drawer?.id.replace('drawer-', '');
+        // Find task and file for optimistic update BEFORE modifying DOM
+        const drawer = el.closest('.t-drawer');
+        this.log.debug(`[handleApproveFile] el=${!!el}, drawer element=${!!drawer}, drawer.id=${drawer?.id}`);
+        const taskId = drawer?.id?.replace('drawer-', '');
         const task = this.cards?.find(t => String(t.clientTaskId) === taskId);
         const file = task?.files?.find(f => String(f.fileId) === String(fileId));
         const previousStatus = file?.status;
 
-        this.log.warning(`[handleApproveFile] drawer=${drawer?.id}, taskId=${taskId}, task=${!!task}, file=${!!file}, fileId=${fileId}`);
+        this.log.debug(`[handleApproveFile] taskId=${taskId}, task=${!!task}, file=${!!file}, fileId=${fileId}`);
+
+        // Now show loading placeholder
+        const actionsContainer = el.parentElement;
+        const wrapper = el.closest('.file-wrapper');
+        const originalHTML = actionsContainer.innerHTML;
+        actionsContainer.innerHTML = '<div class="loading-placeholder">Grooting... </div>';
 
         // Optimistic update
         if (file) {
@@ -2160,17 +2163,22 @@ Could you help me understand my options?`;
     #handleRejectFile(el) {
         this.ga.send_event('click_task_reject_file')
         const fileId = el?.dataset?.fileId;
+
+        // Find task and file for optimistic update BEFORE modifying DOM
+        const drawer = el.closest('.t-drawer');
+        this.log.debug(`[handleRejectFile] el=${!!el}, drawer element=${!!drawer}, drawer.id=${drawer?.id}`);
+        const taskId = drawer?.id?.replace('drawer-', '');
+        const task = this.cards?.find(t => String(t.clientTaskId) === taskId);
+        const file = task?.files?.find(f => String(f.fileId) === String(fileId));
+        const previousStatus = file?.status;
+
+        this.log.debug(`[handleRejectFile] taskId=${taskId}, task=${!!task}, file=${!!file}, fileId=${fileId}`);
+
+        // Now show loading placeholder
         const actionsContainer = el.parentElement;
         const wrapper = el.closest('.file-wrapper');
         const originalHTML = actionsContainer.innerHTML;
         actionsContainer.innerHTML = '<div class="loading-placeholder">Grooting...</div>';
-
-        // Find task and file for optimistic update
-        const drawer = el.closest('[id^="drawer-"]');
-        const taskId = drawer?.id.replace('drawer-', '');
-        const task = this.cards?.find(t => String(t.clientTaskId) === taskId);
-        const file = task?.files?.find(f => String(f.fileId) === String(fileId));
-        const previousStatus = file?.status;
 
         // Optimistic update
         if (file) {
