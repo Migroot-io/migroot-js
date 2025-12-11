@@ -976,7 +976,10 @@ class Migroot {
             }
 
             // Check eligibility
-            const result = EligibilityChecker.evaluateMatch(userData, visaRequirements);
+            // evaluateMatch expects format: {countryName: {test: {...}}}
+            const testObj = { [countryName]: { test: visaRequirements } };
+            const results = EligibilityChecker.evaluateMatch(userData, testObj);
+            const result = results[countryName];
 
             // Find label element
             const labelEl = block.querySelector('.ac-hub__label');
