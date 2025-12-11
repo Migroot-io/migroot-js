@@ -2150,7 +2150,7 @@ Could you help me understand my options?`;
 
             // Update task status if it changed
             if (updatedFile.taskRef && task) {
-                const newTaskStatus = updatedFile.taskRef.status;
+                const newTaskStatus = this.#processStatus(updatedFile.taskRef.status);
                 if (task.status !== newTaskStatus) {
                     this.log.debug(`[handleApproveFile] Task status changed from ${task.status} to ${newTaskStatus}`);
                     task.status = newTaskStatus;
@@ -2205,7 +2205,7 @@ Could you help me understand my options?`;
 
             // Update task status if it changed
             if (updatedFile.taskRef && task) {
-                const newTaskStatus = updatedFile.taskRef.status;
+                const newTaskStatus = this.#processStatus(updatedFile.taskRef.status);
                 if (task.status !== newTaskStatus) {
                     this.log.debug(`[handleRejectFile] Task status changed from ${task.status} to ${newTaskStatus}`);
                     task.status = newTaskStatus;
