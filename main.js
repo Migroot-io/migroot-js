@@ -153,13 +153,13 @@ class Migroot {
 
     // main fetchers start
     async getAccessToken() {
-        // Try to get token from Outseta with retries (5 attempts, 500ms delay)
-        for (let i = 0; i < 5; i++) {
+        // Try to get token from Outseta with retries (10 attempts, 500ms delay = 5s total)
+        for (let i = 0; i < 10; i++) {
             if (window.Outseta?.getAccessToken) {
                 const token = window.Outseta.getAccessToken();
                 if (token) return token;
             }
-            if (i < 4) {
+            if (i < 9) {
                 await new Promise(resolve => setTimeout(resolve, 500));
             }
         }

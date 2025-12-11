@@ -126,12 +126,22 @@ window.onload = async function () {
                     renderAuthUsersEls();
                 }
             });
-            setTimeout(() => {
-                if (!Outseta.getAccessToken() && !redirected) {
+            // Poll for token with retries (10 attempts × 1 second = 10 seconds total)
+            let attempts = 0;
+            const maxAttempts = 10;
+            const checkInterval = setInterval(() => {
+                attempts++;
+                if (Outseta.getAccessToken() && !redirected) {
+                    clearInterval(checkInterval);
+                    redirected = true;
+                    redirectAuth();
+                    renderAuthUsersEls();
+                } else if (attempts >= maxAttempts && !redirected) {
+                    clearInterval(checkInterval);
                     redirected = true;
                     redirectNotAuth();
                 }
-            }, 3000);
+            }, 1000);
         }
 
         await waitForMigroot();
