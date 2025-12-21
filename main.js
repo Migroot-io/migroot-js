@@ -391,7 +391,8 @@ class Migroot {
         try {
             const isFormData = body instanceof FormData;
             const headers = {
-                'Authorization': `Bearer ${accessToken}`, ...(isFormData ? {} : {'Content-Type': 'application/json'})
+                ...(accessToken ? {'Authorization': `Bearer ${accessToken}`} : {}),
+                ...(isFormData ? {} : {'Content-Type': 'application/json'})
             };
 
             const payload = method !== 'GET' ? (isFormData ? body : JSON.stringify(body)) : undefined;

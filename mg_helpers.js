@@ -858,7 +858,6 @@ class MultiStepFormManager {
     this.currentStep = 1;
     this.totalSteps = config.totalSteps || 8;
     this.formData = {};
-    this.skipStep2 = false; // Flag to skip step 2 when work_type is "remotely"
     // Use existing class structure from /check-eligibility page
     this.stepClassPrefix = config.stepClassPrefix || 'tst-question_';
     this.nextButtonSelector = config.nextButtonSelector || '[data-move="next"]';
@@ -925,23 +924,6 @@ class MultiStepFormManager {
    * Setup form logic - conditional skips and exclusive checkboxes
    */
   setupFormLogic() {
-    // Step 1: Skip step 2 if "remotely" is selected
-    const workTypeStep = this.steps[0]; // Step 1 (index 0)
-    if (workTypeStep) {
-      const workTypeInputs = workTypeStep.querySelectorAll('input[name="work_type"]');
-      workTypeInputs.forEach(input => {
-        input.addEventListener('change', () => {
-          if (input.checked && input.value === 'remotely') {
-            // Auto-set remote_work to "yes" and skip step 2
-            this.formData.remote_work = 'yes';
-            this.skipStep2 = true;
-          } else if (input.checked) {
-            this.skipStep2 = false;
-          }
-        });
-      });
-    }
-
     // Step 3: "solo" is exclusive with other move_with options (including pets)
     const moveWithStep = this.steps[2]; // Step 3 (index 2)
     if (moveWithStep) {
@@ -1026,12 +1008,7 @@ class MultiStepFormManager {
     this.collectStepData(this.currentStep);
 
     if (this.currentStep < this.totalSteps) {
-      // Skip step 2 if "remotely" was selected in step 1
-      if (this.currentStep === 1 && this.skipStep2) {
-        this.showStep(3); // Skip to step 3
-      } else {
-        this.showStep(this.currentStep + 1);
-      }
+      this.showStep(this.currentStep + 1);
     }
   }
 
