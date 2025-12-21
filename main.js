@@ -37,6 +37,8 @@ const ENDPOINTS = {
         path: 'board/task/{taskId}/comment', method: 'POST'
     }, downloadFile: {
         path: 'board/file/{fileId}/download', method: 'GET'
+    }, subscribeToEmailList: {
+        path: 'user/subscribe', method: 'POST'
     }
 };
 

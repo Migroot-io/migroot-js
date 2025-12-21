@@ -1350,6 +1350,26 @@ class MultiStepFormManager {
         quizResults: quizResults
       });
 
+      // Subscribe user to email list via API
+      const email = this.formData['contact-email'];
+      if (email && window.mg && window.mg.api && window.mg.api.subscribeToEmailList) {
+        console.log('Subscribing email to eligibility list:', email);
+        window.mg.api.subscribeToEmailList({ email: email })
+          .then(() => {
+            console.log('Successfully subscribed to email list');
+          })
+          .catch((error) => {
+            console.error('Failed to subscribe to email list:', error);
+            // Non-blocking: continue with Webflow form submission even if API fails
+          });
+      } else {
+        if (!email) {
+          console.warn('No email provided for subscription');
+        } else {
+          console.warn('Migroot API not available for email subscription');
+        }
+      }
+
       // Click submit button (triggers Webflow validation and submission)
       const submitButton = form.querySelector('input[type="submit"]');
       if (submitButton) {
