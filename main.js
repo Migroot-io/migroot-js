@@ -404,6 +404,10 @@ class Migroot {
                 throw new Error(`Request failed: ${response.status} ${response.statusText}`);
             }
 
+            const contentLength = response.headers.get('content-length');
+            if (contentLength === '0' || !contentLength) {
+                return {};
+            }
             return await response.json();
 
         } catch (error) {
