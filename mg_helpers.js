@@ -1006,7 +1006,7 @@ class MultiStepFormManager {
   showStep(stepNumber) {
     this.steps.forEach((step, index) => {
       if (index + 1 === stepNumber) {
-        step.style.display = 'block';
+        step.style.display = 'flex';
         step.classList.add('active');
       } else {
         step.style.display = 'none';
