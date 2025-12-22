@@ -2286,6 +2286,11 @@ Could you help me understand my options?`;
         }
         this.log.debug(`[updateDrawerContent] Drawer found, updating content`);
 
+        // Сбросить флаги перед пересозданием контента
+        drawer.querySelectorAll('[data-event-attached="true"]').forEach(el => {
+            el.removeAttribute('data-event-attached');
+        });
+
         // Tab 2: Comments
         const commentsPane = drawer.querySelector('.tb-pane[data-w-tab="Tab 2"]');
         if (commentsPane) this.#renderComments(commentsPane, task.comments);
