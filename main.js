@@ -2750,12 +2750,17 @@ Could you help me understand my options?`;
         const buttons = document.querySelectorAll('[data-event-action]');
         buttons.forEach(el => {
             if (el.dataset.eventAttached === "true") return;
+
+            // Capture phase только для кнопок с Fancybox/модалками
+            const useCapture = el.hasAttribute('data-fancybox') || el.hasAttribute('data-src');
+
             el.addEventListener('click', () => {
                 const action = el.getAttribute('data-event-action');
                 // Приоритет: data-event-label > textContent
                 const label = el.getAttribute('data-event-label') || el.textContent.trim();
                 this.event(action, {event_label: label});
-            });
+            }, useCapture);
+
             el.dataset.eventAttached = "true";
         });
     }

@@ -260,6 +260,10 @@ const EVENT_PARAMS = {
         event_category: 'conversion',
         event_notes: 'Click ask migroot from "upgrade" modal window',
     },
+    click_upgrade_modal: {
+        event_category: 'conversion',
+        event_notes: 'Click message in drawer and open model message',
+    },
     click_g_drive: {
         event_category: 'paid feature',
         event_label: 'Google Drive Button',
