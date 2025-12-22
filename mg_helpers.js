@@ -242,6 +242,9 @@ const EVENT_PARAMS = {
         event_category: 'navigation',
         event_label: 'Go docs tab'
     },
+    click_drawer_tab: {
+        event_category: 'navigation',
+    },
     // navigation end
     // conversion events start
     click_buy_plans: {
