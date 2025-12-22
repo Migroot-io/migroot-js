@@ -1176,6 +1176,9 @@ Could you help me understand my options?`;
 
             // Add click handler to redirect to TODO page with taskId
             block.onclick = () => {
+                this.event('click_hub_recommended_task', {
+                    event_label: task.name
+                });
                 const url = `${this.appPrefix()}/todo?boardId=${this.boardId}&taskId=${task.clientTaskId}`;
                 this.log.debug(`Redirecting to: ${url}`);
                 window.location.href = url;
@@ -1202,7 +1205,10 @@ Could you help me understand my options?`;
             block.innerHTML = `
                 <div class="ac-hub__contact-details">
                     <div class="b-text-medium">${link.label}</div>
-                    <a href="${link.url}" target="_blank" class="b-text-bold b-link b-text-right">${link.title}</a>
+                    <a href="${link.url}"
+                       target="_blank"
+                       class="b-text-bold b-link b-text-right"
+                       data-event-action="click_hub_useful_link">${link.title}</a>
                 </div>
             `;
             container.appendChild(block);
@@ -1230,6 +1236,7 @@ Could you help me understand my options?`;
             block.href = guide.url;
             block.target = '_blank';
             block.className = 'ln-post ac-hub__post w-inline-block';
+            block.setAttribute('data-event-action', 'click_hub_blog');
             block.innerHTML = `
                 <div class="ln-post__preview ac-hu_post-preview">
                     <img sizes="100vw" srcset="${guide.image}" src="${guide.image}" alt="${guide.title}" loading="lazy" class="ln-post__image">
@@ -1395,6 +1402,9 @@ Could you help me understand my options?`;
             return;
         }
 
+        // Устанавливаем временный лейбл для события
+        supportLink.setAttribute('data-event-label', subject);
+
         const formDefaults = JSON.stringify({
             Subject: subject,
             Body: body
@@ -1405,6 +1415,7 @@ Could you help me understand my options?`;
 
         setTimeout(() => {
             supportLink.removeAttribute('data-form-defaults');
+            supportLink.removeAttribute('data-event-label');
         }, 100);
     }
 
@@ -2741,7 +2752,8 @@ Could you help me understand my options?`;
             if (el.dataset.eventAttached === "true") return;
             el.addEventListener('click', () => {
                 const action = el.getAttribute('data-event-action');
-                const label = el.textContent.trim();
+                // Приоритет: data-event-label > textContent
+                const label = el.getAttribute('data-event-label') || el.textContent.trim();
                 this.event(action, {event_label: label});
             });
             el.dataset.eventAttached = "true";

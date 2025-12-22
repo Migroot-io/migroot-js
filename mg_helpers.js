@@ -156,6 +156,11 @@ const EVENT_PARAMS = {
       event_category: 'acquisition',
       event_label: 'Social network link Click',
     },
+    // if not registrated = acquisition
+    click_book_consultation: {
+        event_category: 'acquisition',
+        event_label: 'Book consultation from quiz results'
+    },
     // acquisition events end
     // pre_activation
     create_board_finish: {
@@ -204,6 +209,18 @@ const EVENT_PARAMS = {
     click_task_comment_send: {
         event_category: 'activation',
         event_label: 'Send task comment'
+    },
+    click_hub_recommended_task: {
+        event_category: 'activation',
+        event_label: 'Click recommended task on hub'
+    },
+    click_hub_useful_link: {
+        event_category: 'activation',
+        event_label: 'Click useful link on hub'
+    },
+    click_hub_blog: {
+        event_category: 'activation',
+        event_label: 'Click blog post on hub'
     },
     // neutral engagement start  (could be clicked logged or as a guest)
     click_support: {
@@ -1425,7 +1442,7 @@ class MultiStepFormManager {
     html += '<div class="results-cta-section">';
     html += '<div class="results-cta-buttons">';
     html += '<a href="/sign-up" class="b-button results-cta-primary" data-event-action="click_signup">Create free account</a>';
-    html += '<a href="https://calendly.com/migroot/interview" target="_blank" class="b-button b-button_bordered results-cta-secondary">Book a consultation</a>';
+    html += '<a href="https://calendly.com/migroot/interview" target="_blank" class="b-button b-button_bordered results-cta-secondary" data-event-action="click_book_consultation">Book a consultation</a>';
     html += '</div>';
     html += '<p class="results-cta-note">We know how to prepare your documents even if you\'re slightly short on requirements</p>';
     html += '</div>';
