@@ -1,3 +1,4 @@
+<script>
 // Eligibility Checker for Digital Nomad Visas
 // UI logic for quiz form - uses EligibilityChecker and MultiStepFormManager from mg_helpers.js
 
@@ -72,7 +73,7 @@ if (typeof document !== 'undefined') {
 
     // If not available, retry with timeout
     let retries = 0;
-    const maxRetries = 10; // Max 10 retries = 1 second
+    const maxRetries = 30; // Max 10 retries = 1 second
     const retryInterval = 100; // Check every 100ms
 
     console.log('MultiStepFormManager not loaded yet, waiting...');
@@ -90,3 +91,6 @@ if (typeof document !== 'undefined') {
     }, retryInterval);
   });
 }
+
+
+</script>

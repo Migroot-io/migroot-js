@@ -1,0 +1,117 @@
+<div id="screen-preloader" style="
+                           position: fixed;
+                           top: 0;
+                           left: 0;
+                           width: 100%;
+                           height: 100%;
+
+                           background-color: #fcffe5;
+
+                           display: flex;
+                           justify-content: center;
+                           align-items: center;
+                           padding: 24px;
+
+                           z-index: 9999;
+                           text-align: center;
+                           ">
+  <div id="preloader-text" style="transition:opacity 0.5s ease; font-size:21px; line-height:120%;">
+    🔮 Predicting your awesome future...
+  </div>
+</div>
+<script>
+// PREALOADER
+const screenPreloader = document.getElementById('board-preloader');
+const screenPreloaderText = document.getElementById('preloader-text');
+let intervalId = null;
+const magic = [
+        "🧙‍♂️ Brewing nomad magic...",
+        "🦄 Taming bureaucratic monsters...",
+        "🔮 Predicting your awesome future...",
+        "🎲 Rolling the dice for your next move...",
+        "🚀 Don’t Panic. Just Loading...",
+        "📚 Consulting the Guide for answers...",
+        "🌌 Seeking meaning, life, the universe, and everything...",
+        "🤖 Negotiating with Vogons...",
+        "☕️ Brewing improbability fields...",
+        "🧭 Calibrating your galactic compass...",
+        "🪐 Making sure towels are packed...",
+        "🌠 Aligning cosmic bureaucracy...",
+        "🐠 Babelfishing your data...",
+        "🗺 Mapping safe routes through red tape...",
+        "✨ Translating Vogon forms...",
+        "🎲 Rolling improbability dice...",
+        "💫 Hitchhiking through paper trails...",
+        "🔭 Checking for approaching deadlines...",
+        "🌿 Growing patience in low gravity...",
+        "💌 Submitting heartfelt petitions to the universe...",
+        "🌦 Waiting for bureaucratic weather to clear...",
+        "🏛 Whispering to ancient registrars...",
+        "🧩 Solving cosmic admin puzzles...",
+        "🏗 Building bridges over paperwork chasms...",
+        "🪞 Reflecting on the futility of forms...",
+        "🌊 Surfing bureaucratic waves...",
+        "💼 Filing for intergalactic permits...",
+        "🌋 Calming volcanic regulations...",
+        "🛸 Warming up hyperspace engines...",
+    ];
+
+function preloaderStart() {
+  if (!screenPreloader || !screenPreloaderText) {
+    console.warn("Preloader elements not found, skipping preloaderStart");
+    return false;
+  }
+
+  screenPreloader.style.display = 'flex';
+  intervalId = setInterval(() => {
+    screenPreloaderText.textContent = magic[Math.floor(Math.random() * magic.length)];
+  }, 1600);
+
+  return true;
+}
+
+function preloaderFinish() {
+  if (!screenPreloader) {
+    console.warn("Preloader element not found, skipping preloaderFinish");
+    return;
+  }
+
+  clearInterval(intervalId);
+  screenPreloader.style.display = 'none';
+}
+
+function preloaderError(message) {
+  if (!screenPreloader || !screenPreloaderText) {
+    console.warn("Preloader elements not found, skipping preloaderError");
+    return;
+  }
+  let errorReport = "";
+  if (typeof window.getErrorLog === "function") {
+    const logs = window.getErrorLog();
+    if (logs && logs.trim().length > 0) {
+      const safeLogs = logs.replace(/"/g, '\\"').replace(/\n/g, "\\n");
+      errorReport = `
+      <a     style="display:inline-block; margin-top:8px; font-size:14px; color:#666; text-decoration:underline; cursor:pointer;"
+onclick="
+    const supportLink = document.querySelector('[data-o-support]');
+    supportLink.setAttribute(
+        'data-form-defaults',
+        JSON.stringify({
+          Subject: 'Migroot Error Report',
+          Body: '${safeLogs}'
+        })
+      );
+    if (supportLink) { supportLink.click(); }
+    else { console.warn('Support element not found'); }
+  ">
+      Send error report to Migroot support team
+</a>
+      `;
+    }
+  }
+
+  clearInterval(intervalId);
+  console.error("preloaderError: ", message);
+	screenPreloaderText.innerHTML = `<div class="b-utility"><div class="b-utility__inner"><p class="b-utility__title">🧯 Oops! That didn’t go as planned.</p><p class="b-utility__text">Let’s get you back on track!</p><a href="https://www.migroot.io" class="b-button">Back to home page</a>${errorReport}</div></div>`;
+}
+</script>

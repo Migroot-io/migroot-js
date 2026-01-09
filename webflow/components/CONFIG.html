@@ -1,0 +1,43 @@
+<script>
+const CONFIG = {
+    debug: false,
+    backend_url: window.location.hostname == 'migroot.webflow.io'
+      ? 'https://migroot-447015.oa.r.appspot.com/v1'
+      : 'https://migroot-prod.oa.r.appspot.com/v1',
+    user: {
+        pointsContainerId: document.getElementById('userPoints')
+    },
+    template: document.getElementById('task-template'), //task template
+    drawer: document.getElementById('drawer-template'), //drawer template
+  	adminCardTemplate: document.getElementById('admin-card'), //admin card template
+    docTemplate: document.getElementById('doc-template'), // doc template
+    cardLoader: document.getElementById('card-loader'),
+    buttons: {
+        uploadButton: document.getElementById('upload_button'),
+        startButton: document.getElementById('start_button'),
+    },
+    mainContainer: document.getElementById('main-container'),
+    containers: {
+        ready: document.getElementById('ready'),
+        edit: document.getElementById('edit'),
+        inProgress: document.getElementById('in-progress'),
+        asap: document.getElementById('asap'),
+        notStarted: document.getElementById('not-started'),
+    },
+    docsContainers: {
+        ready: document.getElementById('ready'),
+        edit: document.getElementById('edit'),
+        inProgress: document.getElementById('in-progress'),
+        asap: document.getElementById('asap'),
+        notStarted: document.getElementById('not-started'),
+    },
+    form: {
+        countryIds: ['slct_ctzn']
+    },
+    migrootComments: {
+        review: ["Wait for checking", "So-o-o-on please wait", "Okay, let's see!"],
+        start: ["Every document tells a story.", "Efficiency is key in document management.", "Timely action is critical to success."]
+    },
+    timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+ };
+ </script>

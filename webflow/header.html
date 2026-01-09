@@ -1,0 +1,89 @@
+<script>
+  const pathname = window.location.pathname;
+  const IS_STAGING = pathname.startsWith('/staging/');
+  const basePath = IS_STAGING ? '/staging/' : '/app/';
+  const MIGROOT_MAIN_HASH = IS_STAGING
+    ? 'ba43a0f304a8f08bf96dba4d80ba7c64a4293339' // staging
+    : 'ba43a0f304a8f08bf96dba4d80ba7c64a4293339'; // prod
+</script>
+<script>
+  const headerScript = document.createElement('script');
+  headerScript.src = `https://cdn.jsdelivr.net/gh/Migroot-io/migroot-js@${MIGROOT_MAIN_HASH}/header.js`;
+  document.head.appendChild(headerScript);
+</script>
+
+<!-- COOKIES [M] -->
+<script src="https://cdn.jsdelivr.net/gh/Flowappz/cookie-consent-cdn@v1.1.15/cookie-consent.js"></script>
+<!-- END COOKIES [M] -->
+
+<!-- OUTSETA  [D] -->
+<script>
+  if (typeof captureGAIdentifiers === 'function') {
+    captureGAIdentifiers();
+  }
+  var GAIdentifiers = JSON.parse(localStorage.getItem("o-snippet.ga"));
+  var UtmValues = JSON.parse(localStorage.getItem("o-snippet.utm"));
+  var ReferringDomain = localStorage.getItem("o-snippet.referring-domain");
+  var PromoCode = localStorage.getItem("o-snippet.promo-code");
+  var o_options = {
+    domain: window.location.hostname == 'migroot.webflow.io'
+      ? 'migrootio-staging.outseta.com'
+      : 'migrootio.outseta.com',
+  	load: 'auth,customForm,emailList,leadCapture,nocode,profile,support',
+    tokenStorage: 'local',
+    auth: {
+      registrationDefaults: {
+        Account: {
+           ...UtmValues,
+           ...GAIdentifiers,
+           ReferringDomain,
+           PromoCode,
+        }
+      },
+    },
+    translationLang: 'en'
+  };
+</script>
+<script src="https://cdn.outseta.com/outseta.min.js" data-options="o_options"></script>
+<!-- END OUTSETA  [D] -->
+ <!--     ? 'migrootio-staging.outseta.com' -->
+
+<!-- MIGROOT  [D] -->
+<script>
+  const mg_helpers = document.createElement('script');
+  mg_helpers.src = `https://cdn.jsdelivr.net/gh/Migroot-io/migroot-js@${MIGROOT_MAIN_HASH}/mg_helpers.js`;
+  document.head.appendChild(mg_helpers);
+</script>
+<!-- MIGROOT  [D] -->
+
+<!-- Google Tag Manager  [K] -->
+<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+                                                      new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+      j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+        'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+                            })(window,document,'script','dataLayer','GTM-NV4KXL5V');</script>
+<!-- End Google Tag Manager [K] -->
+
+<!-- END FANCYBOX CUSTOMIZATION [M] -->
+<link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.css"
+      />
+<style>
+  .b-profile .b-profile__avatar[src=""],
+  .b-profile .b-profile__avatar[src="https://cdn.prod.website-files.com/679bc8f10611c9a0d94a0caa/679bc8f10611c9a0d94a0dc9_gradient-base-03.webp"],
+  .ac-profile .ac-profile__avatar[src=""],
+  .ac-profile .ac-profile__avatar[src="https://cdn.prod.website-files.com/679bc8f10611c9a0d94a0caa/679bc8f10611c9a0d94a0dc9_gradient-base-03.webp"]{
+    display: none;
+  }
+
+  .fancybox__content.b-modal{
+    border-radius: 40px;
+  }
+
+  .ac-page[data-guide="on"], .ac-page[data-hub="on"]{
+    color: var(--_account---main--black);
+  }
+</style>
+<!-- END FANCYBOX CUSTOMIZATION [M] -->
+<link rel="stylesheet" href="https://unpkg.com/@sjmc11/tourguidejs/dist/css/tour.min.css">

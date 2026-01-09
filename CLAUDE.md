@@ -24,7 +24,19 @@ Migroot is a JavaScript-based relocation assistance platform built on Webflow. T
 **Entry Points**
 - `header.js`: Pre-authentication setup, GA identifier capture, auth redirects
 - `footer.js`: Post-load initialization, waits for Outseta and Migroot, then calls `init_mg()`
-- `header.html`/`footer.html`: CDN script loading for Outseta, Intercom, Fancybox, GTM
+- `webflow/header.html`/`footer.html`: CDN script loading for Outseta, Intercom, Fancybox, GTM, OpenWidget
+
+**Webflow Components** (`webflow/components/`)
+- `CONFIG.html`: Global configuration object with backend URLs, DOM references, and container mappings
+- `hub_config.html`: Country-specific visa requirements and useful links (HUB_CONFIG)
+- `card_todo.html`, `card_docs.html`, `card_admin.html`: Task card templates for different page types
+- `card_drawer.html`: Task detail drawer template with comments/files sections
+- `drawer_helper.html`: Helper functions for drawer interactions
+- `eligibility_check.html`: Visa eligibility checking logic
+- `pricing_autofill.html`: Dynamic pricing display based on subscription plans
+- `preloader.html`: Loading state management during initialization
+
+These are reference copies (synced January 9, 2026) showing what's deployed on Webflow. To update components on Webflow, copy content and paste into Webflow's custom code sections.
 
 ### Application Lifecycle (`main.js:init_dashboard()`)
 
@@ -145,21 +157,101 @@ The `AnalyticsHelper` maintains critical user journey state:
 
 These states are set during `init_dashboard()` and updated on major lifecycle events (board creation, board loading).
 
+### Analytics Data Flow
+
+**Event Pipeline:**
+```
+Code (send_event) → window.dataLayer → GTM → GA4 → BigQuery → Looker Studio
+```
+
+**Implementation Layers:**
+1. **Frontend (this codebase)**: Events sent via `this.ga.send_event()` to `window.dataLayer`
+2. **Google Tag Manager**: Processes events, applies tags/triggers, forwards to GA4
+3. **Google Analytics 4**: Collects events, user properties, session data
+4. **BigQuery**: Automatic daily export of raw GA4 event data
+5. **Looker Studio**: Dashboard visualizations built on BigQuery datasets (draft dashboards available)
+
+**Key Event Parameters:**
+- `event`: `app_interaction` (authenticated) or `site_interaction` (public)
+- `event_action`: Specific action name
+- `event_category`: User journey stage (initialization, acquisition, pre_activation, activation, navigation, engagement, conversion, administration)
+- `event_sender`: `buddy` or `user`
+- `event_sender_plan`: Subscription level
+- Custom parameters: Task IDs, file types, country selections, etc.
+
+**BigQuery Access:** Contact data team for dataset access and schema documentation. Events available ~24 hours after occurrence.
+
 ## External Dependencies
 
 - **Outseta**: Auth provider, accessed via `window.Outseta.getAccessToken()`
-- **Intercom**: Support chat, triggered via `data-intercom="show"` attribute
+- **OpenWidget**: Support chat widget
 - **Fancybox**: Modal system for upgrade prompts
 - **Tour.js**: Onboarding library (`window.tourguide`)
 - **Google Analytics 4**: Via GTM, events sent to `window.dataLayer`
 
-## Backend Integration
+## Deployment & Versioning
 
-Backend URL switches based on hostname:
-- `migroot.webflow.io` → `https://migroot-447015.oa.r.appspot.com/v1` (staging)
-- Production → `https://migroot-prod.oa.r.appspot.com/v1`
+**CDN Deployment:**
+- JavaScript files are served via jsDelivr CDN: `https://cdn.jsdelivr.net/gh/Migroot-io/migroot-js@{COMMIT_HASH}/{filename}.js`
+- Version controlled by git commit hash defined in `webflow/header.html` as `MIGROOT_MAIN_HASH`
+- Current production hash: `ba43a0f304a8f08bf96dba4d80ba7c64a4293339`
 
-Debug mode auto-enabled on staging or when `config.debug = true`.
+**Deployment Process:**
+1. Commit and push changes to GitHub
+2. Copy commit hash from `git log -1 --format="%H"`
+3. Update `MIGROOT_MAIN_HASH` in `webflow/header.html` on Webflow
+4. Test on staging (`migroot.webflow.io`) first
+5. Update production hash if tests pass
+
+**Rollback:** Simply revert `MIGROOT_MAIN_HASH` to previous working commit hash in Webflow.
+
+## Environment Configuration
+
+The application uses **three independent mechanisms** for environment management:
+
+### 1. Backend Environment (hostname)
+Backend API URL selection is based **only on hostname**:
+- `migroot.webflow.io` → staging backend (`https://migroot-447015.oa.r.appspot.com/v1`)
+- Other domains → production backend (`https://migroot-prod.oa.r.appspot.com/v1`)
+
+Configured in `main.js:102`:
+```javascript
+this.backend_url = host === 'migroot.webflow.io'
+  ? 'https://migroot-447015.oa.r.appspot.com/v1'
+  : 'https://migroot-prod.oa.r.appspot.com/v1';
+```
+
+**Note**: Duplicate logic exists in `CONFIG.html:4-6` but is **not used** (main.js overrides). Line `main.js:101` is commented out (previously took `config.backend_url`). The CONFIG.html duplicate can be removed.
+
+**Outseta instance** also follows hostname (configured in `webflow/header.html`).
+
+### 2. Frontend Version (pathname)
+Frontend JavaScript version (commit hash) selection is based **only on pathname**:
+- Path starts with `/staging/` → staging frontend hash
+- Path starts with `/app/` → production frontend hash
+
+Configured in `webflow/header.html:3-7`:
+```javascript
+const IS_STAGING = pathname.startsWith('/staging/');
+const MIGROOT_MAIN_HASH = IS_STAGING ? 'staging_hash' : 'production_hash';
+```
+
+This allows independent frontend/backend testing combinations.
+
+### 3. Debug Mode (hostname OR pathname)
+Debug logging is enabled if **either** hostname is staging **or** pathname includes `/staging/`:
+
+Configured in `main.js:100`:
+```javascript
+this.config.debug = path.includes('/staging/') || host === 'migroot.webflow.io' || this.config.debug;
+```
+
+### Analytics Event Types
+Event type (`app_interaction` vs `site_interaction`) is **not** environment-related—it indicates user context:
+- `/app/*` or `/staging/*` → `app_interaction` (authenticated area)
+- Other paths → `site_interaction` (public marketing)
+
+Configured in `mg_helpers.js:333-335`.
 
 ## Feature Flags
 
@@ -167,9 +259,31 @@ Free users are blocked from certain statuses and features via `isFreeUser()` che
 
 ## Testing Considerations
 
-- Local testing requires setting `CONFIG.token` or running with Outseta auth
-- Use `CONFIG.skip_dashboard = true` to bypass board initialization on non-app pages
-- Access error logs via `window.getErrorLog()` (defined in `initHandlers()`)
+**Local Testing:**
+- Set `CONFIG.token` manually or use Outseta auth
+- Set `CONFIG.skip_dashboard = true` to bypass board initialization on non-app pages
+- Enable debug logs: `CONFIG.debug = true`
+- Access error logs: `window.getErrorLog()` in browser console
+
+**Testing on Staging:**
+- **Full staging**: `https://migroot.webflow.io/staging/todo`
+  - Backend: Staging (hostname)
+  - Frontend: Staging (pathname)
+  - Debug: Enabled (both hostname and pathname)
+  - Outseta: Staging (hostname)
+- **Staging backend + production frontend**: `https://migroot.webflow.io/app/todo`
+  - Backend: Staging (hostname)
+  - Frontend: Production (pathname)
+  - Debug: Enabled (hostname)
+  - Outseta: Staging (hostname)
+
+**Deployment Testing:**
+1. Test changes locally using Webflow preview or browser DevTools overrides
+2. Commit and push to GitHub
+3. Update hash to staging (`MIGROOT_MAIN_HASH` in Webflow)
+4. Test all affected functionality on staging
+5. Check browser console for errors and analytics events
+6. Update production hash only after staging validation
 
 ## Analytics Implementation Notes
 

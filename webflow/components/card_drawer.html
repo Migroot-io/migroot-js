@@ -1,0 +1,185 @@
+<div id="drawer-template" data-task="drawer" data-required="" data-difficulty="" data-status="" class="t-drawer"
+     style="display: none; "
+     >
+  <a href="#" class="drw-close w-button">x</a>
+  <div data-drawer="name" class="drw-title js-ingest">
+    {TASK NAME}
+  </div>
+
+  <div class="drw-details">
+
+    <div class="drw-label drw-label_stage">Stage</div>
+    <div data-drawer="status" class="t-detail t-detail_stage">
+      <!-- Prev -->
+      <a href="#" class="drw-prev" onclick="handlePrevButton(this); return false;">
+        <div class="drw-btn-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" class="bi bi-caret-left-fill" viewBox="0 0 16 16">
+            <path d="m3.86 8.753 5.482 4.796c.646.566 1.658.106 1.658-.753V3.204a1 1 0 0 0-1.659-.753l-5.48 4.796a1 1 0 0 0 0 1.506z"></path>
+          </svg>
+        </div>
+      </a>
+      <!-- / End Prev -->
+      <div class="t-detail__stage">
+        <div class="ic-stage">
+        </div>
+        <div class="t-label js-ingest">{STAGE}</div>
+      </div>
+      <!-- Next -->
+      <a href="#" class="drw-next" onclick="handleNextButton(this); return false;">
+        <div class="drw-btn-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+            <path d="m12.14 8.753-5.482 4.796c-.646.566-1.658.106-1.658-.753V3.204a1 1 0 0 1 1.659-.753l5.48 4.796a1 1 0 0 1 0 1.506z"></path>
+          </svg>
+        </div>
+      </a>
+      <!-- / End Next -->
+      <!-- Done -->
+      <a href="#" class="drw-done" onclick="handleReadyButton(this); return false;">
+        <div class="drw-done_icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-check-lg" viewBox="0 0 16 16">
+            <path d="M12.736 3.97a.733.733 0 0 1 1.047 0c.286.289.29.756.01 1.05L7.88 12.01a.733.733 0 0 1-1.065.02L3.217 8.384a.757.757 0 0 1 0-1.06.733.733 0 0 1 1.047 0l3.052 3.093 5.4-6.425z"></path>
+          </svg>
+        </div>
+      </a>
+      <!-- /End Done -->
+    </div>
+
+    <div class="drw-label js-ingest">Difficulty</div>
+    <div data-drawer="difficulty" class="t-detail">
+      <div class="ic-difficulty">
+        <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path class="path-1" d="M4.1957 8H2.80579C2.36101 8 2 8.31588 2 8.70507V13.2949C2 13.6841 2.36101 14 2.80579 14H4.19421C4.63899 14 5 13.6841 5 13.2949V8.70507C5 8.31588 4.63899 8 4.19421 8" fill="#f5f5f5"></path>
+          <path class="path-2" d="M8.6957 5H7.30579C6.86101 5 6.5 5.47383 6.5 6.05761V12.9423C6.5 13.5261 6.86101 14 7.30579 14H8.69421C9.13899 14 9.5 13.5261 9.5 12.9423V6.05761C9.5 5.47383 9.13899 5 8.69421 5" fill="#f5f5f5"></path>
+          <path class="path-3" d="M13.1957 2H11.8058C11.361 2 11 2.63177 11 3.41014V12.5898C11 13.3682 11.361 14 11.8058 14H13.1942C13.639 14 14 13.3682 14 12.5898V3.41014C14 2.63177 13.639 2 13.1942 2" fill="#f5f5f5"></path>
+        </svg>
+      </div>
+      <div class="t-label t-label_level js-ingest">{DIFFICULTY}</div>
+    </div>
+
+    <div class="drw-label">Avg. time it takes</div>
+    <div data-drawer="duration" class="t-detail">
+      <div class="t-label js-ingest">{DURATION}</div>
+    </div>
+
+    <div class="drw-label">Location</div>
+    <div data-drawer="location" class="t-detail">
+      <div class="t-label js-ingest">{LOCATION}</div>
+    </div>
+
+    <div class="drw-label">Earn</div>
+    <div data-drawer="points" class="t-detail">
+      <img src="https://cdn.prod.website-files.com/679bc8f10611c9a0d94a0caa/679bc8f10611c9a0d94a0d1e_Point.svg" class="ic-coins" />
+      <div class="t-label js-ingest">{POINTS}</div>
+    </div>
+
+  </div>
+
+  <div class="drw-description-wrap">
+    <div data-drawer="shortDescription" class="drw-description js-ingest">
+      {SHORT DESC}
+    </div>
+    <div class="drw-btn drw-btn_upgrade" data-event-action="click_upgrade_modal" data-event-label="Let me handle the details!" data-src="#paid" data-fancybox="">
+    	<div class="drw-note">
+      	<img src="https://cdn.prod.website-files.com/6315a6b13c13edcc17f6d8ca/66e444e1c7d92c94e5e13d40_Avatar%20green%201.avif" alt="Migroot" class="drw-note__migroot"/>
+        <div class="b-text-medium">Let me handle the details! Upgrade your Free plan and get expert support with letters, translations, and document reviews.</div>
+      </div>
+    </div>
+  </div>
+
+  <div data-current="Tab 1" data-easing="ease" data-duration-in="300" data-duration-out="100" class="drw-tabs">
+    <div class="tb-menu" role="tablist">
+      <a data-w-tab="Tab 1" data-event-action="click_drawer_tab" class="tb-link is-active">
+        <div>Details</div>
+      </a>
+      <a data-w-tab="Tab 2" data-event-action="click_drawer_tab" data-drawer="commentsCount" class="tb-link" >
+        <div>Comments</div>
+        <div id="t-comments-counter" class="t-label brd-counter js-ingest">0</div>
+      </a>
+      <a data-w-tab="Tab 3" data-event-action="click_drawer_tab" data-drawer="filesCount" class="tb-link">
+        <div>Docs</div>
+        <div id="t-docs-counter" class="t-label brd-counter js-ingest">0</div>
+      </a>
+    </div>
+    <div class="tb-content">
+      <!-- Guide -->
+      <div data-w-tab="Tab 1" class="tb-pane is-active" style="display: block;">
+        <div data-drawer="longDescription" class="drw-content w-richtext js-ingest">
+          {LONG DESCRIPTION}
+        </div>
+      </div>
+      <!-- Comments -->
+      <div data-w-tab="Tab 2" class="tb-pane" style="display: none;">
+        <div class="frm-block">
+          <form class="frm-comment" onsubmit="handleCommentSubmit(this); return false;" aria-label="Comment Form">
+            <div class="frm-comment__avatar-wrap"><img src="" alt="" class="frm-comment__avatar" data-o-member="ProfileImageS3Url"></div>
+            <input class="frm-comment__input" name="Comment" placeholder="Add a comment" type="text" required>
+            <input type="submit" class="t-btn" value="Submit">
+          </form>
+        </div>
+        <div class="cmt-wrap">
+          <div class="cmt-item">
+            <div class="cmt-item__header">
+              <div class="cmt-item__avatar-wrap"><img src="" alt="" class="cmt-item__avatar"></div>
+              <div class="cmt-item__name">{COMMENT AUTHOR}</div>
+              <div class="cmt-item__date">{COMMENT DATE}</div>
+            </div>
+            <div class="cmt-item__content">
+              {COMMENT}
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Docs -->
+      <div data-w-tab="Tab 3" class="tb-pane" style="display: none;">
+        <div class="drw-upload">
+          <form id="wf-form-File-Uploader-Form"
+                onsubmit="handleFileUploadSubmit(this); return false;"
+                method="post"
+                class="frm-uploader"
+                enctype="multipart/form-data"
+                >
+            <div class="frm-upload">
+              <div class="frm-action">
+                <div class="frm-upload__wrap">
+                  <div class="frm-upload__card">
+                    <label class="frm-upload__label">
+                      <span class="frm-upload__text">Add file</span>
+                      <input
+                             class="frm-upload__input"
+                             type="file"
+                             accept="application/pdf, image/png, image/jpeg"
+                             name="fileToUpload"
+                             enctype="multipart/form-data"
+                             onchange="handleChooseFile(this)"
+                             >
+                    </label>
+                    <div class="frm-upload__error"></div>
+                  </div>
+                </div>
+                <input type="submit" class="t-btn t-btn_upload w-button" value="Upload file">
+
+              </div>
+              <div class="frm-captions">
+                <div class="frm-caption">Supported formats: PNG, JPG, PDF</div>
+                <div class="frm-caption">Maximum size: 25MB</div>
+              </div>
+            </div>
+          </form>
+        </div>
+        <div class="drw-uploaded">
+          <div class="drw-uploaded__title">Uploaded:</div>
+          <div class="f-wrap">
+            <div class="f-item">
+              <div class="f-item__header">
+                <img src="https://cdn.prod.website-files.com/679bc8f10611c9a0d94a0caa/683476cbb9aeb76905819fc7_document-color.svg" alt="" class="f-item__icon">
+                <div class="f-item__name">{DOC NAME}</div>
+                <div class="f-item__status {DOC STATUS}">{DOC STATUS}</div>
+              </div>
+              <div class="f-item__date">{DOC UPLOAD DATE}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

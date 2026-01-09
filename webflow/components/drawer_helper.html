@@ -1,0 +1,27 @@
+<script>
+// drawer tab controleer
+document.body.addEventListener('click', function(e) {
+  const tabLink = e.target.closest('.tb-link');
+  if (!tabLink) return;
+
+  const drawer = tabLink.closest('.t-drawer');
+  if (!drawer) return;
+
+  const tabId = tabLink.getAttribute('data-w-tab');
+
+  // Убрать активные табы и панели
+  drawer.querySelectorAll('.tb-link').forEach(el => el.classList.remove('is-active'));
+  drawer.querySelectorAll('.tb-pane').forEach(pane => {
+    pane.classList.remove('is-active');
+    pane.style.display = 'none';
+  });
+
+  // Активировать выбранный таб
+  tabLink.classList.add('is-active');
+  const targetPane = drawer.querySelector(`.tb-pane[data-w-tab="${tabId}"]`);
+  if (targetPane) {
+    targetPane.classList.add('is-active');
+    targetPane.style.display = 'block';
+  }
+});
+</script>

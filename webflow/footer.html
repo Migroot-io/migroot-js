@@ -1,0 +1,61 @@
+
+<!-- INIT FANCYBOX [M] -->
+<script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.umd.js"></script>
+<!-- INIT INTERCOM END [M]-->
+
+<!-- INIT MIGROOT [D]-->
+<script>
+  const mainScript = document.createElement('script');
+  mainScript.src = `https://cdn.jsdelivr.net/gh/Migroot-io/migroot-js@${MIGROOT_MAIN_HASH}/main.js`;
+  document.head.appendChild(mainScript);
+
+  const footerScript = document.createElement('script');
+  footerScript.src = `https://cdn.jsdelivr.net/gh/Migroot-io/migroot-js@${MIGROOT_MAIN_HASH}/footer.js`;
+  document.head.appendChild(footerScript);
+</script>
+<!-- INIT MIGROOT END [D] -->
+
+<!-- GTM & FANCYBOX CUSTOMIZATION [K,M] -->
+<script>
+  var noscriptTag = document.createElement("noscript");
+  noscriptTag.innerHTML = '<iframe src="https://www.googletagmanager.com/ns.html?id=GTM-NV4KXL5V" height="0" width="0" style="display:none;visibility:hidden"></iframe>';
+
+  document.body.insertBefore(noscriptTag, document.body.firstChild);
+
+  Fancybox.bind("[data-fancybox]", {
+    // Your custom options
+  });
+<!-- GTM & FANCYBOX CUSTOMIZATION END [K,M] -->
+
+
+
+
+  <!-- ADD OG:URL [M]-->
+  document.addEventListener("DOMContentLoaded", function () {
+    let ogUrlMeta = document.querySelector('meta[property="og:url"]');
+
+    if (!ogUrlMeta) {
+      ogUrlMeta = document.createElement('meta');
+      ogUrlMeta.setAttribute('property', 'og:url');
+      document.head.appendChild(ogUrlMeta);
+    }
+
+    ogUrlMeta.setAttribute('content', window.location.href);
+  });
+  <!-- END ADD OG:URL [M] -->
+</script>
+
+<script src="https://unpkg.com/@sjmc11/tourguidejs/dist/tour.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+
+<!-- Start of OpenWidget (www.openwidget.com) code -->
+<script>
+  window.__ow = window.__ow || {};
+  window.__ow.organizationId = "40dfa93c-cb25-4e4f-81f3-93810b88529f";
+  window.__ow.integration_name = "manual_settings";
+  window.__ow.product_name = "openwidget";
+  ;(function(n,t,c){function i(n){return e._h?e._h.apply(null,n):e._q.push(n)}var e={_q:[],_h:null,_v:"2.0",on:function(){i(["on",c.call(arguments)])},once:function(){i(["once",c.call(arguments)])},off:function(){i(["off",c.call(arguments)])},get:function(){if(!e._h)throw new Error("[OpenWidget] You can't use getters before load.");return i(["get",c.call(arguments)])},call:function(){i(["call",c.call(arguments)])},init:function(){var n=t.createElement("script");n.async=!0,n.type="text/javascript",n.src="https://cdn.openwidget.com/openwidget.js",t.head.appendChild(n)}};!n.__ow.asyncInit&&e.init(),n.OpenWidget=n.OpenWidget||e}(window,document,[].slice))
+</script>
+<noscript>You need to <a href="https://www.openwidget.com/enable-javascript" rel="noopener nofollow">enable JavaScript</a> to use the communication tool powered by <a href="https://www.openwidget.com/" rel="noopener nofollow" target="_blank">OpenWidget</a></noscript>
+<!-- End of OpenWidget code -->
+
