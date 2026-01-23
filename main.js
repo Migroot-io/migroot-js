@@ -1642,7 +1642,10 @@ Could you help me understand my options?`;
     }
 
     hideBlockedContainers() {
-        if (!this.isFreeUser()) return;
+        if (!this.isFreeUser()) {
+            this.#removeInfoColumn();
+            return;
+        }
 
         FREE_USER_BLOCKED_STATUSES.forEach(status => {
             let container = null;
