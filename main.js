@@ -99,7 +99,7 @@ class Migroot {
         this.config = config;
         this.config.debug = path.includes('/staging/') || host === 'migroot.webflow.io' || this.config.debug;
         // this.backend_url = config.backend_url || 'https://migroot-447015.oa.r.appspot.com/v1'; // taking from config
-        this.backend_url = host === 'migroot.webflow.io' ? 'https://migroot-447015.oa.r.appspot.com/v1' : 'https://migroot-prod.oa.r.appspot.com/v1';
+        this.backend_url = host === 'migroot.webflow.io' ? 'https://migroot-447015.oa.r.appspot.com/v1' : 'https://api.migroot.io/v1';
         this.endpoints = ENDPOINTS;
         this.log = new Logger(this.config.debug);
         this.ga = new AnalyticsHelper(this.config.debug);
