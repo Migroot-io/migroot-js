@@ -404,11 +404,22 @@ class Migroot {
                 throw new Error(`Request failed: ${response.status} ${response.statusText}`);
             }
 
-            const contentLength = response.headers.get('content-length');
-            if (contentLength === '0' || !contentLength) {
+            // Do not rely on Content-Length: proxies (e.g. Fly.io) stream responses
+            // with Transfer-Encoding: chunked and omit Content-Length, which would
+            // otherwise cause valid JSON bodies to be silently dropped. Read the body
+            // directly and parse it; empty body -> {} (backward compatible with the
+            // previous Content-Length === '0' behaviour).
+            const text = await response.text();
+            if (!text.trim()) {
                 return {};
             }
-            return await response.json();
+            try {
+                return JSON.parse(text);
+            } catch (e) {
+                // Non-JSON body (backward compatible fallback): return raw text.
+                this.log.warning(`Response from ${endpointName} is not JSON, returning raw text`);
+                return text;
+            }
 
         } catch (error) {
             this.log.error(`Error in request to ${endpointName}:`, error);
