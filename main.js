@@ -178,7 +178,11 @@ class Migroot {
 
         if (urlToken) return urlToken;
 
-        throw new Error("Access token not found in Outseta or URL");
+        // No token = anonymous visitor (public pages /, /login, /sign-up). Return null so callers'
+        // graceful "not authenticated" branches run (fetchUserData -> `if (!this.token) return`,
+        // init_dashboard -> `if (!this.currentUser) return`). Throwing here instead propagated an
+        // uncaught error up to footer.js and replaced the whole page with the "Oops" error screen.
+        return null;
     }
 
     async fetchUserData() {
@@ -281,6 +285,14 @@ class Migroot {
 
     async searchUserBoards(boardUser = null) {
         this.boardUser = boardUser || this.currentUser
+
+        // Defensive against init races: the board-load flow (loadFirstUserBoard -> searchUserBoards)
+        // can run before fetchUserData has set this.token / this.currentUser. In that case boardUser
+        // is empty, so load the token + current user on demand before deciding there is no user.
+        if (!this.boardUser?.id || !this.boardUser?.type) {
+            if (!this.token) this.token = await this.getAccessToken();
+            this.boardUser = this.currentUser = await this.api.currentUser();
+        }
 
         if (!this.boardUser?.id || !this.boardUser?.type) {
             this.log.error('User init error for user:', this.boardUser)
